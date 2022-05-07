@@ -1,0 +1,81 @@
+*devcontainer.txt* Description
+
+INTRODUCTION                                     *devcontainer*
+
+Description
+
+CONTENTS                                         *devcontainer-contents*
+
+  1.  Overview                                   |devcontainer-overview|
+  2.  Requirements                               |devcontainer-requirements|
+  3.  Installation                               |devcontainer-installation|
+  4.  Usage                                      |devcontainer-usage|
+  5.  Commands                                   |devcontainer-commands|
+  6.  Functions                                  |devcontainer-functions|
+  7.  Mappings                                   |devcontainer-mappings|
+  8.  Plugs                                      |devcontainer-plugs|
+  9.  Options                                    |devcontainer-options|
+  10. Issues                                     |devcontainer-issues|
+  11. Contributing                               |devcontainer-contributing|
+  12. Version                                    |devcontainer-version|
+  13. License                                    |devcontainer-license|
+
+OVERVIEW                                         *devcontainer-overview*
+
+REQUIREMENTS                                     *devcontainer-requirements*
+
+INSTALLATION                                     *devcontainer-installation*
+
+1. Packer.nvim <https://github.com/wbthomason/packer.nvim>
+
+Add the following to your packer setup: >
+
+  use { 'esensar/nvim-dev-container' }
+<
+
+2. Plug <https://github.com/junegunn/vim-plug>
+
+Add the following to your vimrc, or something sourced therein: >
+
+  Plug 'esensar/nvim-dev-container'
+<
+Then install via `:PlugInstall`
+
+3. Manual
+
+Clone this repository and copy the files in plugin/, lua/, and doc/
+to their respective directories in your vimfiles, or copy the text from
+the github repository into new files in those directories. Make sure to
+run `:helptags`.
+
+USAGE                                            *devcontainer-usage*
+
+COMMANDS                                         *devcontainer-commands*
+
+FUNCTIONS                                        *devcontainer-functions*
+
+MAPPINGS                                         *devcontainer-mappings*
+
+PLUGS                                            *devcontainer-plugs*
+
+OPTIONS                                          *devcontainer-options*
+
+ISSUES                                           *devcontainer-issues*
+
+If you experience issues using plugin, please report them at
+<https://github.com/esensar/nvim-dev-container/issues>.
+
+CONTRIBUTING                                     *devcontainer-contributing*
+
+Feel free to look at already reported issues at
+<https://github.com/esensar/nvim-dev-container/issues>.
+If available, check out CONTRIBUTING.md in the repository.
+Otherwise, feel free to create a new issue or pull request.
+
+VERSION                                          *devcontainer-version*
+
+Version 1.0.0
+
+LICENSE                                          *devcontainer-license*
+
+vim:tw=78:ts=2:ft=help:norl:

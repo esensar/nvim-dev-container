@@ -1,0 +1,11 @@
+#!/bin/sh
+
+echo "Looking for luacheck"
+(type luacheck > /dev/null 2>&1 || echo "Luacheck not found. Install it with 'apt install lua-check' or manually" && exit 1)
+echo "Looking for stylua"
+(type stylua > /dev/null 2>&1 || echo "Stylua not found. Install it with 'cargo install stylua' or manually" && exit 1)
+
+echo "Preparing pre-commit hook"
+cp scripts/pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+echo "Pre-commit hook ready"
