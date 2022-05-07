@@ -34,6 +34,10 @@ use { 'esensar/nvim-dev-container' }
 
 **TODO**
 
+## Contributing
+
+Check out [contributing guidelines](CONTRIBUTING.md).
+
 ## License
 
 [MIT](LICENSE)
