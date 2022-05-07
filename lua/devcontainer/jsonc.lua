@@ -1,5 +1,6 @@
 local function clean_jsonc(jsonc_content)
 	local result, _ = string.gsub(jsonc_content, "//.-\n", "\n")
+	result, _ = string.gsub(result, "/\\*.-\\*/", "")
 	return vim.fn.substitute(result, ",\\_s*}", "}", "g")
 end
 

@@ -34,5 +34,17 @@ describe("devcontainer/jsonc:", function()
 			local json_with_comments = vim.fn.join(lines, "\n")
 			assert.are.same(vim.fn.json_decode(json), subject.parse_jsonc(json_with_comments))
 		end)
+		it("should work with block comments too", function()
+			local json = '{ "test": "value", "nested": { "nested_test": "nested_value" } }'
+			local json_with_comments = [[
+      {
+        /* comment
+        started above
+        ends here */
+        "test": //inline comment
+        "value", "nested": { "nested_test": "nested_value" } }
+      ]]
+			assert.are.same(vim.fn.json_decode(json), subject.parse_jsonc(json_with_comments))
+		end)
 	end)
 end)
