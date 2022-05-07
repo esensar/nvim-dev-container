@@ -1,3 +1,3 @@
-if exists("g:loaded_plugin") || &cp | finish | endif
+if exists("g:loaded_nvim_devcontainer") || &cp | finish | endif
 
-let g:loaded_plugin = 1
+let g:loaded_nvim_devcontainer = 1
