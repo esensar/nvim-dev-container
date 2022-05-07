@@ -42,5 +42,8 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
           ln -s "$(pwd)" ~/.local/share/nvim/site/pack/vendor/start
+      - name: Prepare treesitter
+        run: |
+          git clone --depth 1 https://github.com/nvim-treesitter/nvim-treesitter ~/.local/share/nvim/site/pack/vendor/start/nvim-treesitter
       - name: Run tests
         run: scripts/test

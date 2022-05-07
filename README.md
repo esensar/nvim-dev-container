@@ -7,12 +7,22 @@ Goal of this plugin is to provide functionality similar to VSCode's [remote cont
 ## Requirements
 
 - [NeoVim](https://neovim.io) version 0.5.0+
+- [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) with included `jsonc` parser
 
 ## Installation
 
 Install using favourite plugin manager.
 
 e.g. Using [Packer.nvim](https://github.com/wbthomason/packer.nvim)
+
+```
+use {
+  'esensar/nvim-dev-container',
+  requires = { 'nvim-treesitter/nvim-treesitter' }
+}
+```
+
+or assuming `nvim-treesitter` is already available:
 
 ```
 use { 'esensar/nvim-dev-container' }
