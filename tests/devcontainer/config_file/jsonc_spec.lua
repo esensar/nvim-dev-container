@@ -1,6 +1,6 @@
-local subject = require("devcontainer.jsonc")
-
 describe("devcontainer/jsonc:", function()
+	local subject = require("devcontainer.config_file.jsonc")
+
 	describe("parse_jsonc", function()
 		it("should have same behavior as json_decode for basic json", function()
 			local json = '{ "test": "value", "nested": { "nested_test": "nested_value" } }'
