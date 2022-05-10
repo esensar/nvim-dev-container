@@ -75,6 +75,13 @@ CONFIG FILE FUNCTIONS                            *devcontainer-config-file*
   also returns the path to the file as metadata, which is useful if file is
   automatically discovered.
 
+*devcontainer.config_file.parse.parse_nearest_devcontainer_config()*
+
+  Parses the nearest `devcontainer.json` file into lua table. This first looks
+  for `.devcontainer.json`, and then for `.devcontainer/devcontainer.json`.
+  Everyhing else is the same as
+  *devcontainer.config_file.parse.parse_devcontainer_config(file_path)*.
+
 MAPPINGS                                         *devcontainer-mappings*
 
 PLUGS                                            *devcontainer-plugs*
