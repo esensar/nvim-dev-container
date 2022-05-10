@@ -12,6 +12,7 @@ CONTENTS                                         *devcontainer-contents*
   4.  Usage                                      |devcontainer-usage|
   5.  Commands                                   |devcontainer-commands|
   6.  Functions                                  |devcontainer-functions|
+    6.1. Config file module                      |devcontainer-config-file|
   7.  Mappings                                   |devcontainer-mappings|
   8.  Plugs                                      |devcontainer-plugs|
   9.  Options                                    |devcontainer-options|
@@ -54,6 +55,26 @@ COMMANDS                                         *devcontainer-commands*
 
 FUNCTIONS                                        *devcontainer-functions*
 
+This plugin provides multiple modules related to devcontainer functionality,
+but not all of them are needed for use tasks. Many of the functionalities are
+exposed to enable custom functionality.
+
+CONFIG FILE FUNCTIONS                            *devcontainer-config-file*
+
+*devcontainer.config_file.jsonc.parse_jsonc(jsonc_string)*
+  Parses `jsonc` string into lua table. Relies on |json_decode| (vim.json.decode),
+  but cleans up comments that can be found in `jsonc` files which are not
+  valid for `JSON`. This functionality relies on |treesitter| and requires
+  `jsonc` parser to be installed.
+
+*devcontainer.config_file.parse.parse_devcontainer_config(file_path)*
+
+  Parses the passed `devcontainer.json` file into lua table. Validates the
+  file before returning, ensuring it contains all of the required fields
+  (either image, dockerfile or docker-compose file). It
+  also returns the path to the file as metadata, which is useful if file is
+  automatically discovered.
+
 MAPPINGS                                         *devcontainer-mappings*
 
 PLUGS                                            *devcontainer-plugs*
@@ -77,5 +98,27 @@ VERSION                                          *devcontainer-version*
 Version 0.1.0
 
 LICENSE                                          *devcontainer-license*
+
+MIT License
+
+Copyright (c) 2022 Ensar Sarajčić
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 vim:tw=78:ts=2:ft=help:norl:
