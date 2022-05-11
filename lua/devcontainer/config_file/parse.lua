@@ -1,5 +1,13 @@
+---@mod devcontainer.config_file.parse Devcontainer config file parsing module
+---@brief [[
+---Provides support for parsing specific devcontainer.json files as well as
+---automatic discovery and parsing of nearest file
+---Ensures basic configuration required for the plugin to work is present in files
+---@brief ]]
 local jsonc = require("devcontainer.config_file.jsonc")
 local uv = vim.loop
+
+local M = {}
 
 local function readFileSync(path)
 	local fd = assert(uv.fs_open(path, "r", 438))
@@ -9,7 +17,12 @@ local function readFileSync(path)
 	return data
 end
 
-local function parse_devcontainer_config(config_file_path)
+---Parse specific devcontainer.json file into a Lua table
+---Ensures that at least one of "image", "dockerFile" or "dockerComposeFile" keys is present
+---@param config_file_path string
+---@return table
+---@usage `require("devcontainer.config_file.parse").parse_devcontainer_config([[{ "image": "test" }]])`
+function M.parse_devcontainer_config(config_file_path)
 	local content = readFileSync(config_file_path)
 	local config = vim.tbl_extend("keep", jsonc.parse_jsonc(content), { build = {}, hostRequirements = {} })
 	if
@@ -23,7 +36,13 @@ local function parse_devcontainer_config(config_file_path)
 	return vim.tbl_deep_extend("force", config, { metadata = { file_path = config_file_path } })
 end
 
-local function parse_nearest_devcontainer_config()
+---Parse nearest devcontainer.json file into a Lua table
+---Prefers .devcontainer.json over .devcontainer/devcontainer.json
+---Looks in CWD first and then moves up all the way until root
+---Fails if no devcontainer.json files were found, or if the first one found is invalid
+---@return table
+---@usage `require("devcontainer.config_file.parse").parse_nearest_devcontainer_config()`
+function M.parse_nearest_devcontainer_config()
 	local directory = uv.cwd()
 	local last_ino = nil
 	while true do
@@ -36,14 +55,11 @@ local function parse_nearest_devcontainer_config()
 			local path = directory .. "/" .. file
 			local success, data = pcall(uv.fs_stat, path)
 			if success and data ~= nil then
-				return parse_devcontainer_config(path)
+				return M.parse_devcontainer_config(path)
 			end
 		end
 		directory = directory .. "/.."
 	end
 end
 
-return {
-	parse_devcontainer_config = parse_devcontainer_config,
-	parse_nearest_devcontainer_config = parse_nearest_devcontainer_config,
-}
+return M

@@ -31,6 +31,10 @@ For asking questions, please make sure to use [**Discussions**](https://github.c
 
 This project uses [luacheck](https://github.com/mpeterv/luacheck) and [stylua](https://github.com/johnnymorganz/stylua). Script is provided to prepare pre-commit hook to check these tools and run tests (`scripts/devsetup`).
 
+## Generating documentation
+
+Documentation is generated using [lemmy-help](https://github.com/numToStr/lemmy-help). To generate documentation run `scripts/gendoc`.
+
 ## Running tests
 
 Running tests requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) and [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) to be checked out in the parent directory of this repository.

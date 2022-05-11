@@ -58,70 +58,7 @@ This plugin provides multiple modules related to devcontainer functionality,
 but not all of them are needed for use tasks. Many of the functionalities are
 exposed to enable custom functionality.
 
-================================================================================
-Jsonc parsing module                            *devcontainer.config_file.jsonc*
-
-Vim supports Json parsing by default, but devcontainer config files are Jsonc.
-This module supports Jsonc parsing by removing comments and then parsing as Json.
-Treesitter is used for this and jsonc parser needs to be installed.
-
-                                    *devcontainer.config_file.jsonc.parse_jsonc*
-M.parse_jsonc({jsonc_content})
-    Parse Json string into a Lua table
-    Usually file should be read and content should be passed as a string into the function
-
-    Parameters: ~
-        {jsonc_content}  (string)  
-
-    Returns: ~
-        {table}  
-
-    Usage: ~
-        >
-            require("devcontainer.config_file.jsonc").parse_jsonc([[{ "test": "value" }]])
-        <
-
-
-================================================================================
-Devcontainer config file parsing module         *devcontainer.config_file.parse*
-
-Provides support for parsing specific devcontainer.json files as well as
-automatic discovery and parsing of nearest file
-Ensures basic configuration required for the plugin to work is present in files
-
-                      *devcontainer.config_file.parse.parse_devcontainer_config*
-M.parse_devcontainer_config({config_file_path})
-    Parse specific devcontainer.json file into a Lua table
-    Ensures that at least one of "image", "dockerFile" or "dockerComposeFile" keys is present
-
-    Parameters: ~
-        {config_file_path}  (string)  
-
-    Returns: ~
-        {table}  
-
-    Usage: ~
-        >
-            require("devcontainer.config_file.parse").parse_devcontainer_config([[{ "image": "test" }]])
-        <
-
-
-              *devcontainer.config_file.parse.parse_nearest_devcontainer_config*
-M.parse_nearest_devcontainer_config()
-    Parse nearest devcontainer.json file into a Lua table
-    Prefers .devcontainer.json over .devcontainer/devcontainer.json
-    Looks in CWD first and then moves up all the way until root
-    Fails if no devcontainer.json files were found, or if the first one found is invalid
-
-    Returns: ~
-        {table}  
-
-    Usage: ~
-        >
-            require("devcontainer.config_file.parse").parse_devcontainer_config([[{ "image": "test" }]])
-        <
-
-
+---INSERT HERE---
 
 MAPPINGS                                         *devcontainer-mappings*
 
