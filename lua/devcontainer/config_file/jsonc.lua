@@ -1,3 +1,11 @@
+---@mod devcontainer.config_file.jsonc Jsonc parsing module
+---@brief [[
+---Vim supports Json parsing by default, but devcontainer config files are Jsonc.
+---This module supports Jsonc parsing by removing comments and then parsing as Json.
+---Treesitter is used for this and jsonc parser needs to be installed.
+---@brief ]]
+local M = {}
+
 local function clean_jsonc(jsonc_content)
 	local parser = vim.treesitter.get_string_parser(jsonc_content, "jsonc")
 	local tree = parser:parse()
@@ -22,11 +30,14 @@ local function clean_jsonc(jsonc_content)
 	return vim.fn.substitute(result, ",\\_s*}", "}", "g")
 end
 
-local function parse_jsonc(jsonc_content)
+---Parse Json string into a Lua table
+---Usually file should be read and content should be passed as a string into the function
+---@param jsonc_content string
+---@return table
+---@usage `require("devcontainer.config_file.jsonc").parse_jsonc([[{ "test": "value" }]])`
+function M.parse_jsonc(jsonc_content)
 	local clean_content = clean_jsonc(jsonc_content)
 	return vim.json.decode(clean_content)
 end
 
-return {
-	parse_jsonc = parse_jsonc,
-}
+return M
