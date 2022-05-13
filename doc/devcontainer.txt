@@ -59,6 +59,88 @@ but not all of them are needed for use tasks. Many of the functionalities are
 exposed to enable custom functionality.
 
 ================================================================================
+Docker module (docker + docker-compose)                    *devcontainer.docker*
+
+Provides functions related to docker control:
+ - building
+ - attaching
+ - running
+ - docker-compose commands
+
+DockerPullOpts                                                  *DockerPullOpts*
+
+
+    Fields: ~
+        {on_success}  (function())  success callback
+        {on_fail}     (function())  failure callback
+
+
+M.pull({image}, {opts})                               *devcontainer.docker.pull*
+    Pull passed image using docker pull
+
+    Parameters: ~
+        {image}  (string)          Docker image to pull
+        {opts}   (DockerPullOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            require("devcontainer.docker").pull("alpine", { on_success = function() end, on_fail = function() end})
+        <
+
+
+DockerBuildOpts                                                *DockerBuildOpts*
+
+
+    Fields: ~
+        {tag}         (string|nil)          tag for the image built
+        {on_success}  (function(image_id))  success callback taking the image_id of the built image
+        {on_fail}     (function())          failure callback
+
+
+M.build({file}, {path}, {opts})                      *devcontainer.docker.build*
+    Build image from passed dockerfile using docker build
+
+    Parameters: ~
+        {file}  (string)           Path to Dockerfile to build
+        {path}  (string|nil)       Path to the workspace, vim.lsp.buf.list_workspace_folders()[1] by default
+        {opts}  (DockerBuildOpts)  Additional options including callbacks and tag
+
+    Usage: ~
+        >
+            docker.build("Dockerfile", { on_success = function(image_id) end, on_fail = function() end })
+        <
+
+
+DockerRunOpts                                                    *DockerRunOpts*
+
+
+    Fields: ~
+        {autoremove}        (boolean)                 automatically remove container after stopping - true by default
+        {tty}               (boolean)                 attach to container TTY and display it in terminal buffer, using configured terminal handler
+        {command}           (string|nil)              command to run in container
+        {terminal_handler}  (function(command))       override to open terminal in a different way, :tabnew + termopen by default
+        {on_success}        (function(container_id))  success callback taking the id of the started container - not invoked if tty
+        {on_fail}           (function())              failure callback
+
+    See: ~
+        |TODO: terminal handler config|
+
+
+M.run({image}, {opts})                                 *devcontainer.docker.run*
+    Run passed image using docker run
+    NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
+
+    Parameters: ~
+        {image}  (string)         Docker image to run
+        {opts}   (DockerRunOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            docker.run("alpine", { on_success = function(id) end, on_fail = function() end })
+        <
+
+
+================================================================================
 Jsonc parsing module                            *devcontainer.config_file.jsonc*
 
 Vim supports Json parsing by default, but devcontainer config files are Jsonc.
@@ -118,7 +200,7 @@ M.parse_nearest_devcontainer_config()
 
     Usage: ~
         >
-            require("devcontainer.config_file.parse").parse_devcontainer_config([[{ "image": "test" }]])
+            require("devcontainer.config_file.parse").parse_nearest_devcontainer_config()
         <
 
 
