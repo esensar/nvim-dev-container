@@ -5,11 +5,21 @@ local uv = vim.loop
 
 local M = {}
 
+---Checks if passed command is executable - fails if not
+---@param command string
+---@return boolean true if executable, false otherwise
+function M.is_executable(command)
+	if vim.fn.has("win32") == 1 then
+		command = command .. ".exe"
+	end
+	return vim.fn.executable(command) == 1
+end
+
 ---Ensures that passed command is executable - fails if not executable
 ---@param command string
 ---@usage `require("devcontainer.internal.executor").ensure_executable("docker")`
 function M.ensure_executable(command)
-	if vim.fn.executable(command) == 0 then
+	if not M.is_executable(command) then
 		error(command .. " is not executable. Ensure it is properly installed and available on PATH")
 	end
 end
