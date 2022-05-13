@@ -172,15 +172,16 @@ automatic discovery and parsing of nearest file
 Ensures basic configuration required for the plugin to work is present in files
 
                       *devcontainer.config_file.parse.parse_devcontainer_config*
-M.parse_devcontainer_config({config_file_path})
+M.parse_devcontainer_config({config_file_path}, {callback})
     Parse specific devcontainer.json file into a Lua table
     Ensures that at least one of "image", "dockerFile" or "dockerComposeFile" keys is present
 
     Parameters: ~
-        {config_file_path}  (string)  
+        {config_file_path}  (string)                  
+        {callback}          (function(err,data)|nil)  if nil run sync, otherwise run async and pass result to the callback
 
     Returns: ~
-        {table}  
+        {table|nil}  or nil if running async
 
     Usage: ~
         >
@@ -189,14 +190,17 @@ M.parse_devcontainer_config({config_file_path})
 
 
               *devcontainer.config_file.parse.parse_nearest_devcontainer_config*
-M.parse_nearest_devcontainer_config()
+M.parse_nearest_devcontainer_config({callback})
     Parse nearest devcontainer.json file into a Lua table
     Prefers .devcontainer.json over .devcontainer/devcontainer.json
     Looks in CWD first and then moves up all the way until root
     Fails if no devcontainer.json files were found, or if the first one found is invalid
 
+    Parameters: ~
+        {callback}  (function(err,data)|nil)  if nil run sync, otherwise run async and pass result to the callback
+
     Returns: ~
-        {table}  
+        {table|nil}  or nil if running async
 
     Usage: ~
         >
