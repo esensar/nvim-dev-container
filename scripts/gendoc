@@ -7,7 +7,7 @@ then
 fi
 
 FILES=""
-for FILE in $(find lua/devcontainer -name "*.lua")
+for FILE in $(find lua/devcontainer -name "*.lua" | grep -v "internal")
 do
 	if [ -f $FILE ]
 	then
