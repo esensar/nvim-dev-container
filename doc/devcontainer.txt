@@ -59,13 +59,12 @@ but not all of them are needed for use tasks. Many of the functionalities are
 exposed to enable custom functionality.
 
 ================================================================================
-Docker module (docker + docker-compose)                    *devcontainer.docker*
+Docker module                                              *devcontainer.docker*
 
 Provides functions related to docker control:
  - building
  - attaching
  - running
- - docker-compose commands
 
 DockerPullOpts                                                  *DockerPullOpts*
 
@@ -137,6 +136,74 @@ M.run({image}, {opts})                                 *devcontainer.docker.run*
     Usage: ~
         >
             docker.run("alpine", { on_success = function(id) end, on_fail = function() end })
+        <
+
+
+================================================================================
+Docker-compose module                              *devcontainer.docker-compose*
+
+Provides functions related to docker-compose control
+
+DockerComposeUpOpts                                        *DockerComposeUpOpts*
+
+
+    Fields: ~
+        {on_success}  (function())  success callback
+        {on_fail}     (function())  failure callback
+
+
+M.up({compose_file}, {opts})                    *devcontainer.docker-compose.up*
+    Run docker-compose up with passed file
+
+    Parameters: ~
+        {compose_file}  (string)               path to docker-compose.yml file
+        {opts}          (DockerComposeUpOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            require("devcontainer.docker-compose").up("docker-compose.yml")
+        <
+
+
+DockerComposeDownOpts                                    *DockerComposeDownOpts*
+
+
+    Fields: ~
+        {on_success}  (function())  success callback
+        {on_fail}     (function())  failure callback
+
+
+M.down({compose_file}, {opts})                *devcontainer.docker-compose.down*
+    Run docker-compose down with passed file
+
+    Parameters: ~
+        {compose_file}  (string)                 path to docker-compose.yml file
+        {opts}          (DockerComposeDownOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            require("devcontainer.docker-compose").down("docker-compose.yml")
+        <
+
+
+DockerComposeRmOpts                                        *DockerComposeRmOpts*
+
+
+    Fields: ~
+        {on_success}  (function())  success callback
+        {on_fail}     (function())  failure callback
+
+
+M.rm({compose_file}, {opts})                    *devcontainer.docker-compose.rm*
+    Run docker-compose rm with passed file
+
+    Parameters: ~
+        {compose_file}  (string)               path to docker-compose.yml file
+        {opts}          (DockerComposeRmOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            require("devcontainer.docker-compose").rm("docker-compose.yml")
         <
 
 
