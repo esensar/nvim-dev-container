@@ -6,6 +6,7 @@
 --- - running
 ---@brief ]]
 local exe = require("devcontainer.internal.executor")
+local config = require("devcontainer.config")
 
 local M = {}
 
@@ -23,6 +24,37 @@ local function run_docker(args, opts, onexit)
 		}),
 		onexit
 	)
+end
+
+---Runs docker command with passed arguments
+---@param image string base image tag
+---@param path string docker build path / context
+---@param opts DockerBuildOpts|nil
+local function build_with_neovim(image, path, opts)
+	opts = opts or {}
+	local on_fail = opts.on_fail or function() end
+	-- Install neovim in the image and then save it
+	-- Dockerfile template inspired by https://github.com/MashMB/nvim-ide/blob/master/nvim/Dockerfile
+	local temp_dockerfile = os.tmpname()
+	local dockerfile = io.open(temp_dockerfile, "w")
+	if not dockerfile then
+		on_fail()
+		return
+	end
+	local write_success = dockerfile:write(config.nvim_dockerfile_template(image))
+	local close_success = dockerfile:close()
+	if not write_success or not close_success then
+		on_fail()
+		return
+	end
+
+	-- Now build the new dockerfile
+	M.build(temp_dockerfile, path, {
+		on_fail = opts.on_fail,
+		on_success = opts.on_success,
+		tag = opts.tag,
+		add_neovim = false,
+	})
 end
 
 ---@class DockerPullOpts
@@ -53,6 +85,7 @@ end
 
 ---@class DockerBuildOpts
 ---@field tag string|nil tag for the image built
+---@field add_neovim boolean|nil install neovim in the image (useful only for attaching to image)
 ---@field on_success function(image_id) success callback taking the image_id of the built image
 ---@field on_fail function() failure callback
 
@@ -65,65 +98,58 @@ function M.build(file, path, opts)
 	path = path or vim.lsp.buf.list_workspace_folders()[1]
 	opts = opts or {}
 	local on_success = opts.on_success
-		or function(tag)
-			vim.notify("Successfully built image from " .. file .. " - tag: " .. tag)
+		or function(image_id)
+			local message = "Successfully built image from " .. file
+			if image_id then
+				message = message .. " - image_id: " .. image_id
+			end
+			if opts.tag then
+				message = message .. " - tag: " .. opts.tag
+			end
+			vim.notify(message)
 		end
 	local on_fail = opts.on_fail
 		or function()
 			vim.notify("Building image from file " .. file .. " failed!", vim.log.levels.ERROR)
 		end
 	local command = { "build", "-f", file, path }
-	if opts.tag then
+	local temptag = nil
+	if opts.tag and not opts.add_neovim then
 		table.insert(command, "-t")
 		table.insert(command, opts.tag)
+	elseif opts.add_neovim then
+		temptag = "nvim-dev-container-base-" .. os.time()
+		table.insert(command, "-t")
+		table.insert(command, temptag)
 	end
 	local image_id = nil
 	run_docker(command, {
-		stdout = function(_, data)
+		stdout = vim.schedule_wrap(function(_, data)
 			if data then
 				local lines = vim.split(data, "\n")
-				local result_line = vim.split(lines[#lines], " ")
-				image_id = result_line[#result_line]
+				--TODO: Is there a better way to get image ID
+				--There is the --iidfile maybe
+				local image_id_regex = vim.regex("Successfully built .*")
+				for _, line in ipairs(lines) do
+					if image_id_regex:match_str(line) then
+						local result_line = vim.split(line, " ")
+						image_id = result_line[#result_line]
+						return
+					end
+				end
 			end
-		end,
+		end),
 	}, function(code, _)
 		if code == 0 then
-			on_success(image_id)
+			if not opts.add_neovim then
+				on_success(image_id)
+				return
+			end
+			build_with_neovim(temptag, path, opts)
 		else
 			on_fail()
 		end
 	end)
-end
-
-local function default_terminal_handler(command)
-	local laststatus = vim.o.laststatus
-	vim.cmd("tabnew")
-	local bufnr = vim.api.nvim_get_current_buf()
-	vim.o.laststatus = 0
-	local au_id = vim.api.nvim_create_augroup("devcontainer.docker.terminal", {})
-	vim.api.nvim_create_autocmd("BufEnter", {
-		buffer = bufnr,
-		group = au_id,
-		callback = function()
-			vim.o.laststatus = 0
-		end,
-	})
-	vim.api.nvim_create_autocmd("BufLeave", {
-		buffer = bufnr,
-		group = au_id,
-		callback = function()
-			vim.o.laststatus = laststatus
-		end,
-	})
-	vim.api.nvim_create_autocmd("BufDelete", {
-		buffer = bufnr,
-		group = au_id,
-		callback = function()
-			vim.o.laststatus = laststatus
-			vim.api.nvim_del_augroup_by_id(au_id)
-		end,
-	})
-	vim.fn.termopen(command)
 end
 
 ---@class DockerRunOpts
@@ -163,7 +189,7 @@ function M.run(image, opts)
 		table.insert(command, opts.command)
 	end
 	if opts.tty then
-		(opts.terminal_handler or default_terminal_handler)(vim.list_extend({ "docker" }, command))
+		(opts.terminal_handler or config.terminal_handler)(vim.list_extend({ "docker" }, command))
 	else
 		local container_id = nil
 		run_docker(command, {

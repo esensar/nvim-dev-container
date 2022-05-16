@@ -5,6 +5,7 @@
 ---Ensures basic configuration required for the plugin to work is present in files
 ---@brief ]]
 local jsonc = require("devcontainer.config_file.jsonc")
+local config = require("devcontainer.config")
 local uv = vim.loop
 
 local M = {}
@@ -50,16 +51,16 @@ local function invoke_callback(callback, success, data)
 end
 
 local function parse_devcontainer_content(config_file_path, content)
-	local config = vim.tbl_extend("keep", jsonc.parse_jsonc(content), { build = {}, hostRequirements = {} })
+	local parsed_config = vim.tbl_extend("keep", jsonc.parse_jsonc(content), { build = {}, hostRequirements = {} })
 	if
-		config.image == nil
-		and config.dockerFile == nil
-		and (config.build.dockerfile == nil)
-		and config.dockerComposeFile == nil
+		parsed_config.image == nil
+		and parsed_config.dockerFile == nil
+		and (parsed_config.build.dockerfile == nil)
+		and parsed_config.dockerComposeFile == nil
 	then
 		error("Either image, dockerFile or dockerComposeFile need to be present in the file")
 	end
-	return vim.tbl_deep_extend("force", config, { metadata = { file_path = config_file_path } })
+	return vim.tbl_deep_extend("force", parsed_config, { metadata = { file_path = config_file_path } })
 end
 
 ---Parse specific devcontainer.json file into a Lua table
@@ -88,7 +89,7 @@ function M.parse_devcontainer_config(config_file_path, callback)
 end
 
 local function find_nearest_devcontainer_file(callback)
-	local directory = uv.cwd()
+	local directory = config.config_search_start()
 	local last_ino = nil
 
 	local function directory_callback(err, data)

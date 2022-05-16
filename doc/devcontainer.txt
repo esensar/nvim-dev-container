@@ -92,6 +92,7 @@ DockerBuildOpts                                                *DockerBuildOpts*
 
     Fields: ~
         {tag}         (string|nil)          tag for the image built
+        {add_neovim}  (boolean|nil)         install neovim in the image (useful only for attaching to image)
         {on_success}  (function(image_id))  success callback taking the image_id of the built image
         {on_fail}     (function())          failure callback
 
@@ -206,6 +207,13 @@ M.rm({compose_file}, {opts})                    *devcontainer.docker-compose.rm*
             require("devcontainer.docker-compose").rm("docker-compose.yml")
         <
 
+
+================================================================================
+Devcontainer plugin config module                          *devcontainer.config*
+
+Provides current devcontainer plugin configuration
+Don't change directly, use `devcontainer.setup{}` instead
+Can be used for read-only access
 
 ================================================================================
 Jsonc parsing module                            *devcontainer.config_file.jsonc*
