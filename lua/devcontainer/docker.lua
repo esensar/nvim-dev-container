@@ -7,6 +7,7 @@
 ---@brief ]]
 local exe = require("devcontainer.internal.executor")
 local config = require("devcontainer.config")
+local v = require("devcontainer.internal.validation")
 
 local M = {}
 
@@ -66,7 +67,13 @@ end
 ---@param opts DockerPullOpts Additional options including callbacks
 ---@usage `require("devcontainer.docker").pull("alpine", { on_success = function() end, on_fail = function() end})`
 function M.pull(image, opts)
+	vim.validate({
+		image = { image, "string" },
+		opts = { opts, { "table", "nil" } },
+	})
 	opts = opts or {}
+	v.validate_callbacks(opts)
+
 	local on_success = opts.on_success or function()
 		vim.notify("Successfully pulled image " .. image)
 	end
@@ -74,6 +81,7 @@ function M.pull(image, opts)
 		or function()
 			vim.notify("Pulling image " .. image .. " failed!", vim.log.levels.ERROR)
 		end
+
 	run_docker({ "pull", image }, nil, function(code, _)
 		if code == 0 then
 			on_success()
@@ -95,8 +103,18 @@ end
 ---@param opts DockerBuildOpts Additional options including callbacks and tag
 ---@usage `docker.build("Dockerfile", { on_success = function(image_id) end, on_fail = function() end })`
 function M.build(file, path, opts)
+	vim.validate({
+		file = { file, "string" },
+		path = { path, { "string", "nil" } },
+		opts = { opts, { "table", "nil" } },
+	})
 	path = path or vim.lsp.buf.list_workspace_folders()[1]
 	opts = opts or {}
+	v.validate_opts_with_callbacks(opts, {
+		tag = "string",
+		add_neovim = "boolean",
+	})
+
 	local on_success = opts.on_success
 		or function(image_id)
 			local message = "Successfully built image from " .. file
@@ -112,6 +130,7 @@ function M.build(file, path, opts)
 		or function()
 			vim.notify("Building image from file " .. file .. " failed!", vim.log.levels.ERROR)
 		end
+
 	local command = { "build", "-f", file, path }
 	local temptag = nil
 	if opts.tag and not opts.add_neovim then
@@ -122,6 +141,7 @@ function M.build(file, path, opts)
 		table.insert(command, "-t")
 		table.insert(command, temptag)
 	end
+
 	local image_id = nil
 	run_docker(command, {
 		stdout = vim.schedule_wrap(function(_, data)
@@ -167,7 +187,18 @@ end
 ---@param opts DockerRunOpts Additional options including callbacks
 ---@usage `docker.run("alpine", { on_success = function(id) end, on_fail = function() end })`
 function M.run(image, opts)
+	vim.validate({
+		image = { image, "string" },
+		opts = { opts, { "table", "nil" } },
+	})
 	opts = opts or {}
+	v.validate_opts_with_callbacks(opts, {
+		command = "string",
+		autoremove = "boolean",
+		tty = "boolean",
+		terminal_handler = "function",
+	})
+
 	local on_success = opts.on_success or function()
 		vim.notify("Successfully started image " .. image)
 	end
@@ -175,6 +206,7 @@ function M.run(image, opts)
 		or function()
 			vim.notify("Starting image " .. image .. " failed!", vim.log.levels.ERROR)
 		end
+
 	local command = { "run", "-i" }
 	if opts.tty then
 		table.insert(command, "-t")
@@ -188,6 +220,7 @@ function M.run(image, opts)
 	if opts.command then
 		table.insert(command, opts.command)
 	end
+
 	if opts.tty then
 		(opts.terminal_handler or config.terminal_handler)(vim.list_extend({ "docker" }, command))
 	else
