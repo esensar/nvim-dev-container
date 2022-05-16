@@ -10,9 +10,19 @@ return {
 		health.report_start("Neovim version")
 
 		if not vim.fn.has("nvim-0.7") then
-			health.report_error("Please upgrade Neovim to latest version")
+			health.report_warn("Latest Neovim version is recommended for full feature set!")
 		else
 			health.report_ok("Neovim version tested and supported: " .. vim_version_string())
+		end
+
+		health.report_start("Required plugins")
+
+		local has_jsonc, jsonc_info = pcall(vim.treesitter.inspect_language, "jsonc")
+
+		if not has_jsonc then
+			health.report_error("Jsonc treesitter parser missing! devcontainer.json files parsing will fail!")
+		else
+			health.report_ok("Jsonc treesitter parser available. ABI version: " .. jsonc_info._abi_version)
 		end
 
 		health.report_start("External dependencies")
