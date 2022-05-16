@@ -6,6 +6,7 @@
 ---@brief ]]
 local jsonc = require("devcontainer.config_file.jsonc")
 local config = require("devcontainer.config")
+local u = require("devcontainer.internal.utils")
 local uv = vim.loop
 
 local M = {}
@@ -105,37 +106,37 @@ local function find_nearest_devcontainer_file(callback)
 			end
 		end
 		last_ino = data.ino
-		local files = { ".devcontainer.json", ".devcontainer/devcontainer.json" }
+		local files = { ".devcontainer.json", ".devcontainer" .. u.path_sep .. "devcontainer.json" }
 		if callback then
 			local index = 1
 			local function file_callback(_, file_data)
 				if file_data then
-					local path = directory .. "/" .. files[index]
+					local path = directory .. u.path_sep .. files[index]
 					callback(nil, path)
 				else
 					index = index + 1
 					if index > #files then
-						directory = directory .. "/.."
+						directory = directory .. u.path_sep .. ".."
 						uv.fs_stat(directory, directory_callback)
 					else
-						local path = directory .. "/" .. files[index]
+						local path = directory .. u.path_sep .. files[index]
 						uv.fs_stat(path, file_callback)
 					end
 				end
 			end
 
-			local path = directory .. "/" .. files[index]
+			local path = directory .. u.path_sep .. files[index]
 			return uv.fs_stat(path, file_callback)
 		end
 
 		for _, file in pairs(files) do
-			local path = directory .. "/" .. file
+			local path = directory .. u.path_sep .. file
 			local success, stat_data = pcall(uv.fs_stat, path)
 			if success and stat_data ~= nil then
 				return path
 			end
 		end
-		directory = directory .. "/.."
+		directory = directory .. u.path_sep .. ".."
 		local dir_exists, directory_info = pcall(uv.fs_stat, directory)
 		local dir_err = nil
 		local dir_data = nil
@@ -164,7 +165,7 @@ end
 
 ---Parse nearest devcontainer.json file into a Lua table
 ---Prefers .devcontainer.json over .devcontainer/devcontainer.json
----Looks in CWD first and then moves up all the way until root
+---Looks in config.config_search_start first and then moves up all the way until root
 ---Fails if no devcontainer.json files were found, or if the first one found is invalid
 ---@param callback function(err,data)|nil if nil run sync, otherwise run async and pass result to the callback
 ---@return table|nil result or nil if running async
@@ -184,6 +185,89 @@ function M.parse_nearest_devcontainer_config(callback)
 	else
 		return M.parse_devcontainer_config(find_nearest_devcontainer_file(nil), nil)
 	end
+end
+
+local function sub_variables(config_string)
+	local local_workspace_folder = config.workspace_folder_provider()
+	local parts = vim.split(local_workspace_folder, u.path_sep)
+	local local_workspace_folder_basename = parts[#parts]
+	config_string = string.gsub(config_string, "${localWorkspaceFolder}", local_workspace_folder)
+	config_string = string.gsub(config_string, "${localWorkspaceFolderBasename}", local_workspace_folder_basename)
+	config_string = string.gsub(config_string, "${localEnv:.*}", function(part)
+		part = string.gsub(part, "${localEnv:", "")
+		part = string.sub(part, 1, #part - 1)
+		return vim.env[part] or ""
+	end)
+	-- TODO: containerWorkspaceFolder support
+	-- TODO: containerEnv support
+	return config_string
+end
+
+local function sub_variables_recursive(config_table)
+	if vim.tbl_islist(config_table) then
+		for i, v in ipairs(config_table) do
+			if type(v) == "table" then
+				config_table = vim.tbl_deep_extend("force", config_table, sub_variables_recursive(v))
+			elseif type(v) == "string" then
+				config_table[i] = sub_variables(v)
+			end
+		end
+	elseif type(config_table) == "table" then
+		for k, v in pairs(config_table) do
+			if type(v) == "table" then
+				config_table = vim.tbl_deep_extend("force", config_table, sub_variables_recursive(v))
+			elseif type(v) == "string" then
+				config_table[k] = sub_variables(v)
+			end
+		end
+	end
+	return config_table
+end
+
+---Fills passed devcontainer config with defaults based on spec
+---Expects a proper config file, parsed with functions from this module
+---@param config_file table parsed config
+---@return table config with filled defaults and absolute paths
+function M.fill_defaults(config_file)
+	-- TODO: specs
+	vim.validate({
+		config_file = { config_file, "table" },
+	})
+
+	local file_path = config_file.metadata.file_path
+	local components = vim.split(file_path, u.path_sep)
+	table.remove(components, #components)
+	local file_dir = table.concat(components, u.path_sep)
+
+	local function to_absolute(relative_path)
+		return file_dir .. u.path_sep .. relative_path
+	end
+
+	if config_file.build.dockerfile or config_file.dockerFile then
+		config_file.build.dockerfile = config_file.build.dockerfile or config_file.dockerFile
+		config_file.dockerFile = config_file.dockerFile or config_file.build.dockerfile
+		config_file.context = config_file.context or config_file.build.context or "."
+		config_file.build.context = config_file.build.context or config_file.context or "."
+
+		config_file.build.dockerfile = to_absolute(config_file.build.dockerfile)
+		config_file.dockerFile = to_absolute(config_file.dockerFile)
+		config_file.context = to_absolute(config_file.context)
+		config_file.build.context = to_absolute(config_file.build.context)
+		if config_file.overrideCommand == nil then
+			config_file.overrideCommand = true
+		end
+	end
+
+	if config_file.dockerComposeFile then
+		config_file.dockerComposeFile = to_absolute(config_file.dockerComposeFile)
+		config_file.workspaceFolder = config_file.workspaceFolder or u.path_sep
+		config_file.overrideCommand = config_file.overrideCommand or false
+	end
+
+	config_file.forwardPorts = config_file.forwardPorts or {}
+	config_file.remoteEnv = config_file.remoteEnv or {}
+
+	return sub_variables_recursive(config_file)
 end
 
 return M

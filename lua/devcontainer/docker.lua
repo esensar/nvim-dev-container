@@ -94,6 +94,7 @@ end
 ---@class DockerBuildOpts
 ---@field tag string|nil tag for the image built
 ---@field add_neovim boolean|nil install neovim in the image (useful only for attaching to image)
+---@field args table|nil list of additional arguments to build command
 ---@field on_success function(image_id) success callback taking the image_id of the built image
 ---@field on_fail function() failure callback
 
@@ -113,6 +114,9 @@ function M.build(file, path, opts)
 	v.validate_opts_with_callbacks(opts, {
 		tag = "string",
 		add_neovim = "boolean",
+		args = function(x)
+			return vim.tbl_islist(x)
+		end,
 	})
 
 	local on_success = opts.on_success
@@ -141,6 +145,8 @@ function M.build(file, path, opts)
 		table.insert(command, "-t")
 		table.insert(command, temptag)
 	end
+
+	vim.list_extend(command, opts.args or {})
 
 	local image_id = nil
 	run_docker(command, {
@@ -176,6 +182,7 @@ end
 ---@field autoremove boolean automatically remove container after stopping - true by default
 ---@field tty boolean attach to container TTY and display it in terminal buffer, using configured terminal handler
 ---@field command string|nil command to run in container
+---@field args table|nil list of additional arguments to run command
 ---@field terminal_handler function(command) override to open terminal in a different way, :tabnew + termopen by default
 ---@field on_success function(container_id) success callback taking the id of the started container - not invoked if tty
 ---@field on_fail function() failure callback
@@ -197,6 +204,9 @@ function M.run(image, opts)
 		autoremove = "boolean",
 		tty = "boolean",
 		terminal_handler = "function",
+		args = function(x)
+			return vim.tbl_islist(x)
+		end,
 	})
 
 	local on_success = opts.on_success or function()
@@ -220,6 +230,8 @@ function M.run(image, opts)
 	if opts.command then
 		table.insert(command, opts.command)
 	end
+
+	vim.list_extend(command, opts.args or {})
 
 	if opts.tty then
 		(opts.terminal_handler or config.terminal_handler)(vim.list_extend({ "docker" }, command))
