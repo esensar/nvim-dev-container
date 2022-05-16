@@ -70,6 +70,10 @@ end
 ---@return table|nil result or nil if running async
 ---@usage `require("devcontainer.config_file.parse").parse_devcontainer_config([[{ "image": "test" }]])`
 function M.parse_devcontainer_config(config_file_path, callback)
+	vim.validate({
+		config_file_path = { config_file_path, "string" },
+		callback = { callback, { "function", "nil" } },
+	})
 	if callback then
 		readFileAsync(
 			config_file_path,
@@ -166,6 +170,9 @@ end
 ---@return table|nil result or nil if running async
 ---@usage `require("devcontainer.config_file.parse").parse_nearest_devcontainer_config()`
 function M.parse_nearest_devcontainer_config(callback)
+	vim.validate({
+		callback = { callback, { "function", "nil" } },
+	})
 	if callback then
 		return find_nearest_devcontainer_file(function(err, data)
 			if err then
