@@ -1,10 +1,9 @@
----@mod devcontainer.docker Docker module (docker + docker-compose)
+---@mod devcontainer.docker Docker module
 ---@brief [[
 ---Provides functions related to docker control:
 --- - building
 --- - attaching
 --- - running
---- - docker-compose commands
 ---@brief ]]
 local exe = require("devcontainer.internal.executor")
 
