@@ -3,6 +3,7 @@
 ---Provides functions related to docker-compose control
 ---@brief ]]
 local exe = require("devcontainer.internal.executor")
+local v = require("devcontainer.internal.validation")
 
 local M = {}
 
@@ -32,6 +33,7 @@ end
 ---@usage `require("devcontainer.docker-compose").up("docker-compose.yml")`
 function M.up(compose_file, opts)
 	opts = opts or {}
+	v.validate_callbacks(opts)
 	local on_success = opts.on_success
 		or function()
 			vim.notify("Successfully started services from " .. compose_file)
@@ -59,6 +61,7 @@ end
 ---@usage `require("devcontainer.docker-compose").down("docker-compose.yml")`
 function M.down(compose_file, opts)
 	opts = opts or {}
+	v.validate_callbacks(opts)
 	local on_success = opts.on_success
 		or function()
 			vim.notify("Successfully stopped services from " .. compose_file)
@@ -86,6 +89,7 @@ end
 ---@usage `require("devcontainer.docker-compose").rm("docker-compose.yml")`
 function M.rm(compose_file, opts)
 	opts = opts or {}
+	v.validate_callbacks(opts)
 	local on_success = opts.on_success
 		or function()
 			vim.notify("Successfully removed containers from " .. compose_file)

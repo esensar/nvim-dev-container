@@ -93,6 +93,7 @@ DockerBuildOpts                                                *DockerBuildOpts*
     Fields: ~
         {tag}         (string|nil)          tag for the image built
         {add_neovim}  (boolean|nil)         install neovim in the image (useful only for attaching to image)
+        {args}        (table|nil)           list of additional arguments to build command
         {on_success}  (function(image_id))  success callback taking the image_id of the built image
         {on_fail}     (function())          failure callback
 
@@ -118,6 +119,7 @@ DockerRunOpts                                                    *DockerRunOpts*
         {autoremove}        (boolean)                 automatically remove container after stopping - true by default
         {tty}               (boolean)                 attach to container TTY and display it in terminal buffer, using configured terminal handler
         {command}           (string|nil)              command to run in container
+        {args}              (table|nil)               list of additional arguments to run command
         {terminal_handler}  (function(command))       override to open terminal in a different way, :tabnew + termopen by default
         {on_success}        (function(container_id))  success callback taking the id of the started container - not invoked if tty
         {on_fail}           (function())              failure callback
@@ -216,6 +218,47 @@ Don't change directly, use `devcontainer.setup{}` instead
 Can be used for read-only access
 
 ================================================================================
+High level devcontainer commands                         *devcontainer.commands*
+
+Provides functions representing high level devcontainer commands
+
+M.compose_up({callback})                      *devcontainer.commands.compose_up*
+    Run docker-compose up from nearest devcontainer.json file
+
+    Parameters: ~
+        {callback}  (function|nil)  called on success - parsed devcontainer config is passed to the callback
+
+    Usage: ~
+        >
+            require("devcontainer.commands").compose_up()
+        <
+
+
+M.compose_down({callback})                  *devcontainer.commands.compose_down*
+    Run docker-compose down from nearest devcontainer.json file
+
+    Parameters: ~
+        {callback}  (function|nil)  called on success - parsed devcontainer config is passed to the callback
+
+    Usage: ~
+        >
+            require("devcontainer.commands").compose_down()
+        <
+
+
+M.compose_rm({callback})                      *devcontainer.commands.compose_rm*
+    Run docker-compose rm from nearest devcontainer.json file
+
+    Parameters: ~
+        {callback}  (function|nil)  called on success - parsed devcontainer config is passed to the callback
+
+    Usage: ~
+        >
+            require("devcontainer.commands").compose_down()
+        <
+
+
+================================================================================
 Jsonc parsing module                            *devcontainer.config_file.jsonc*
 
 Vim supports Json parsing by default, but devcontainer config files are Jsonc.
@@ -268,7 +311,7 @@ M.parse_devcontainer_config({config_file_path}, {callback})
 M.parse_nearest_devcontainer_config({callback})
     Parse nearest devcontainer.json file into a Lua table
     Prefers .devcontainer.json over .devcontainer/devcontainer.json
-    Looks in CWD first and then moves up all the way until root
+    Looks in config.config_search_start first and then moves up all the way until root
     Fails if no devcontainer.json files were found, or if the first one found is invalid
 
     Parameters: ~
@@ -281,6 +324,18 @@ M.parse_nearest_devcontainer_config({callback})
         >
             require("devcontainer.config_file.parse").parse_nearest_devcontainer_config()
         <
+
+
+                                  *devcontainer.config_file.parse.fill_defaults*
+M.fill_defaults({config_file})
+    Fills passed devcontainer config with defaults based on spec
+    Expects a proper config file, parsed with functions from this module
+
+    Parameters: ~
+        {config_file}  (table)  parsed config
+
+    Returns: ~
+        {table}  with filled defaults and absolute paths
 
 
 

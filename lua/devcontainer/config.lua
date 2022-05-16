@@ -79,7 +79,7 @@ local function default_nvim_dockerfile_template(base_image)
 	return table.concat(lines, "\n")
 end
 
-local function default_docker_build_path_provider()
+local function workspace_folder_provider()
 	return vim.lsp.buf.list_workspace_folders()[1] or vim.loop.cwd()
 end
 
@@ -99,7 +99,7 @@ M.nvim_dockerfile_template = default_nvim_dockerfile_template
 
 ---Provides docker build path
 ---By default uses first LSP workplace folder or vim.loop.cwd()
-M.docker_build_path_provider = default_docker_build_path_provider
+M.workspace_folder_provider = workspace_folder_provider
 
 ---Provides starting search path for .devcontainer.json
 ---After this search moves up until root
