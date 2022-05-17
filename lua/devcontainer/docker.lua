@@ -181,7 +181,7 @@ end
 ---@class DockerRunOpts
 ---@field autoremove boolean automatically remove container after stopping - true by default
 ---@field tty boolean attach to container TTY and display it in terminal buffer, using configured terminal handler
----@field command string|nil command to run in container
+---@field command string|table|nil command to run in container
 ---@field args table|nil list of additional arguments to run command
 ---@field terminal_handler function(command) override to open terminal in a different way, :tabnew + termopen by default
 ---@field on_success function(container_id) success callback taking the id of the started container - not invoked if tty
@@ -200,7 +200,7 @@ function M.run(image, opts)
 	})
 	opts = opts or {}
 	v.validate_opts_with_callbacks(opts, {
-		command = "string",
+		command = { "string", "table" },
 		autoremove = "boolean",
 		tty = "boolean",
 		terminal_handler = "function",
@@ -226,12 +226,17 @@ function M.run(image, opts)
 	if opts.autoremove ~= false then
 		table.insert(command, "--rm")
 	end
-	table.insert(command, image)
-	if opts.command then
-		table.insert(command, opts.command)
-	end
 
 	vim.list_extend(command, opts.args or {})
+
+	table.insert(command, image)
+	if opts.command then
+		if type(opts.command) == "string" then
+			table.insert(command, opts.command)
+		elseif type(opts.command) == "table" then
+			vim.list_extend(command, opts.command)
+		end
+	end
 
 	if opts.tty then
 		(opts.terminal_handler or config.terminal_handler)(vim.list_extend({ "docker" }, command))
@@ -242,6 +247,9 @@ function M.run(image, opts)
 				if data then
 					container_id = data
 				end
+			end,
+			stderr = function(_, data)
+				vim.pretty_print(data)
 			end,
 		}, function(code, _)
 			if code == 0 then

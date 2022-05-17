@@ -20,7 +20,13 @@ end
 function M.validate_opts(opts, mapping)
 	local validation = {}
 	for k, v in pairs(mapping) do
-		validation["opts." .. k] = { opts[k], { v, "nil" } }
+		if type(v) == "function" then
+			validation["opts." .. k] = { opts[k], v }
+		elseif type(v) == "table" then
+			validation["opts." .. k] = { opts[k], vim.list_extend(v, { "nil" }) }
+		else
+			validation["opts." .. k] = { opts[k], { v, "nil" } }
+		end
 	end
 	vim.validate(validation)
 end
