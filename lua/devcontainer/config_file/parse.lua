@@ -193,7 +193,7 @@ local function sub_variables(config_string)
 	local local_workspace_folder_basename = parts[#parts]
 	config_string = string.gsub(config_string, "${localWorkspaceFolder}", local_workspace_folder)
 	config_string = string.gsub(config_string, "${localWorkspaceFolderBasename}", local_workspace_folder_basename)
-	config_string = string.gsub(config_string, "${localEnv:.*}", function(part)
+	config_string = string.gsub(config_string, "${localEnv:[a-zA-Z_]+[a-zA-Z0-9_]*}", function(part)
 		part = string.gsub(part, "${localEnv:", "")
 		part = string.sub(part, 1, #part - 1)
 		return vim.env[part] or ""
@@ -207,7 +207,7 @@ local function sub_variables_recursive(config_table)
 	if vim.tbl_islist(config_table) then
 		for i, v in ipairs(config_table) do
 			if type(v) == "table" then
-				config_table = vim.tbl_deep_extend("force", config_table, sub_variables_recursive(v))
+				config_table[i] = vim.tbl_deep_extend("force", config_table[i], sub_variables_recursive(v))
 			elseif type(v) == "string" then
 				config_table[i] = sub_variables(v)
 			end
@@ -215,7 +215,7 @@ local function sub_variables_recursive(config_table)
 	elseif type(config_table) == "table" then
 		for k, v in pairs(config_table) do
 			if type(v) == "table" then
-				config_table = vim.tbl_deep_extend("force", config_table, sub_variables_recursive(v))
+				config_table[k] = vim.tbl_deep_extend("force", config_table[k], sub_variables_recursive(v))
 			elseif type(v) == "string" then
 				config_table[k] = sub_variables(v)
 			end
@@ -226,10 +226,10 @@ end
 
 ---Fills passed devcontainer config with defaults based on spec
 ---Expects a proper config file, parsed with functions from this module
+---*NOTE: This mutates passed config!
 ---@param config_file table parsed config
 ---@return table config with filled defaults and absolute paths
 function M.fill_defaults(config_file)
-	-- TODO: specs
 	vim.validate({
 		config_file = { config_file, "table" },
 	})
@@ -253,6 +253,10 @@ function M.fill_defaults(config_file)
 		config_file.dockerFile = to_absolute(config_file.dockerFile)
 		config_file.context = to_absolute(config_file.context)
 		config_file.build.context = to_absolute(config_file.build.context)
+
+		config_file.build.args = config_file.build.args or {}
+		config_file.build.mounts = config_file.build.mounts or {}
+		config_file.runArgs = config_file.runArgs or {}
 		if config_file.overrideCommand == nil then
 			config_file.overrideCommand = true
 		end
@@ -260,7 +264,7 @@ function M.fill_defaults(config_file)
 
 	if config_file.dockerComposeFile then
 		config_file.dockerComposeFile = to_absolute(config_file.dockerComposeFile)
-		config_file.workspaceFolder = config_file.workspaceFolder or u.path_sep
+		config_file.workspaceFolder = config_file.workspaceFolder or "/"
 		config_file.overrideCommand = config_file.overrideCommand or false
 	end
 

@@ -11,4 +11,7 @@ require'nvim-treesitter.configs'.setup {
   -- Install parsers synchronously (only applied to `ensure_installed`)
   sync_install = true,
 }
+
+-- Changing path_sep for tests - for Windows tests compatibility
+require("devcontainer.internal.utils").path_sep = "/"
 EOF
