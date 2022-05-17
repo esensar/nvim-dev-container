@@ -130,7 +130,7 @@ DockerRunOpts                                                    *DockerRunOpts*
 
 M.run({image}, {opts})                                 *devcontainer.docker.run*
     Run passed image using docker run
-    NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
+    *NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
 
     Parameters: ~
         {image}  (string)         Docker image to run
@@ -330,6 +330,7 @@ M.parse_nearest_devcontainer_config({callback})
 M.fill_defaults({config_file})
     Fills passed devcontainer config with defaults based on spec
     Expects a proper config file, parsed with functions from this module
+    *NOTE: This mutates passed config!
 
     Parameters: ~
         {config_file}  (table)  parsed config

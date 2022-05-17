@@ -189,7 +189,7 @@ end
 ---@see TODO: terminal handler config
 
 ---Run passed image using docker run
----NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
+---*NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
 ---@param image string Docker image to run
 ---@param opts DockerRunOpts Additional options including callbacks
 ---@usage `docker.run("alpine", { on_success = function(id) end, on_fail = function() end })`

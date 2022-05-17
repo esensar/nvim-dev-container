@@ -22,7 +22,7 @@ local function get_compose_file_from_nearest_config(callback)
 			return
 		end
 
-		callback(data)
+		callback(config_file.fill_defaults(data))
 	end)
 end
 

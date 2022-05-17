@@ -210,4 +210,213 @@ describe("devcontainer.config_file.parse:", function()
 			end)
 		end)
 	end)
+
+	local function test_dockerfile_updates(given_config_provider, workspace_dir)
+		local test_it = function(name, block)
+			it(name, function()
+				local config_mock = mock(require("devcontainer.config"), true)
+				config_mock.workspace_folder_provider.returns(workspace_dir)
+
+				local data = subject.fill_defaults(given_config_provider())
+
+				block(data, config_mock)
+
+				mock.revert(config_mock)
+			end)
+		end
+
+		test_it("should update build.dockerfile to absolute path", function(data, _)
+			assert.are.same("/home/test/projects/devcontainer/.devcontainer/Dockerfile", data.build.dockerfile)
+		end)
+
+		test_it("should update dockerFile to the same value", function(data, _)
+			assert.are.same(data.build.dockerfile, data.dockerFile)
+		end)
+
+		test_it("should set context and build.context to default value", function(data, _)
+			assert.are.same("/home/test/projects/devcontainer/.devcontainer/.", data.context)
+			assert.are.same(data.context, data.build.context)
+		end)
+
+		test_it("should fill out build.args", function(data, _)
+			assert.are.same({}, data.build.args)
+		end)
+
+		test_it("should fill out build.mounts", function(data, _)
+			assert.are.same({}, data.build.mounts)
+		end)
+
+		test_it("should fill out runArgs", function(data, _)
+			assert.are.same({}, data.runArgs)
+		end)
+
+		test_it("should set overrideCommand to true", function(data, _)
+			assert.are.same(true, data.overrideCommand)
+		end)
+
+		test_it("should fill out forwardPorts", function(data, _)
+			assert.are.same({}, data.forwardPorts)
+		end)
+
+		test_it("should fill out remoteEnv", function(data, _)
+			assert.are.same({}, data.remoteEnv)
+		end)
+	end
+
+	describe("given devcontainer config with just build.dockerfile", function()
+		describe("fill_defaults", function()
+			local given_config = function()
+				return {
+					build = {
+						dockerfile = "Dockerfile",
+					},
+					hostRequirements = {},
+					metadata = {
+						file_path = "/home/test/projects/devcontainer/.devcontainer/devcontainer.json",
+					},
+				}
+			end
+			local workspace_dir = "/home/test/projects/devcontainer"
+			test_dockerfile_updates(given_config, workspace_dir)
+		end)
+	end)
+
+	describe("given devcontainer config with dockerFile", function()
+		describe("fill_defaults", function()
+			local given_config = function()
+				return {
+					dockerFile = "Dockerfile",
+					build = {},
+					hostRequirements = {},
+					metadata = {
+						file_path = "/home/test/projects/devcontainer/.devcontainer/devcontainer.json",
+					},
+				}
+			end
+			local workspace_dir = "/home/test/projects/devcontainer"
+			test_dockerfile_updates(given_config, workspace_dir)
+		end)
+	end)
+
+	describe("given devcontainer config with dockerComposeFile", function()
+		describe("fill_defaults", function()
+			local test_it = function(name, block)
+				it(name, function()
+					local given_config = {
+						dockerComposeFile = "docker-compose.yml",
+						build = {},
+						hostRequirements = {},
+						metadata = {
+							file_path = "/home/test/projects/devcontainer/.devcontainer/devcontainer.json",
+						},
+					}
+					local workspace_dir = "/home/test/projects/devcontainer"
+					local config_mock = mock(require("devcontainer.config"), true)
+					config_mock.workspace_folder_provider.returns(workspace_dir)
+
+					local data = subject.fill_defaults(given_config)
+
+					block(data, config_mock)
+
+					mock.revert(config_mock)
+				end)
+			end
+
+			test_it("should update dockerComposeFile to absolute path", function(data, _)
+				assert.are.same(
+					"/home/test/projects/devcontainer/.devcontainer/docker-compose.yml",
+					data.dockerComposeFile
+				)
+			end)
+
+			test_it("should set workspaceFolder to default", function(data, _)
+				assert.are.same("/", data.workspaceFolder)
+			end)
+
+			test_it("should set overrideCommand to false", function(data, _)
+				assert.are.same(false, data.overrideCommand)
+			end)
+
+			test_it("should fill out forwardPorts", function(data, _)
+				assert.are.same({}, data.forwardPorts)
+			end)
+
+			test_it("should fill out remoteEnv", function(data, _)
+				assert.are.same({}, data.remoteEnv)
+			end)
+		end)
+	end)
+
+	describe("given compltex devcontainer config", function()
+		describe("fill_defaults", function()
+			local test_it = function(name, block)
+				it(name, function()
+					local given_config = {
+						name = "test",
+						build = {
+							dockerfile = "Dockerfile",
+						},
+						runArgs = {
+							"--cap-add=SYS_PTRACE",
+							"--security-opt",
+							"seccomp=unconfined",
+						},
+						settings = {
+							["cmake.configureOnOpen"] = true,
+							["editor.formatOnSave"] = true,
+						},
+						extensions = {},
+						containerEnv = {
+							TEST_VAR = "${localEnv:TEST_VAR}",
+							COMBINED_VARS = "${localEnv:COMBINED_VAR1}-${localEnv:COMBINED_VAR2}",
+						},
+						workspaceMount = "source=${localWorkspaceFolder},"
+							.. "target=/workspaces/${localWorkspaceFolderBasename},"
+							.. "type=bind,"
+							.. "consistency=delegated",
+						workspaceFolder = "/workspaces/${localWorkspaceFolderBasename}",
+						metadata = {
+							file_path = "/home/test/projects/devcontainer/.devcontainer/devcontainer.json",
+						},
+					}
+					vim.env.TEST_VAR = "test_var_value"
+					vim.env.COMBINED_VAR1 = "var1_value"
+					vim.env.COMBINED_VAR2 = "var2_value"
+					local workspace_dir = "/home/test/projects/devcontainer"
+					local config_mock = mock(require("devcontainer.config"), true)
+					config_mock.workspace_folder_provider.returns(workspace_dir)
+
+					local data = subject.fill_defaults(given_config)
+
+					block(data, config_mock)
+
+					mock.revert(config_mock)
+				end)
+			end
+
+			test_it("should update build.dockerfile and dockerFile to absolute paths", function(data, _)
+				assert.are.same("/home/test/projects/devcontainer/.devcontainer/Dockerfile", data.build.dockerfile)
+				assert.are.same(data.build.dockerfile, data.dockerFile)
+			end)
+
+			test_it("should update workspaceMount with replaced variables", function(data, _)
+				assert.are.same(
+					"source=/home/test/projects/devcontainer,"
+						.. "target=/workspaces/devcontainer,"
+						.. "type=bind,"
+						.. "consistency=delegated",
+					data.workspaceMount
+				)
+			end)
+
+			test_it("should update workspaceFolder with replaced variables", function(data, _)
+				assert.are.same("/workspaces/devcontainer", data.workspaceFolder)
+			end)
+
+			test_it("should update containerEnv with replaced variables", function(data, _)
+				assert.are.same("test_var_value", data.containerEnv.TEST_VAR)
+				assert.are.same("var1_value-var2_value", data.containerEnv.COMBINED_VARS)
+			end)
+		end)
+	end)
 end)
