@@ -263,7 +263,13 @@ function M.fill_defaults(config_file)
 	end
 
 	if config_file.dockerComposeFile then
-		config_file.dockerComposeFile = to_absolute(config_file.dockerComposeFile)
+		if type(config_file.dockerComposeFile) == "table" then
+			for i, val in ipairs(config_file.dockerComposeFile) do
+				config_file.dockerComposeFile[i] = to_absolute(val)
+			end
+		elseif type(config_file.dockerComposeFile) == "string" then
+			config_file.dockerComposeFile = to_absolute(config_file.dockerComposeFile)
+		end
 		config_file.workspaceFolder = config_file.workspaceFolder or "/"
 		config_file.overrideCommand = config_file.overrideCommand or false
 	end

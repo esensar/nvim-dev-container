@@ -347,6 +347,43 @@ describe("devcontainer.config_file.parse:", function()
 		end)
 	end)
 
+	describe("given devcontainer config with dockerComposeFile list", function()
+		describe("fill_defaults", function()
+			local test_it = function(name, block)
+				it(name, function()
+					local given_config = {
+						dockerComposeFile = { "docker-compose.yml", "../docker-compose.yml" },
+						build = {},
+						hostRequirements = {},
+						metadata = {
+							file_path = "/home/test/projects/devcontainer/.devcontainer/devcontainer.json",
+						},
+					}
+					local workspace_dir = "/home/test/projects/devcontainer"
+					local config_mock = mock(require("devcontainer.config"), true)
+					config_mock.workspace_folder_provider.returns(workspace_dir)
+
+					local data = subject.fill_defaults(given_config)
+
+					block(data, config_mock)
+
+					mock.revert(config_mock)
+				end)
+			end
+
+			test_it("should update all entries in dockerComposeFile to absolute path", function(data, _)
+				assert.are.same(
+					"/home/test/projects/devcontainer/.devcontainer/docker-compose.yml",
+					data.dockerComposeFile[1]
+				)
+				assert.are.same(
+					"/home/test/projects/devcontainer/.devcontainer/../docker-compose.yml",
+					data.dockerComposeFile[2]
+				)
+			end)
+		end)
+	end)
+
 	describe("given compltex devcontainer config", function()
 		describe("fill_defaults", function()
 			local test_it = function(name, block)
