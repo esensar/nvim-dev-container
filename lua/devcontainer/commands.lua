@@ -5,6 +5,8 @@
 local docker_compose = require("devcontainer.docker-compose")
 local docker = require("devcontainer.docker")
 local config_file = require("devcontainer.config_file.parse")
+local log = require("devcontainer.internal.log")
+local status = require("devcontainer.status")
 
 local M = {}
 
@@ -187,7 +189,7 @@ end
 
 ---Run docker-compose rm from nearest devcontainer.json file
 ---@param callback function|nil called on success - parsed devcontainer config is passed to the callback
----@usage `require("devcontainer.commands").compose_down()`
+---@usage `require("devcontainer.commands").compose_rm()`
 function M.compose_rm(callback)
 	vim.validate({
 		callback = { callback, { "function", "nil" } },
@@ -422,4 +424,190 @@ function M.start_auto(callback)
 	end)
 end
 
-return M
+---Parses devcontainer.json and stops whatever is defined there
+---Looks for dockerComposeFile first
+---Then it looks for dockerfile
+---And last it looks for image
+---@param callback function|nil called on success - devcontainer config is passed to the callback
+---@usage `require("devcontainer.commands").stop_auto()`
+function M.stop_auto(callback)
+	vim.validate({
+		callback = { callback, { "function", "nil" } },
+	})
+
+	local on_success = callback
+		or function(config)
+			vim.notify("Successfully stopped services from " .. config.metadata.file_path)
+		end
+
+	get_nearest_devcontainer_config(function(data)
+		if data.dockerComposeFile then
+			vim.notify("Found docker compose file definition. Running docker compose down...")
+			docker_compose.down(data.dockerComposeFile, {
+				on_success = function()
+					on_success(data)
+				end,
+				on_fail = function()
+					vim.notify("Docker compose down failed!", vim.log.levels.ERROR)
+				end,
+			})
+			return
+		end
+
+		if data.build.dockerfile then
+			vim.notify("Found dockerfile definition. Running docker container stop...")
+			local image = status.find_image({ source_dockerfile = data.build.dockerfile })
+			if image then
+				local container = status.find_container({ image_id = image.image_id })
+				docker.container_stop({ container.container_id }, {
+					on_success = function()
+						on_success(data)
+					end,
+					on_fail = function()
+						vim.notify("Docker container stop failed!", vim.log.levels.ERROR)
+					end,
+				})
+			else
+				vim.notify("Can't find container to stop", vim.log.levels.ERROR)
+			end
+			return
+		end
+
+		if data.image then
+			vim.notify("Found image definition. Running docker container stop...")
+			local container = status.find_container({ image_id = data.image })
+			docker.container_stop({ container.container_id }, {
+				on_success = function()
+					on_success(data)
+				end,
+				on_fail = function()
+					vim.notify("Docker container stop failed!", vim.log.levels.ERROR)
+				end,
+			})
+			return
+		end
+	end)
+end
+
+---Stops everything started with devcontainer plugin
+---@param callback function|nil called on success
+---@usage `require("devcontainer.commands").stop_all()`
+function M.stop_all(callback)
+	vim.validate({
+		callback = { callback, { "function", "nil" } },
+	})
+
+	local on_success = callback or function()
+		vim.notify("Successfully stopped all services!")
+	end
+	local success_count = 0
+	local success_wrapper = function()
+		success_count = success_count + 1
+		if success_count == 2 then
+			on_success()
+		end
+	end
+
+	local all_status = status.get_status()
+	local containers_to_stop = vim.tbl_map(function(cstatus)
+		return cstatus.container_id
+	end, all_status.running_containers)
+	if #containers_to_stop > 0 then
+		docker.container_stop(containers_to_stop, {
+			on_success = success_wrapper,
+			on_fail = function()
+				vim.notify("Docker container stop failed!", vim.log.levels.ERROR)
+			end,
+		})
+	else
+		success_wrapper()
+	end
+	local compose_services_to_stop = vim.tbl_map(function(cstatus)
+		return cstatus.file
+	end, all_status.compose_services)
+	if #compose_services_to_stop > 0 then
+		docker_compose.down(compose_services_to_stop, {
+			on_success = success_wrapper,
+			on_fail = function()
+				vim.notify("Docker compose down failed!", vim.log.levels.ERROR)
+			end,
+		})
+	else
+		success_wrapper()
+	end
+end
+
+---Removes everything started with devcontainer plugin
+---@param callback function|nil called on success
+---@usage `require("devcontainer.commands").remove_all()`
+function M.remove_all(callback)
+	vim.validate({
+		callback = { callback, { "function", "nil" } },
+	})
+
+	local on_success = callback or function()
+		vim.notify("Successfully removed all containers and images!")
+	end
+
+	local all_status = status.get_status()
+	local images_to_remove = vim.tbl_map(function(cstatus)
+		return cstatus.image_id
+	end, all_status.images_built)
+	local containers_to_remove = vim.tbl_map(function(cstatus)
+		return cstatus.container_id
+	end, all_status.running_containers)
+	local compose_services_to_remove = vim.tbl_map(function(cstatus)
+		return cstatus.file
+	end, all_status.compose_services)
+
+	local success_count = 0
+	local success_wrapper
+	success_wrapper = function()
+		success_count = success_count + 1
+		if success_count == 2 then
+			if #images_to_remove > 0 then
+				docker.image_rm(images_to_remove, {
+					force = true,
+					on_success = success_wrapper,
+					on_fail = function()
+						vim.notify("Docker image remove failed!", vim.log.levels.ERROR)
+					end,
+				})
+			else
+				success_wrapper()
+			end
+		end
+		if success_count == 3 then
+			on_success()
+		end
+	end
+	if #containers_to_remove > 0 then
+		docker.container_rm(containers_to_remove, {
+			force = true,
+			on_success = success_wrapper,
+			on_fail = function()
+				vim.notify("Docker container remove failed!", vim.log.levels.ERROR)
+			end,
+		})
+	else
+		success_wrapper()
+	end
+	if #compose_services_to_remove > 0 then
+		docker_compose.rm(compose_services_to_remove, {
+			on_success = success_wrapper,
+			on_fail = function()
+				vim.notify("Docker compose remove failed!", vim.log.levels.ERROR)
+			end,
+		})
+	else
+		success_wrapper()
+	end
+end
+
+---Opens log file in a new buffer
+---@usage `require("devcontainer.commands").open_logs()`
+function M.open_logs()
+	vim.cmd("edit " .. log.logfile)
+end
+
+return log.wrap(M)

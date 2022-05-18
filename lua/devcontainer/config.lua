@@ -90,20 +90,36 @@ end
 ---Handles terminal requests (mainly used for attaching to container)
 ---By default it uses terminal command
 ---@param command string command to run in terminal
+---@type function
 M.terminal_handler = default_terminal_handler
 
 ---Handles terminal requests (mainly used for attaching to container)
 ---By default it uses a template which installs neovim from source
 ---@param base_image string base_image to be used in Dockerfile template (to fill in FROM line)
+---@type function
 M.nvim_dockerfile_template = default_nvim_dockerfile_template
 
 ---Provides docker build path
 ---By default uses first LSP workplace folder or vim.loop.cwd()
+---@type function
 M.workspace_folder_provider = workspace_folder_provider
 
 ---Provides starting search path for .devcontainer.json
 ---After this search moves up until root
 ---By default it uses vim.loop.cwd()
+---@type function
 M.config_search_start = default_config_search_start
+
+---@alias log_level
+---| '"trace"'
+---| '"debug"'
+---| '"info"'
+---| '"warn"'
+---| '"error"'
+---| '"fatal"'
+
+---Current log level
+---@type log_level
+M.log_level = "info"
 
 return M

@@ -4,6 +4,7 @@
 ---@brief ]]
 local exe = require("devcontainer.internal.executor")
 local v = require("devcontainer.internal.validation")
+local log = require("devcontainer.internal.log")
 
 local M = {}
 
@@ -14,10 +15,19 @@ local M = {}
 local function run_docker_compose(args, opts, onexit)
 	exe.ensure_executable("docker-compose")
 
+	opts = opts or {}
 	exe.run_command(
 		"docker-compose",
-		vim.tbl_extend("force", opts or {}, {
+		vim.tbl_extend("force", opts, {
 			args = args,
+			stderr = vim.schedule_wrap(function(x, data)
+				if data then
+					log.fmt_error("Docker-compose command (%s): %s", args, data)
+				end
+				if opts.stderr then
+					opts.stderr(x, data)
+				end
+			end),
 		}),
 		onexit
 	)
@@ -140,4 +150,4 @@ function M.rm(compose_file, opts)
 	end)
 end
 
-return M
+return log.wrap(M)
