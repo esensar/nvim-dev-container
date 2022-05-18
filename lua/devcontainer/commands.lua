@@ -65,7 +65,7 @@ local function generate_common_run_command_args(data)
 	return run_args
 end
 
-local function generate_run_command_args(data)
+local function generate_run_command_args(data, attaching)
 	local run_args = generate_common_run_command_args(data)
 	if data.containerUser then
 		run_args = run_args or {}
@@ -86,6 +86,51 @@ local function generate_run_command_args(data)
 		for _, v in ipairs(data.mounts) do
 			table.insert(run_args, "--mount")
 			table.insert(run_args, v)
+		end
+	end
+	if plugin_config.always_mount then
+		run_args = run_args or {}
+		for _, v in ipairs(plugin_config.always_mount) do
+			table.insert(run_args, "--mount")
+			table.insert(run_args, v)
+		end
+	end
+	if attaching and plugin_config.attach_mounts then
+		run_args = run_args or {}
+		local am = plugin_config.attach_mounts
+
+		local function build_mount(stdpath_location, options, target)
+			local bind_opts = nil
+			if options and #options > 0 then
+				bind_opts = table.concat(options, ",")
+			end
+			local mount = {
+				"type=bind",
+				"source=" .. vim.fn.stdpath(stdpath_location),
+				"target=" .. target,
+			}
+			if bind_opts then
+				table.insert(mount, bind_opts)
+			end
+			return table.concat(mount, ",")
+		end
+		if am.neovim_config and am.neovim_config.enabled then
+			table.insert(run_args, "--mount")
+			table.insert(run_args, build_mount("config", am.neovim_config.options, "/root/.config/nvim"))
+		end
+		if am.neovim_data and am.neovim_data.enabled then
+			table.insert(run_args, "--mount")
+			table.insert(run_args, build_mount("data", am.neovim_data.options, "/root/.local/share/nvim"))
+		end
+		if am.neovim_state and am.neovim_state.enabled and vim.fn.has("nvim-0.8") == 1 then
+			table.insert(run_args, "--mount")
+			table.insert(run_args, build_mount("state", am.neovim_state.options, "/root/.local/state/nvim"))
+		end
+		if am.custom_mounts then
+			for _, v in ipairs(am.custom_mounts) do
+				table.insert(run_args, "--mount")
+				table.insert(run_args, v)
+			end
 		end
 	end
 	if data.runArgs then
@@ -283,7 +328,7 @@ function M.docker_image_run(callback)
 			return
 		end
 		docker.run(data.image, {
-			args = generate_run_command_args(data),
+			args = generate_run_command_args(data, false),
 			on_success = function(container_id)
 				on_success(data, container_id)
 			end,
@@ -300,7 +345,7 @@ local function spawn_docker_build_and_run(data, on_success, add_neovim)
 		add_neovim = add_neovim,
 		on_success = function(image_id)
 			docker.run(image_id, {
-				args = generate_run_command_args(data),
+				args = generate_run_command_args(data, add_neovim),
 				tty = add_neovim,
 				-- TODO: Potentially add in the future for better compatibility
 				-- or (data.overrideCommand and {
@@ -411,7 +456,7 @@ function M.start_auto(callback)
 		if data.image then
 			vim.notify("Found image definition. Running docker run...")
 			docker.run(data.image, {
-				args = generate_run_command_args(data),
+				args = generate_run_command_args(data, false),
 				on_success = function(_)
 					on_success(data)
 				end,

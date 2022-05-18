@@ -19,6 +19,8 @@ local configured = false
 ---@field generate_commands boolean|nil can be set to false to prevent plugin from creating commands
 ---@field log_level log_level|nil can be used to override library logging level
 ---@field disable_recursive_config_search boolean|nil can be used to disable recursive .devcontainer search
+---@field attach_mounts AttachMountsOpts|nil can be used to configure mounts when adding neovim to containers
+---@field always_mount List[string]|nil list of mounts to add to every container
 
 ---Starts the plugin and sets it up with provided options
 ---@param opts DevcontainerSetupOpts|nil
@@ -34,6 +36,8 @@ function M.setup(opts)
 	config.devcontainer_json_template = opts.devcontainer_json_template or config.devcontainer_json_template
 	config.workspace_folder_provider = opts.workspace_folder_provider or config.workspace_folder_provider
 	config.config_search_start = opts.config_search_start or config.config_search_start
+	config.always_mount = opts.always_mount or config.always_mount
+	config.attach_mounts = opts.attach_mounts or config.attach_mounts
 	config.disable_recursive_config_search = opts.disable_recursive_config_search
 		or config.disable_recursive_config_search
 	if vim.env.NVIM_DEVCONTAINER_DEBUG then
