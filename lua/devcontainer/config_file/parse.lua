@@ -99,7 +99,7 @@ local function find_nearest_devcontainer_file(callback)
 	local last_ino = nil
 
 	local function directory_callback(err, data)
-		if err or data == nil or data.ino == last_ino then
+		if err or data == nil or data.ino == last_ino or config.disable_recursive_config_search then
 			if callback then
 				return callback("No devcontainer files found!", nil)
 			else

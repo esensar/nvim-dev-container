@@ -131,6 +131,7 @@ describe("devcontainer.config_file.parse:", function()
 					block(data, uv_mock)
 
 					mock.revert(uv_mock)
+					mock.revert(config_mock)
 				end)
 			end
 
@@ -163,6 +164,7 @@ describe("devcontainer.config_file.parse:", function()
 					block(data, uv_mock)
 
 					mock.revert(uv_mock)
+					mock.revert(config_mock)
 				end)
 			end
 
@@ -202,6 +204,7 @@ describe("devcontainer.config_file.parse:", function()
 					block(success, data, uv_mock)
 
 					mock.revert(uv_mock)
+					mock.revert(config_mock)
 				end)
 			end
 
@@ -453,6 +456,40 @@ describe("devcontainer.config_file.parse:", function()
 			test_it("should update containerEnv with replaced variables", function(data, _)
 				assert.are.same("test_var_value", data.containerEnv.TEST_VAR)
 				assert.are.same("var1_value-var2_value", data.containerEnv.COMBINED_VARS)
+			end)
+		end)
+	end)
+
+	describe("given disabled recursive search", function()
+		describe("parse_nearest_devcontainer_config", function()
+			local cwd = "."
+			local test_it = function(name, block)
+				it(name, function()
+					local result = '{ "image": "value" }'
+					local uv_mock = mock(vim.loop, true)
+					mock_file_read(uv_mock, result, {})
+					local config_mock = mock(require("devcontainer.config"), true)
+					config_mock.config_search_start.returns(cwd)
+					config_mock.disable_recursive_config_search = true
+					uv_mock.fs_stat.on_call_with(cwd).returns({ ino = 123 })
+					uv_mock.fs_stat.on_call_with(cwd .. "/.devcontainer.json").invokes(missing_file_func)
+					uv_mock.fs_stat.on_call_with(cwd .. "/.devcontainer/devcontainer.json").invokes(missing_file_func)
+					uv_mock.fs_stat.on_call_with(cwd .. "/..").returns({ ino = 456 })
+					uv_mock.fs_stat.on_call_with(cwd .. "/../.devcontainer.json").returns({ ino = 789 })
+					uv_mock.fs_stat.on_call_with(cwd .. "/../.devcontainer/devcontainer.json").returns({ ino = 987 })
+
+					local success, data = pcall(subject.parse_nearest_devcontainer_config)
+
+					block(success, data, uv_mock)
+
+					mock.revert(uv_mock)
+					mock.revert(config_mock)
+					config_mock.disable_recursive_config_search = false
+				end)
+			end
+
+			test_it("should return an error that no files were found", function(success, _, _)
+				assert.is_not_true(success)
 			end)
 		end)
 	end)
