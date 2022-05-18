@@ -150,4 +150,5 @@ function M.rm(compose_file, opts)
 	end)
 end
 
-return log.wrap(M)
+log.wrap(M)
+return M

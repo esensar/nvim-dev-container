@@ -77,22 +77,18 @@ end
 
 function M.wrap(obj)
 	if vim.env.NVIM_DEVCONTAINER_DEBUG then
-		return setmetatable({}, {
-			__index = function(_, key)
-				if type(obj[key]) == "function" then
-					return function(...)
-						local args = { ... }
-						M.fmt_trace("Calling %s with (%s)", key, args)
-						local result = obj[key](...)
-						M.fmt_trace("Result of %s with (%s) = %s", key, args, result or "nil")
-						return result
-					end
-				else
-					M.fmt_trace("Accessing %s", key)
-					return obj[key]
+		local old_obj = vim.deepcopy(obj)
+		for k, v in pairs(obj) do
+			if type(v) == "function" then
+				obj[k] = function(...)
+					local args = { ... }
+					M.fmt_trace("Calling %s with (%s)", k, args)
+					local result = old_obj[k](...)
+					M.fmt_trace("Result of %s with (%s) = %s", k, args, result or "nil")
+					return result
 				end
-			end,
-		})
+			end
+		end
 	else
 		return obj
 	end

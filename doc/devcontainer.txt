@@ -168,6 +168,222 @@ M.setup({opts})                                             *devcontainer.setup*
 
 
 ================================================================================
+Docker module                                              *devcontainer.docker*
+
+Provides functions related to docker control:
+ - building
+ - attaching
+ - running
+
+DockerPullOpts                                                  *DockerPullOpts*
+
+
+    Fields: ~
+        {on_success}  (function())  success callback
+        {on_fail}     (function())  failure callback
+
+
+M.pull({image}, {opts})                               *devcontainer.docker.pull*
+    Pull passed image using docker pull
+
+    Parameters: ~
+        {image}  (string)          Docker image to pull
+        {opts}   (DockerPullOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            require("devcontainer.docker").pull("alpine", { on_success = function() end, on_fail = function() end})
+        <
+
+
+DockerBuildOpts                                                *DockerBuildOpts*
+
+
+    Fields: ~
+        {tag}          (string|nil)                         tag for the image built
+        {add_neovim}   (boolean|nil)                        install neovim in the image (useful only for attaching to image)
+        {args}         (table|nil)                          list of additional arguments to build command
+        {on_success}   (function(image_id))                 success callback taking the image_id of the built image
+        {on_progress}  (function(DevcontainerBuildStatus))  callback taking build status object
+        {on_fail}      (function())                         failure callback
+
+
+M.build({file}, {path}, {opts})                      *devcontainer.docker.build*
+    Build image from passed dockerfile using docker build
+
+    Parameters: ~
+        {file}  (string)           Path to Dockerfile to build
+        {path}  (string|nil)       Path to the workspace, vim.lsp.buf.list_workspace_folders()[1] by default
+        {opts}  (DockerBuildOpts)  Additional options including callbacks and tag
+
+    Usage: ~
+        >
+            docker.build("Dockerfile", { on_success = function(image_id) end, on_fail = function() end })
+        <
+
+
+DockerRunOpts                                                    *DockerRunOpts*
+
+
+    Fields: ~
+        {autoremove}        (boolean)                 automatically remove container after stopping - true by default
+        {tty}               (boolean)                 attach to container TTY and display it in terminal buffer, using configured terminal handler
+        {command}           (string|table|nil)        command to run in container
+        {args}              (table|nil)               list of additional arguments to run command
+        {terminal_handler}  (function(command))       override to open terminal in a different way, :tabnew + termopen by default
+        {on_success}        (function(container_id))  success callback taking the id of the started container - not invoked if tty
+        {on_fail}           (function())              failure callback
+
+
+M.run({image}, {opts})                                 *devcontainer.docker.run*
+    Run passed image using docker run
+    NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
+
+    Parameters: ~
+        {image}  (string)         Docker image to run
+        {opts}   (DockerRunOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            docker.run("alpine", { on_success = function(id) end, on_fail = function() end })
+        <
+
+
+DockerContainerStopOpts                                *DockerContainerStopOpts*
+
+
+    Fields: ~
+        {on_success}  (function())  success callback
+        {on_fail}     (function())  failure callback
+
+
+M.container_stop({containers}, {opts})      *devcontainer.docker.container_stop*
+    Stop passed containers
+
+    Parameters: ~
+        {containers}  (List[string])             ids of containers to stop
+        {opts}        (DockerContainerStopOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            docker.container_stop({ "some_id" }, { on_success = function() end, on_fail = function() end })
+        <
+
+
+DockerImageRmOpts                                            *DockerImageRmOpts*
+
+
+    Fields: ~
+        {force}       (boolean|nil)  force deletion
+        {on_success}  (function())   success callback
+        {on_fail}     (function())   failure callback
+
+
+M.image_rm({images}, {opts})                      *devcontainer.docker.image_rm*
+    Removes passed images
+
+    Parameters: ~
+        {images}  (List[string])       ids of images to remove
+        {opts}    (DockerImageRmOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            docker.image_rm({ "some_id" }, { on_success = function() end, on_fail = function() end })
+        <
+
+
+DockerContainerRmOpts                                    *DockerContainerRmOpts*
+
+
+    Fields: ~
+        {force}       (boolean|nil)  force deletion
+        {on_success}  (function())   success callback
+        {on_fail}     (function())   failure callback
+
+
+M.container_rm({containers}, {opts})          *devcontainer.docker.container_rm*
+    Removes passed containers
+
+    Parameters: ~
+        {containers}  (List[string])           ids of containers to remove
+        {opts}        (DockerContainerRmOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            docker.container_rm({ "some_id" }, { on_success = function() end, on_fail = function() end })
+        <
+
+
+================================================================================
+Docker-compose module                              *devcontainer.docker-compose*
+
+Provides functions related to docker-compose control
+
+DockerComposeUpOpts                                        *DockerComposeUpOpts*
+
+
+    Fields: ~
+        {args}        (table|nil)   list of additional arguments to up command
+        {on_success}  (function())  success callback
+        {on_fail}     (function())  failure callback
+
+
+M.up({compose_file}, {opts})                    *devcontainer.docker-compose.up*
+    Run docker-compose up with passed file
+
+    Parameters: ~
+        {compose_file}  (string|table)         path to docker-compose.yml file or files
+        {opts}          (DockerComposeUpOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            require("devcontainer.docker-compose").up("docker-compose.yml")
+        <
+
+
+DockerComposeDownOpts                                    *DockerComposeDownOpts*
+
+
+    Fields: ~
+        {on_success}  (function())  success callback
+        {on_fail}     (function())  failure callback
+
+
+M.down({compose_file}, {opts})                *devcontainer.docker-compose.down*
+    Run docker-compose down with passed file
+
+    Parameters: ~
+        {compose_file}  (string|table)           path to docker-compose.yml file or files
+        {opts}          (DockerComposeDownOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            require("devcontainer.docker-compose").down("docker-compose.yml")
+        <
+
+
+DockerComposeRmOpts                                        *DockerComposeRmOpts*
+
+
+    Fields: ~
+        {on_success}  (function())  success callback
+        {on_fail}     (function())  failure callback
+
+
+M.rm({compose_file}, {opts})                    *devcontainer.docker-compose.rm*
+    Run docker-compose rm with passed file
+
+    Parameters: ~
+        {compose_file}  (string|table)         path to docker-compose.yml file or files
+        {opts}          (DockerComposeRmOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            require("devcontainer.docker-compose").rm("docker-compose.yml")
+        <
+
+
+================================================================================
 Devcontainer plugin config module                          *devcontainer.config*
 
 Provides current devcontainer plugin configuration
@@ -224,6 +440,242 @@ M.log_level                                      *devcontainer.config.log_level*
 
     Type: ~
         (log_level)  
+
+
+================================================================================
+High level devcontainer commands                         *devcontainer.commands*
+
+Provides functions representing high level devcontainer commands
+
+M.compose_up({callback})                      *devcontainer.commands.compose_up*
+    Run docker-compose up from nearest devcontainer.json file
+
+    Parameters: ~
+        {callback}  (function|nil)  called on success - parsed devcontainer config is passed to the callback
+
+    Usage: ~
+        >
+            require("devcontainer.commands").compose_up()
+        <
+
+
+M.compose_down({callback})                  *devcontainer.commands.compose_down*
+    Run docker-compose down from nearest devcontainer.json file
+
+    Parameters: ~
+        {callback}  (function|nil)  called on success - parsed devcontainer config is passed to the callback
+
+    Usage: ~
+        >
+            require("devcontainer.commands").compose_down()
+        <
+
+
+M.compose_rm({callback})                      *devcontainer.commands.compose_rm*
+    Run docker-compose rm from nearest devcontainer.json file
+
+    Parameters: ~
+        {callback}  (function|nil)  called on success - parsed devcontainer config is passed to the callback
+
+    Usage: ~
+        >
+            require("devcontainer.commands").compose_rm()
+        <
+
+
+M.docker_build({callback})                  *devcontainer.commands.docker_build*
+    Run docker build from nearest devcontainer.json file
+
+    Parameters: ~
+        {callback}  (function|nil)  called on success - parsed devcontainer config and image id are passed to the callback
+
+    Usage: ~
+        >
+            require("devcontainer.commands").docker_build()
+        <
+
+
+M.docker_image_run({callback})          *devcontainer.commands.docker_image_run*
+    Run docker run from nearest devcontainer.json file
+
+    Parameters: ~
+        {callback}  (function|nil)  called on success - devcontainer config and container id are passed to the callback
+
+    Usage: ~
+        >
+            require("devcontainer.commands").docker_image_run()
+        <
+
+
+                                    *devcontainer.commands.docker_build_and_run*
+M.docker_build_and_run({callback})
+    Run docker run from nearest devcontainer.json file, building before that
+
+    Parameters: ~
+        {callback}  (function|nil)  called on success - devcontainer config and container id are passed to the callback
+
+    Usage: ~
+        >
+            require("devcontainer.commands").docker_build_and_run()
+        <
+
+
+                             *devcontainer.commands.docker_build_run_and_attach*
+M.docker_build_run_and_attach({callback})
+    Run docker run from nearest devcontainer.json file, building before that
+    And then attach to the container with neovim added
+
+    Parameters: ~
+        {callback}  (function|nil)  called on success - devcontainer config and container id are passed to the callback
+
+    Usage: ~
+        >
+            require("devcontainer.commands").docker_build_run_and_attach()
+        <
+
+
+M.start_auto({callback})                      *devcontainer.commands.start_auto*
+    Parses devcontainer.json and starts whatever is defined there
+    Looks for dockerComposeFile first
+    Then it looks for dockerfile
+    And last it looks for image
+
+    Parameters: ~
+        {callback}  (function|nil)  called on success - devcontainer config is passed to the callback
+
+    Usage: ~
+        >
+            require("devcontainer.commands").start_auto()
+        <
+
+
+M.stop_auto({callback})                        *devcontainer.commands.stop_auto*
+    Parses devcontainer.json and stops whatever is defined there
+    Looks for dockerComposeFile first
+    Then it looks for dockerfile
+    And last it looks for image
+
+    Parameters: ~
+        {callback}  (function|nil)  called on success - devcontainer config is passed to the callback
+
+    Usage: ~
+        >
+            require("devcontainer.commands").stop_auto()
+        <
+
+
+M.stop_all({callback})                          *devcontainer.commands.stop_all*
+    Stops everything started with devcontainer plugin
+
+    Parameters: ~
+        {callback}  (function|nil)  called on success
+
+    Usage: ~
+        >
+            require("devcontainer.commands").stop_all()
+        <
+
+
+M.remove_all({callback})                      *devcontainer.commands.remove_all*
+    Removes everything started with devcontainer plugin
+
+    Parameters: ~
+        {callback}  (function|nil)  called on success
+
+    Usage: ~
+        >
+            require("devcontainer.commands").remove_all()
+        <
+
+
+M.open_logs()                                  *devcontainer.commands.open_logs*
+    Opens log file in a new buffer
+
+    Usage: ~
+        >
+            require("devcontainer.commands").open_logs()
+        <
+
+
+================================================================================
+Jsonc parsing module                            *devcontainer.config_file.jsonc*
+
+Vim supports Json parsing by default, but devcontainer config files are Jsonc.
+This module supports Jsonc parsing by removing comments and then parsing as Json.
+Treesitter is used for this and jsonc parser needs to be installed.
+
+                                    *devcontainer.config_file.jsonc.parse_jsonc*
+M.parse_jsonc({jsonc_content})
+    Parse Json string into a Lua table
+    Usually file should be read and content should be passed as a string into the function
+
+    Parameters: ~
+        {jsonc_content}  (string)  
+
+    Returns: ~
+        {table}  
+
+    Usage: ~
+        >
+            require("devcontainer.config_file.jsonc").parse_jsonc([[{ "test": "value" }]])
+        <
+
+
+================================================================================
+Devcontainer config file parsing module         *devcontainer.config_file.parse*
+
+Provides support for parsing specific devcontainer.json files as well as
+automatic discovery and parsing of nearest file
+Ensures basic configuration required for the plugin to work is present in files
+
+                      *devcontainer.config_file.parse.parse_devcontainer_config*
+M.parse_devcontainer_config({config_file_path}, {callback})
+    Parse specific devcontainer.json file into a Lua table
+    Ensures that at least one of "image", "dockerFile" or "dockerComposeFile" keys is present
+
+    Parameters: ~
+        {config_file_path}  (string)                  
+        {callback}          (function(err,data)|nil)  if nil run sync, otherwise run async and pass result to the callback
+
+    Returns: ~
+        {table|nil}  or nil if running async
+
+    Usage: ~
+        >
+            require("devcontainer.config_file.parse").parse_devcontainer_config([[{ "image": "test" }]])
+        <
+
+
+              *devcontainer.config_file.parse.parse_nearest_devcontainer_config*
+M.parse_nearest_devcontainer_config({callback})
+    Parse nearest devcontainer.json file into a Lua table
+    Prefers .devcontainer.json over .devcontainer/devcontainer.json
+    Looks in config.config_search_start first and then moves up all the way until root
+    Fails if no devcontainer.json files were found, or if the first one found is invalid
+
+    Parameters: ~
+        {callback}  (function(err,data)|nil)  if nil run sync, otherwise run async and pass result to the callback
+
+    Returns: ~
+        {table|nil}  or nil if running async
+
+    Usage: ~
+        >
+            require("devcontainer.config_file.parse").parse_nearest_devcontainer_config()
+        <
+
+
+                                  *devcontainer.config_file.parse.fill_defaults*
+M.fill_defaults({config_file})
+    Fills passed devcontainer config with defaults based on spec
+    Expects a proper config file, parsed with functions from this module
+    NOTE: This mutates passed config!
+
+    Parameters: ~
+        {config_file}  (table)  parsed config
+
+    Returns: ~
+        {table}  with filled defaults and absolute paths
 
 
 

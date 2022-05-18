@@ -44,4 +44,5 @@ function M.parse_jsonc(jsonc_content)
 	return vim.json.decode(clean_content)
 end
 
-return log.wrap(M)
+log.wrap(M)
+return M

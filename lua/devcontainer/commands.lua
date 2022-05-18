@@ -610,4 +610,5 @@ function M.open_logs()
 	vim.cmd("edit " .. log.logfile)
 end
 
-return log.wrap(M)
+log.wrap(M)
+return M

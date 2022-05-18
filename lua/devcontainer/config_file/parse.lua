@@ -281,4 +281,5 @@ function M.fill_defaults(config_file)
 	return sub_variables_recursive(config_file)
 end
 
-return log.wrap(M)
+log.wrap(M)
+return M

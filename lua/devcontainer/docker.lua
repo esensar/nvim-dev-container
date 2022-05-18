@@ -27,7 +27,7 @@ local function run_docker(args, opts, onexit)
 			args = args,
 			stderr = vim.schedule_wrap(function(x, data)
 				if data then
-					log.error("Docker command (%s): %s", args, data)
+					log.fmt_error("Docker command (%s): %s", args, data)
 				end
 				if opts.stderr then
 					opts.stderr(x, data)
@@ -436,4 +436,5 @@ function M.container_rm(containers, opts)
 	end)
 end
 
-return log.wrap(M)
+log.wrap(M)
+return M
