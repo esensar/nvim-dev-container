@@ -89,13 +89,11 @@ end
 
 ---Handles terminal requests (mainly used for attaching to container)
 ---By default it uses terminal command
----@param command string command to run in terminal
 ---@type function
 M.terminal_handler = default_terminal_handler
 
 ---Handles terminal requests (mainly used for attaching to container)
 ---By default it uses a template which installs neovim from source
----@param base_image string base_image to be used in Dockerfile template (to fill in FROM line)
 ---@type function
 M.nvim_dockerfile_template = default_nvim_dockerfile_template
 
@@ -109,6 +107,12 @@ M.workspace_folder_provider = workspace_folder_provider
 ---By default it uses vim.loop.cwd()
 ---@type function
 M.config_search_start = default_config_search_start
+
+---Flag to disable recursive search for .devcontainer config files
+---By default plugin will move up to root looking for .devcontainer files
+---This flag can be used to prevent it and only look in M.config_search_start
+---@type boolean
+M.disable_recursive_config_search = false
 
 ---@alias log_level
 ---| '"trace"'

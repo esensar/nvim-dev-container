@@ -17,6 +17,7 @@ local configured = false
 ---@field nvim_dockerfile_template function|nil provides dockerfile template based on passed base_image
 ---@field generate_commands boolean|nil can be set to false to prevent plugin from creating commands
 ---@field log_level log_level|nil can be used to override library logging level
+---@field disable_recursive_config_search boolean|nil can be used to disable recursive .devcontainer search
 
 ---Starts the plugin and sets it up with provided options
 ---@param opts DevcontainerSetupOpts|nil
@@ -31,6 +32,8 @@ function M.setup(opts)
 	config.nvim_dockerfile_template = opts.nvim_dockerfile_template or config.nvim_dockerfile_template
 	config.workspace_folder_provider = opts.workspace_folder_provider or config.workspace_folder_provider
 	config.config_search_start = opts.config_search_start or config.config_search_start
+	config.disable_recursive_config_search = opts.disable_recursive_config_search
+		or config.disable_recursive_config_search
 	if vim.env.NVIM_DEVCONTAINER_DEBUG then
 		config.log_level = "trace"
 	else

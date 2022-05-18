@@ -152,12 +152,13 @@ DevcontainerSetupOpts                                    *DevcontainerSetupOpts*
 
 
     Fields: ~
-        {config_search_start}        (function|nil)   provides starting point for .devcontainer.json seach
-        {workspace_folder_provider}  (function|nil)   provides current workspace folder
-        {terminal_handler}           (function|nil)   handles terminal command requests, useful for floating terminals and similar
-        {nvim_dockerfile_template}   (function|nil)   provides dockerfile template based on passed base_image
-        {generate_commands}          (boolean|nil)    can be set to false to prevent plugin from creating commands
-        {log_level}                  (log_level|nil)  can be used to override library logging level
+        {config_search_start}              (function|nil)   provides starting point for .devcontainer.json seach
+        {workspace_folder_provider}        (function|nil)   provides current workspace folder
+        {terminal_handler}                 (function|nil)   handles terminal command requests, useful for floating terminals and similar
+        {nvim_dockerfile_template}         (function|nil)   provides dockerfile template based on passed base_image
+        {generate_commands}                (boolean|nil)    can be set to false to prevent plugin from creating commands
+        {log_level}                        (log_level|nil)  can be used to override library logging level
+        {disable_recursive_config_search}  (boolean|nil)    can be used to disable recursive .devcontainer search
 
 
 M.setup({opts})                                             *devcontainer.setup*
@@ -391,7 +392,8 @@ Don't change directly, use `devcontainer.setup{}` instead
 Can be used for read-only access
 
 M.terminal_handler                        *devcontainer.config.terminal_handler*
-
+    Handles terminal requests (mainly used for attaching to container)
+    By default it uses terminal command
 
     Type: ~
         (function)  
@@ -399,7 +401,8 @@ M.terminal_handler                        *devcontainer.config.terminal_handler*
 
                                   *devcontainer.config.nvim_dockerfile_template*
 M.nvim_dockerfile_template
-
+    Handles terminal requests (mainly used for attaching to container)
+    By default it uses a template which installs neovim from source
 
     Type: ~
         (function)  
@@ -421,6 +424,16 @@ M.config_search_start                  *devcontainer.config.config_search_start*
 
     Type: ~
         (function)  
+
+
+                           *devcontainer.config.disable_recursive_config_search*
+M.disable_recursive_config_search
+    Flag to disable recursive search for .devcontainer config files
+    By default plugin will move up to root looking for .devcontainer files
+    This flag can be used to prevent it and only look in M.config_search_start
+
+    Type: ~
+        (boolean)  
 
 
 log_level                                                            *log_level*
