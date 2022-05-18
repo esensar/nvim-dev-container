@@ -4,6 +4,7 @@
 ---This module supports Jsonc parsing by removing comments and then parsing as Json.
 ---Treesitter is used for this and jsonc parser needs to be installed.
 ---@brief ]]
+local log = require("devcontainer.internal.log")
 local M = {}
 
 local function clean_jsonc(jsonc_content)
@@ -43,4 +44,4 @@ function M.parse_jsonc(jsonc_content)
 	return vim.json.decode(clean_content)
 end
 
-return M
+return log.wrap(M)

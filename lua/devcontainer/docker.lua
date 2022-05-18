@@ -7,7 +7,9 @@
 ---@brief ]]
 local exe = require("devcontainer.internal.executor")
 local config = require("devcontainer.config")
+local status = require("devcontainer.status")
 local v = require("devcontainer.internal.validation")
+local log = require("devcontainer.internal.log")
 
 local M = {}
 
@@ -18,10 +20,19 @@ local M = {}
 local function run_docker(args, opts, onexit)
 	exe.ensure_executable("docker")
 
+	opts = opts or {}
 	exe.run_command(
 		"docker",
-		vim.tbl_extend("force", opts or {}, {
+		vim.tbl_extend("force", opts, {
 			args = args,
+			stderr = vim.schedule_wrap(function(x, data)
+				if data then
+					log.error("Docker command (%s): %s", args, data)
+				end
+				if opts.stderr then
+					opts.stderr(x, data)
+				end
+			end),
 		}),
 		onexit
 	)
@@ -31,7 +42,7 @@ end
 ---@param image string base image tag
 ---@param path string docker build path / context
 ---@param opts DockerBuildOpts|nil
-local function build_with_neovim(image, path, opts)
+local function build_with_neovim(original_dockerfile, image, path, opts)
 	opts = opts or {}
 	local on_fail = opts.on_fail or function() end
 	-- Install neovim in the image and then save it
@@ -55,6 +66,8 @@ local function build_with_neovim(image, path, opts)
 		on_success = opts.on_success,
 		tag = opts.tag,
 		add_neovim = false,
+		_neovim_build = true,
+		_source_dockerfile = original_dockerfile,
 	})
 end
 
@@ -96,6 +109,7 @@ end
 ---@field add_neovim boolean|nil install neovim in the image (useful only for attaching to image)
 ---@field args table|nil list of additional arguments to build command
 ---@field on_success function(image_id) success callback taking the image_id of the built image
+---@field on_progress function(DevcontainerBuildStatus) callback taking build status object
 ---@field on_fail function() failure callback
 
 ---Build image from passed dockerfile using docker build
@@ -134,6 +148,7 @@ function M.build(file, path, opts)
 		or function()
 			vim.notify("Building image from file " .. file .. " failed!", vim.log.levels.ERROR)
 		end
+	local on_progress = opts.on_progress or function(_) end
 
 	local command = { "build", "-f", file, path }
 	local temptag = nil
@@ -142,11 +157,24 @@ function M.build(file, path, opts)
 		table.insert(command, opts.tag)
 	elseif opts.add_neovim then
 		temptag = "nvim-dev-container-base-" .. os.time()
+		log.fmt_debug("Creating temporary image with tag: %s", temptag)
 		table.insert(command, "-t")
 		table.insert(command, temptag)
 	end
 
 	vim.list_extend(command, opts.args or {})
+
+	local build_status = {
+		progress = 0,
+		step_count = 0,
+		current_step = 0,
+		image_id = nil,
+		source_dockerfile = file,
+		build_command = table.concat(vim.list_extend({ "docker" }, command), " "),
+		commands_run = {},
+		running = true,
+	}
+	status.add_build(build_status)
 
 	local image_id = nil
 	run_docker(command, {
@@ -156,22 +184,47 @@ function M.build(file, path, opts)
 				--TODO: Is there a better way to get image ID
 				--There is the --iidfile maybe
 				local image_id_regex = vim.regex("Successfully built .*")
+				local step_regex = vim.regex("Step [[:digit:]]*/[[:digit:]]* : .*")
 				for _, line in ipairs(lines) do
-					if image_id_regex:match_str(line) then
+					if not image_id and image_id_regex:match_str(line) then
 						local result_line = vim.split(line, " ")
 						image_id = result_line[#result_line]
-						return
+					end
+					if step_regex:match_str(line) then
+						local step_line = vim.split(line, ":")
+						local step_numbers = vim.split(vim.split(step_line[1], " ")[2], "/")
+						table.insert(build_status.commands_run, step_line[2])
+						build_status.current_step = tonumber(step_numbers[1])
+						build_status.step_count = tonumber(step_numbers[2])
+						build_status.progress = (build_status.current_step / build_status.step_count) * 100
+						on_progress(vim.deepcopy(build_status))
 					end
 				end
 			end
 		end),
 	}, function(code, _)
+		build_status.running = false
+		on_progress(vim.deepcopy(build_status))
 		if code == 0 then
 			if not opts.add_neovim then
+				if opts["_neovim_build"] then
+					status.add_image({
+						image_id = image_id,
+						source_dockerfile = opts["_original_dockerfile"],
+						neovim_added = true,
+						tmp_dockerfile = file,
+					})
+				else
+					status.add_image({
+						image_id = image_id,
+						source_dockerfile = file,
+						neovim_added = false,
+					})
+				end
 				on_success(image_id)
 				return
 			end
-			build_with_neovim(temptag, path, opts)
+			build_with_neovim(file, temptag, path, opts)
 		else
 			on_fail()
 		end
@@ -186,10 +239,9 @@ end
 ---@field terminal_handler function(command) override to open terminal in a different way, :tabnew + termopen by default
 ---@field on_success function(container_id) success callback taking the id of the started container - not invoked if tty
 ---@field on_fail function() failure callback
----@see TODO: terminal handler config
 
 ---Run passed image using docker run
----*NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
+---NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
 ---@param image string Docker image to run
 ---@param opts DockerRunOpts Additional options including callbacks
 ---@usage `docker.run("alpine", { on_success = function(id) end, on_fail = function() end })`
@@ -245,14 +297,16 @@ function M.run(image, opts)
 		run_docker(command, {
 			stdout = function(_, data)
 				if data then
-					container_id = data
+					container_id = vim.split(data, "\n")[1]
 				end
-			end,
-			stderr = function(_, data)
-				vim.pretty_print(data)
 			end,
 		}, function(code, _)
 			if code == 0 then
+				status.add_container({
+					image_id = image,
+					container_id = container_id,
+					autoremove = opts.autoremove,
+				})
 				on_success(container_id)
 			else
 				on_fail()
@@ -261,4 +315,125 @@ function M.run(image, opts)
 	end
 end
 
-return M
+---@class DockerContainerStopOpts
+---@field on_success function() success callback
+---@field on_fail function() failure callback
+
+---Stop passed containers
+---@param containers List[string] ids of containers to stop
+---@param opts DockerContainerStopOpts Additional options including callbacks
+---@usage `docker.container_stop({ "some_id" }, { on_success = function() end, on_fail = function() end })`
+function M.container_stop(containers, opts)
+	vim.validate({
+		containers = { containers, "table" },
+	})
+	opts = opts or {}
+	v.validate_callbacks(opts)
+
+	local on_success = opts.on_success or function()
+		vim.notify("Successfully stopped containers!")
+	end
+	local on_fail = opts.on_fail or function()
+		vim.notify("Stopping containers failed!", vim.log.levels.ERROR)
+	end
+
+	local command = { "container", "stop" }
+
+	vim.list_extend(command, containers)
+	run_docker(command, nil, function(code, _)
+		if code == 0 then
+			for _, container in ipairs(containers) do
+				status.move_container_to_stopped(container)
+			end
+			on_success()
+		else
+			on_fail()
+		end
+	end)
+end
+
+---@class DockerImageRmOpts
+---@field force boolean|nil force deletion
+---@field on_success function() success callback
+---@field on_fail function() failure callback
+
+---Removes passed images
+---@param images List[string] ids of images to remove
+---@param opts DockerImageRmOpts Additional options including callbacks
+---@usage `docker.image_rm({ "some_id" }, { on_success = function() end, on_fail = function() end })`
+function M.image_rm(images, opts)
+	vim.validate({
+		images = { images, "table" },
+	})
+	opts = opts or {}
+	v.validate_callbacks(opts)
+
+	local on_success = opts.on_success or function()
+		vim.notify("Successfully removed images!")
+	end
+	local on_fail = opts.on_fail or function()
+		vim.notify("Removing images failed!", vim.log.levels.ERROR)
+	end
+
+	local command = { "image", "rm" }
+
+	if opts.force then
+		table.insert(command, "-f")
+	end
+
+	vim.list_extend(command, images)
+	run_docker(command, nil, function(code, _)
+		if code == 0 then
+			for _, image in ipairs(images) do
+				status.remove_image(image)
+			end
+			on_success()
+		else
+			on_fail()
+		end
+	end)
+end
+
+---@class DockerContainerRmOpts
+---@field force boolean|nil force deletion
+---@field on_success function() success callback
+---@field on_fail function() failure callback
+
+---Removes passed containers
+---@param containers List[string] ids of containers to remove
+---@param opts DockerContainerRmOpts Additional options including callbacks
+---@usage `docker.container_rm({ "some_id" }, { on_success = function() end, on_fail = function() end })`
+function M.container_rm(containers, opts)
+	vim.validate({
+		containers = { containers, "table" },
+	})
+	opts = opts or {}
+	v.validate_callbacks(opts)
+
+	local on_success = opts.on_success or function()
+		vim.notify("Successfully removed containers!")
+	end
+	local on_fail = opts.on_fail or function()
+		vim.notify("Removing containers failed!", vim.log.levels.ERROR)
+	end
+
+	local command = { "container", "rm" }
+
+	if opts.force then
+		table.insert(command, "-f")
+	end
+
+	vim.list_extend(command, containers)
+	run_docker(command, nil, function(code, _)
+		if code == 0 then
+			for _, container in ipairs(containers) do
+				status.remove_container(container)
+			end
+			on_success()
+		else
+			on_fail()
+		end
+	end)
+end
+
+return log.wrap(M)

@@ -2,6 +2,7 @@
 ---Internal library for managing and runing executables
 ---@brief ]]
 local uv = vim.loop
+local log = require("devcontainer.internal.log")
 
 local M = {}
 
@@ -88,4 +89,4 @@ function M.run_command(command, opts, onexit)
 	uv.read_start(stderr, opts.stderr or function() end)
 end
 
-return M
+return log.wrap(M)

@@ -7,6 +7,7 @@
 local jsonc = require("devcontainer.config_file.jsonc")
 local config = require("devcontainer.config")
 local u = require("devcontainer.internal.utils")
+local log = require("devcontainer.internal.log")
 local uv = vim.loop
 
 local M = {}
@@ -226,7 +227,7 @@ end
 
 ---Fills passed devcontainer config with defaults based on spec
 ---Expects a proper config file, parsed with functions from this module
----*NOTE: This mutates passed config!
+---NOTE: This mutates passed config!
 ---@param config_file table parsed config
 ---@return table config with filled defaults and absolute paths
 function M.fill_defaults(config_file)
@@ -280,4 +281,4 @@ function M.fill_defaults(config_file)
 	return sub_variables_recursive(config_file)
 end
 
-return M
+return log.wrap(M)
