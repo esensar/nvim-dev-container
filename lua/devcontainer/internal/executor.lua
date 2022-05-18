@@ -89,4 +89,5 @@ function M.run_command(command, opts, onexit)
 	uv.read_start(stderr, opts.stderr or function() end)
 end
 
-return log.wrap(M)
+log.wrap(M)
+return M
