@@ -125,6 +125,7 @@ M.get_status()                                  *devcontainer.status.get_status*
 
 M.find_container({opts})                    *devcontainer.status.find_container*
     Finds container with requested opts
+    Read-only
 
     Parameters: ~
         {opts}  (DevcontainerContainerStatus)  required opts
@@ -135,6 +136,7 @@ M.find_container({opts})                    *devcontainer.status.find_container*
 
 M.find_image({opts})                            *devcontainer.status.find_image*
     Finds image with requested opts
+    Read-only
 
     Parameters: ~
         {opts}  (DevcontainerImageStatus)  required opts

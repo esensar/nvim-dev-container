@@ -47,11 +47,60 @@ local current_status = {
 	compose_services = {},
 }
 
+---Finds container with requested opts
+---@param opts DevcontainerContainerStatus required opts
+---@return DevcontainerContainerStatus
+local function get_container(opts)
+	local all_containers = {}
+	vim.list_extend(all_containers, current_status.running_containers)
+	vim.list_extend(all_containers, current_status.stopped_containers)
+	if not opts then
+		return all_containers[1]
+	end
+	for _, v in ipairs(all_containers) do
+		if opts.image_id and v.image_id == opts.image_id then
+			return v
+		end
+		if opts.container_id and v.container_id == opts.container_id then
+			return v
+		end
+	end
+	return nil
+end
+
+---Finds image with requested opts
+---@param opts DevcontainerImageStatus required opts
+---@return DevcontainerImageStatus
+local function get_image(opts)
+	if not opts then
+		return current_status.images_built[1]
+	end
+	for _, v in ipairs(current_status.images_built) do
+		if opts.image_id and v.image_id == opts.image_id then
+			return v
+		end
+		if opts.source_dockerfile and v.source_dockerfile == opts.source_dockerfile then
+			return v
+		end
+		if opts.neovim_added and opts.tmp_dockerfile and v.tmp_dockerfile == opts.tmp_dockerfile then
+			return v
+		end
+	end
+	return nil
+end
+
 ---@private
----Adds image to the status
+---Adds image to the status or replaces if item with same image_id exists
 ---@param image_status DevcontainerImageStatus
 function M.add_image(image_status)
-	table.insert(current_status.images_built, image_status)
+	local existing = get_image({ image_id = image_status.image_id })
+	if existing then
+		existing.neovim_added = image_status.neovim_added
+		existing.source_dockerfile = image_status.source_dockerfile
+		existing.tmp_dockerfile = image_status.tmp_dockerfile
+	else
+		table.insert(current_status.images_built, image_status)
+	end
 end
 
 ---@private
@@ -67,10 +116,16 @@ function M.remove_image(image_id)
 end
 
 ---@private
----Adds container to the status
+---Adds container to the status or replaces if item with same container_id exists
 ---@param container_status DevcontainerContainerStatus
 function M.add_container(container_status)
-	table.insert(current_status.running_containers, container_status)
+	local existing = get_container({ container_id = container_status.container_id })
+	if existing then
+		existing.autoremove = container_status.autoremove
+		M.move_container_to_running(container_status.container_id)
+	else
+		table.insert(current_status.running_containers, container_status)
+	end
 end
 
 ---@private
@@ -83,6 +138,19 @@ function M.move_container_to_stopped(container_id)
 			if not container_status.autoremove then
 				table.insert(current_status.stopped_containers, container_status)
 			end
+			return
+		end
+	end
+end
+
+---@private
+---Moves container from stopped_containers to running_containers
+---@param container_id string
+function M.move_container_to_running(container_id)
+	for i, v in ipairs(current_status.stopped_containers) do
+		if v.container_id == container_id then
+			local container_status = table.remove(current_status.stopped_containers, i)
+			table.insert(current_status.running_containers, container_status)
 			return
 		end
 	end
@@ -110,6 +178,7 @@ end
 ---Adds compose service to the status
 ---@param compose_status DevcontainerComposeStatus
 function M.add_compose(compose_status)
+	M.remove_compose(compose_status.file)
 	table.insert(current_status.compose_services, compose_status)
 end
 
@@ -139,45 +208,19 @@ function M.get_status()
 end
 
 ---Finds container with requested opts
+---Read-only
 ---@param opts DevcontainerContainerStatus required opts
 ---@return DevcontainerContainerStatus
 function M.find_container(opts)
-	local all_containers = {}
-	vim.list_extend(all_containers, current_status.running_containers)
-	vim.list_extend(all_containers, current_status.stopped_containers)
-	if not opts then
-		return all_containers[1]
-	end
-	for _, v in ipairs(all_containers) do
-		if opts.image_id and v.image_id == opts.image_id then
-			return v
-		end
-		if opts.container_id and v.container_id == opts.container_id then
-			return v
-		end
-	end
-	return nil
+	return vim.deepcopy(get_container(opts))
 end
 
 ---Finds image with requested opts
+---Read-only
 ---@param opts DevcontainerImageStatus required opts
 ---@return DevcontainerImageStatus
 function M.find_image(opts)
-	if not opts then
-		return current_status.images_built[1]
-	end
-	for _, v in ipairs(current_status.images_built) do
-		if opts.image_id and v.image_id == opts.image_id then
-			return v
-		end
-		if opts.source_dockerfile and v.source_dockerfile == opts.source_dockerfile then
-			return v
-		end
-		if opts.neovim_added and opts.tmp_dockerfile and v.tmp_dockerfile == opts.tmp_dockerfile then
-			return v
-		end
-	end
-	return nil
+	return vim.deepcopy(get_image(opts))
 end
 
 return M
