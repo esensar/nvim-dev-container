@@ -7,6 +7,8 @@ local docker = require("devcontainer.docker")
 local config_file = require("devcontainer.config_file.parse")
 local log = require("devcontainer.internal.log")
 local status = require("devcontainer.status")
+local plugin_config = require("devcontainer.config")
+local u = require("devcontainer.internal.utils")
 
 local M = {}
 
@@ -75,8 +77,6 @@ local function generate_run_command_args(data)
 			vim.notify("workspaceFolder and workspaceMount have to both be defined to be used!", vim.log.levels.WARN)
 		else
 			run_args = run_args or {}
-			table.insert(run_args, "--workdir")
-			table.insert(run_args, data.workspaceFolder)
 			table.insert(run_args, "--mount")
 			table.insert(run_args, data.workspaceMount)
 		end
@@ -608,6 +608,35 @@ end
 ---@usage `require("devcontainer.commands").open_logs()`
 function M.open_logs()
 	vim.cmd("edit " .. log.logfile)
+end
+
+---Opens nearest devcontainer config in a new buffer
+---@usage `require("devcontainer.commands").open_nearest_devcontainer_config()`
+function M.open_nearest_devcontainer_config()
+	config_file.find_nearest_devcontainer_config(vim.schedule_wrap(function(err, data)
+		if err then
+			vim.notify("Can't find devcontainer config: " .. vim.inspect(err), vim.log.levels.ERROR)
+			return
+		end
+		vim.cmd("edit " .. data)
+		vim.cmd("setlocal filetype=jsonc")
+	end))
+end
+
+---Opens nearest devcontainer config in a new buffer or creates a new one in .devcontainer/devcontainer.json
+---@usage `require("devcontainer.commands").edit_devcontainer_config()`
+function M.edit_devcontainer_config()
+	config_file.find_nearest_devcontainer_config(vim.schedule_wrap(function(err, data)
+		local path = data
+		if err then
+			local project_root = plugin_config.workspace_folder_provider()
+			vim.fn.mkdir(project_root .. u.path_sep .. ".devcontainer", "p")
+			path = project_root .. u.path_sep .. ".devcontainer" .. u.path_sep .. "devcontainer.json"
+		end
+		vim.cmd("edit " .. path)
+		vim.api.nvim_buf_set_lines(0, 0, -1, false, plugin_config.devcontainer_json_template())
+		vim.cmd("setlocal filetype=jsonc")
+	end))
 end
 
 log.wrap(M)

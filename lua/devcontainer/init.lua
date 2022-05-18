@@ -14,7 +14,8 @@ local configured = false
 ---@field config_search_start function|nil provides starting point for .devcontainer.json seach
 ---@field workspace_folder_provider function|nil provides current workspace folder
 ---@field terminal_handler function|nil handles terminal command requests, useful for floating terminals and similar
----@field nvim_dockerfile_template function|nil provides dockerfile template based on passed base_image
+---@field nvim_dockerfile_template function|nil provides dockerfile template based on passed base_image - returns string
+---@field devcontainer_json_template function|nil provides template for new .devcontainer.json files - returns table
 ---@field generate_commands boolean|nil can be set to false to prevent plugin from creating commands
 ---@field log_level log_level|nil can be used to override library logging level
 ---@field disable_recursive_config_search boolean|nil can be used to disable recursive .devcontainer search
@@ -30,6 +31,7 @@ function M.setup(opts)
 
 	config.terminal_hander = opts.terminal_handler or config.terminal_handler
 	config.nvim_dockerfile_template = opts.nvim_dockerfile_template or config.nvim_dockerfile_template
+	config.devcontainer_json_template = opts.devcontainer_json_template or config.devcontainer_json_template
 	config.workspace_folder_provider = opts.workspace_folder_provider or config.workspace_folder_provider
 	config.config_search_start = opts.config_search_start or config.config_search_start
 	config.disable_recursive_config_search = opts.disable_recursive_config_search
@@ -121,6 +123,18 @@ function M.setup(opts)
 		end, {
 			nargs = 0,
 			desc = "Open devcontainer plugin logs in a new buffer",
+		})
+		vim.api.nvim_create_user_command("DevcontainerOpenNearestConfig", function(_)
+			commands.open_nearest_devcontainer_config()
+		end, {
+			nargs = 0,
+			desc = "Open nearest devcontainer.json file in a new buffer",
+		})
+		vim.api.nvim_create_user_command("DevcontainerEditNearestConfig", function(_)
+			commands.edit_devcontainer_config()
+		end, {
+			nargs = 0,
+			desc = "Opens nearest devcontainer.json file in a new buffer or creates one if it does not exist",
 		})
 	end
 

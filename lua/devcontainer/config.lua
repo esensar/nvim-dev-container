@@ -87,6 +87,32 @@ local function default_config_search_start()
 	return vim.loop.cwd()
 end
 
+local function default_devcontainer_json_template()
+	return {
+		"{",
+		[[  "name": "Your Definition Name Here (Community)",]],
+		[[// Update the 'image' property with your Docker image name.]],
+		[[// "image": "alpine",]],
+		[[// Or define build if using Dockerfile.]],
+		[[// "build": {]],
+		[[//     "dockerfile": "Dockerfile",]],
+		[[// [Optional] You can use build args to set options. e.g. 'VARIANT' below affects the image in the Dockerfile]],
+		[[//     "args": { "VARIANT: "buster" },]],
+		[[// }]],
+		[[// Or use docker-compose]],
+		[[// Update the 'dockerComposeFile' list if you have more compose files or use different names.]],
+		[["dockerComposeFile": "docker-compose.yml",]],
+		[[// Use 'forwardPorts' to make a list of ports inside the container available locally.]],
+		[[// "forwardPorts": [],]],
+		[[// Define mounts.]],
+		[[// "mounts": [ "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename} ]]
+			.. [[,type=bind,consistency=delegated" ],]],
+		[[// Uncomment when using a ptrace-based debugger like C++, Go, and Rust]],
+		[[// "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],]],
+		[[}]],
+	}
+end
+
 ---Handles terminal requests (mainly used for attaching to container)
 ---By default it uses terminal command
 ---@type function
@@ -113,6 +139,11 @@ M.config_search_start = default_config_search_start
 ---This flag can be used to prevent it and only look in M.config_search_start
 ---@type boolean
 M.disable_recursive_config_search = false
+
+---Provides template for creating new .devcontainer.json files
+---This function should return a table listing lines of the file
+---@type function
+M.devcontainer_json_template = default_devcontainer_json_template
 
 ---@alias log_level
 ---| '"trace"'

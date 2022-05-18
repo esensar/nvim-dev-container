@@ -20,12 +20,12 @@ local function run_docker_compose(args, opts, onexit)
 		"docker-compose",
 		vim.tbl_extend("force", opts, {
 			args = args,
-			stderr = vim.schedule_wrap(function(x, data)
+			stderr = vim.schedule_wrap(function(err, data)
 				if data then
 					log.fmt_error("Docker-compose command (%s): %s", args, data)
 				end
 				if opts.stderr then
-					opts.stderr(x, data)
+					opts.stderr(err, data)
 				end
 			end),
 		}),

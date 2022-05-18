@@ -281,5 +281,23 @@ function M.fill_defaults(config_file)
 	return sub_variables_recursive(config_file)
 end
 
+---Return path of the nearest devcontainer.json file
+---Prefers .devcontainer.json over .devcontainer/devcontainer.json
+---Looks in config.config_search_start first and then moves up all the way until root
+---Fails if no devcontainer.json files were found, or if the first one found is invalid
+---@param callback function(err,data)|nil if nil run sync, otherwise run async and pass result to the callback
+---@return string|nil result or nil if running async
+---@usage `require("devcontainer.config_file.parse").find_nearest_devcontainer_config()`
+function M.find_nearest_devcontainer_config(callback)
+	vim.validate({
+		callback = { callback, { "function", "nil" } },
+	})
+	if callback then
+		return find_nearest_devcontainer_file(callback)
+	else
+		return find_nearest_devcontainer_file(nil)
+	end
+end
+
 log.wrap(M)
 return M
