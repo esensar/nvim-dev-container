@@ -154,14 +154,16 @@ DevcontainerSetupOpts                                    *DevcontainerSetupOpts*
 
 
     Fields: ~
-        {config_search_start}              (function|nil)   provides starting point for .devcontainer.json seach
-        {workspace_folder_provider}        (function|nil)   provides current workspace folder
-        {terminal_handler}                 (function|nil)   handles terminal command requests, useful for floating terminals and similar
-        {nvim_dockerfile_template}         (function|nil)   provides dockerfile template based on passed base_image - returns string
-        {devcontainer_json_template}       (function|nil)   provides template for new .devcontainer.json files - returns table
-        {generate_commands}                (boolean|nil)    can be set to false to prevent plugin from creating commands
-        {log_level}                        (log_level|nil)  can be used to override library logging level
-        {disable_recursive_config_search}  (boolean|nil)    can be used to disable recursive .devcontainer search
+        {config_search_start}              (function|nil)          provides starting point for .devcontainer.json seach
+        {workspace_folder_provider}        (function|nil)          provides current workspace folder
+        {terminal_handler}                 (function|nil)          handles terminal command requests, useful for floating terminals and similar
+        {nvim_dockerfile_template}         (function|nil)          provides dockerfile template based on passed base_image - returns string
+        {devcontainer_json_template}       (function|nil)          provides template for new .devcontainer.json files - returns table
+        {generate_commands}                (boolean|nil)           can be set to false to prevent plugin from creating commands
+        {log_level}                        (log_level|nil)         can be used to override library logging level
+        {disable_recursive_config_search}  (boolean|nil)           can be used to disable recursive .devcontainer search
+        {attach_mounts}                    (AttachMountsOpts|nil)  can be used to configure mounts when adding neovim to containers
+        {always_mount}                     (List[string]|nil)      list of mounts to add to every container
 
 
 M.setup({opts})                                             *devcontainer.setup*
@@ -446,6 +448,41 @@ M.devcontainer_json_template
 
     Type: ~
         (function)  
+
+
+MountOpts                                                            *MountOpts*
+
+
+    Fields: ~
+        {enabled}  (boolean)           if true this mount is enabled
+        {options}  (List[string]|nil)  additional bind options, useful to define { "readonly" }
+
+
+AttachMountsOpts                                              *AttachMountsOpts*
+
+
+    Fields: ~
+        {neovim_config}  (MountOpts|nil)  if true attaches neovim local config to /root/.config/nvim in container
+        {neovim_data}    (MountOpts|nil)  if true attaches neovim data to /root/.local/share/nvim in container
+        {neovim_state}   (MountOpts|nil)  if true attaches neovim state to /root/.local/state/nvim in container
+        {custom_mounts}  (List[string])   list of custom mounts to add when attaching
+
+
+M.attach_mounts                              *devcontainer.config.attach_mounts*
+    Configuration for mounts when using attach command
+    Useful to mount neovim configuration into container
+    Applicable only to `devcontainer.commands` functions!
+
+    Type: ~
+        (AttachMountsOpts)  
+
+
+M.always_mount                                *devcontainer.config.always_mount*
+    List of mounts to always add to all containers
+    Applicable only to `devcontainer.commands` functions!
+
+    Type: ~
+        (List)  [string]
 
 
 log_level                                                            *log_level*

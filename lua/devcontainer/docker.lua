@@ -129,7 +129,7 @@ function M.build(file, path, opts)
 		tag = "string",
 		add_neovim = "boolean",
 		args = function(x)
-			return vim.tbl_islist(x)
+			return x == nil or vim.tbl_islist(x)
 		end,
 	})
 
