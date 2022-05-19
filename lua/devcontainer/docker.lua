@@ -196,7 +196,7 @@ function M.build(file, path, opts)
 						table.insert(build_status.commands_run, string.sub(step_line[2], 2))
 						build_status.current_step = tonumber(step_numbers[1])
 						build_status.step_count = tonumber(step_numbers[2])
-						build_status.progress = (build_status.current_step / build_status.step_count) * 100
+						build_status.progress = math.floor((build_status.current_step / build_status.step_count) * 100)
 						on_progress(vim.deepcopy(build_status))
 					end
 				end
