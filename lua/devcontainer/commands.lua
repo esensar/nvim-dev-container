@@ -679,7 +679,9 @@ function M.edit_devcontainer_config()
 			path = project_root .. u.path_sep .. ".devcontainer" .. u.path_sep .. "devcontainer.json"
 		end
 		vim.cmd("edit " .. path)
-		vim.api.nvim_buf_set_lines(0, 0, -1, false, plugin_config.devcontainer_json_template())
+		if err then
+			vim.api.nvim_buf_set_lines(0, 0, -1, false, plugin_config.devcontainer_json_template())
+		end
 		vim.cmd("setlocal filetype=jsonc")
 	end))
 end
