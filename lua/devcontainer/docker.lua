@@ -148,7 +148,12 @@ function M.build(file, path, opts)
 		or function()
 			vim.notify("Building image from file " .. file .. " failed!", vim.log.levels.ERROR)
 		end
-	local on_progress = opts.on_progress or function(_) end
+	local on_progress = function(build_status)
+		vim.api.nvim_exec_autocmds("User", { pattern = "DevcontainerBuildProgress", modeline = false })
+		if opts.on_progress then
+			opts.on_progress(build_status)
+		end
+	end
 
 	local command = { "build", "-f", file, path }
 	local temptag = nil

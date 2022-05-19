@@ -89,6 +89,27 @@ local function get_image(opts)
 	return nil
 end
 
+---Finds build with requested opts
+---@param opts DevcontainerBuildStatus required opts
+---@return DevcontainerBuildStatus
+local function get_build(opts)
+	if not opts then
+		return current_status.build_status[#current_status.build_status]
+	end
+	for _, v in ipairs(current_status.build_status) do
+		if opts.image_id and v.image_id == opts.image_id then
+			return v
+		end
+		if opts.source_dockerfile and v.source_dockerfile == opts.source_dockerfile then
+			return v
+		end
+		if opts.running and v.running == opts.running then
+			return v
+		end
+	end
+	return nil
+end
+
 ---@private
 ---Adds image to the status or replaces if item with same image_id exists
 ---@param image_status DevcontainerImageStatus
@@ -221,6 +242,14 @@ end
 ---@return DevcontainerImageStatus
 function M.find_image(opts)
 	return vim.deepcopy(get_image(opts))
+end
+
+---Finds build status with requested opts
+---Read-only
+---@param opts DevcontainerBuildStatus required opts
+---@return DevcontainerBuildStatus
+function M.find_build(opts)
+	return vim.deepcopy(get_build(opts))
 end
 
 return M
