@@ -12,13 +12,11 @@ CONTENTS                                         *devcontainer-contents*
   4.  Usage                                      |devcontainer-usage|
   5.  Commands                                   |devcontainer-commands|
   6.  Functions                                  |devcontainer-functions|
-  7.  Mappings                                   |devcontainer-mappings|
-  8.  Plugs                                      |devcontainer-plugs|
-  9.  Options                                    |devcontainer-options|
-  10. Issues                                     |devcontainer-issues|
-  11. Contributing                               |devcontainer-contributing|
-  12. Version                                    |devcontainer-version|
-  13. License                                    |devcontainer-license|
+  7.  Events                                     |devcontainer-autocmd-events|
+  8.  Issues                                     |devcontainer-issues|
+  9.  Contributing                               |devcontainer-contributing|
+  10. Version                                    |devcontainer-version|
+  11. License                                    |devcontainer-license|
 
 OVERVIEW                                         *devcontainer-overview*
 
@@ -168,6 +166,18 @@ but not all of them are needed for use tasks. Many of the functionalities are
 exposed to enable custom functionality.
 
 ---INSERT HERE---
+
+EVENTS                                        *devcontainer-autocmd-events*
+
+This plugin also provides autocmd events:
+
+*DevcontainerBuildProgress*
+  Emitted when build status changes. Useful for statusline updates.
+  See |devcontainer.status.find_build|.
+
+Example:
+  autocmd User DevcontainerBuildProgress redrawstatus
+
 
 ISSUES                                           *devcontainer-issues*
 
