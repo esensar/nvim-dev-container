@@ -7,8 +7,14 @@ local M = {}
 local config = require("devcontainer.config")
 local commands = require("devcontainer.commands")
 local log = require("devcontainer.internal.log")
+local parse = require("devcontainer.config_file.parse")
 
 local configured = false
+
+---@class DevcontainerAutocommandOpts
+---@field init boolean|nil set to true to enable automatic devcontainer start
+---@field clean boolean|nil set to true to enable automatic devcontainer stop and clean
+---@field update boolean|nil set to true to enable automatic devcontainer update when config file is changed
 
 ---@class DevcontainerSetupOpts
 ---@field config_search_start function|nil provides starting point for .devcontainer.json seach
@@ -16,7 +22,8 @@ local configured = false
 ---@field terminal_handler function|nil handles terminal command requests, useful for floating terminals and similar
 ---@field nvim_dockerfile_template function|nil provides dockerfile template based on passed base_image - returns string
 ---@field devcontainer_json_template function|nil provides template for new .devcontainer.json files - returns table
----@field generate_commands boolean|nil can be set to false to prevent plugin from creating commands
+---@field generate_commands boolean|nil can be set to false to prevent plugin from creating commands (true by default)
+---@field autocommands DevcontainerAutocommandOpts|nil can be set to enable autocommands, disabled by default
 ---@field log_level log_level|nil can be used to override library logging level
 ---@field disable_recursive_config_search boolean|nil can be used to disable recursive .devcontainer search
 ---@field attach_mounts AttachMountsOpts|nil can be used to configure mounts when adding neovim to containers
@@ -140,6 +147,70 @@ function M.setup(opts)
 			nargs = 0,
 			desc = "Opens nearest devcontainer.json file in a new buffer or creates one if it does not exist",
 		})
+	end
+
+	if opts.autocommands then
+		local au_id = vim.api.nvim_create_augroup("devcontainer_autostart", {})
+
+		if opts.autocommands.init then
+			local last_devcontainer_file = nil
+
+			local function auto_start()
+				parse.find_nearest_devcontainer_config(function(err, data)
+					if err == nil and data ~= nil then
+						if data ~= last_devcontainer_file then
+							commands.start_auto()
+							last_devcontainer_file = data
+						end
+					end
+				end)
+			end
+
+			vim.api.nvim_create_autocmd("BufEnter", {
+				pattern = "*",
+				group = au_id,
+				callback = function()
+					auto_start()
+				end,
+				once = true,
+			})
+
+			vim.api.nvim_create_autocmd("DirChanged", {
+				pattern = "*",
+				group = au_id,
+				callback = function()
+					auto_start()
+				end,
+			})
+		end
+
+		if opts.autocommands.clean then
+			vim.api.nvim_create_autocmd("VimLeavePre", {
+				pattern = "*",
+				group = au_id,
+				callback = function()
+					commands.remove_all()
+				end,
+			})
+		end
+
+		if opts.autocommands.update then
+			vim.api.nvim_create_autocmd({ "BufWritePost", "FileWritePost" }, {
+				pattern = "*devcontainer.json",
+				group = au_id,
+				callback = function(event)
+					parse.find_nearest_devcontainer_config(function(err, data)
+						if err == nil and data ~= nil then
+							if data == event.match then
+								commands.stop_auto(function()
+									commands.start_auto()
+								end)
+							end
+						end
+					end)
+				end,
+			})
+		end
 	end
 
 	log.info("Setup complete!")
