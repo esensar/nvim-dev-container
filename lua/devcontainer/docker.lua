@@ -193,7 +193,7 @@ function M.build(file, path, opts)
 					if step_regex:match_str(line) then
 						local step_line = vim.split(line, ":")
 						local step_numbers = vim.split(vim.split(step_line[1], " ")[2], "/")
-						table.insert(build_status.commands_run, step_line[2])
+						table.insert(build_status.commands_run, string.sub(step_line[2], 2))
 						build_status.current_step = tonumber(step_numbers[1])
 						build_status.step_count = tonumber(step_numbers[2])
 						build_status.progress = (build_status.current_step / build_status.step_count) * 100
