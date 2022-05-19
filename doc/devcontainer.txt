@@ -150,20 +150,30 @@ Main devcontainer module - used to setup the plugin               *devcontainer*
 
 Provides setup function
 
+DevcontainerAutocommandOpts                        *DevcontainerAutocommandOpts*
+
+
+    Fields: ~
+        {init}    (boolean|nil)  set to true to enable automatic devcontainer start
+        {clean}   (boolean|nil)  set to true to enable automatic devcontainer stop and clean
+        {update}  (boolean|nil)  set to true to enable automatic devcontainer update when config file is changed
+
+
 DevcontainerSetupOpts                                    *DevcontainerSetupOpts*
 
 
     Fields: ~
-        {config_search_start}              (function|nil)          provides starting point for .devcontainer.json seach
-        {workspace_folder_provider}        (function|nil)          provides current workspace folder
-        {terminal_handler}                 (function|nil)          handles terminal command requests, useful for floating terminals and similar
-        {nvim_dockerfile_template}         (function|nil)          provides dockerfile template based on passed base_image - returns string
-        {devcontainer_json_template}       (function|nil)          provides template for new .devcontainer.json files - returns table
-        {generate_commands}                (boolean|nil)           can be set to false to prevent plugin from creating commands
-        {log_level}                        (log_level|nil)         can be used to override library logging level
-        {disable_recursive_config_search}  (boolean|nil)           can be used to disable recursive .devcontainer search
-        {attach_mounts}                    (AttachMountsOpts|nil)  can be used to configure mounts when adding neovim to containers
-        {always_mount}                     (List[string]|nil)      list of mounts to add to every container
+        {config_search_start}              (function|nil)                     provides starting point for .devcontainer.json seach
+        {workspace_folder_provider}        (function|nil)                     provides current workspace folder
+        {terminal_handler}                 (function|nil)                     handles terminal command requests, useful for floating terminals and similar
+        {nvim_dockerfile_template}         (function|nil)                     provides dockerfile template based on passed base_image - returns string
+        {devcontainer_json_template}       (function|nil)                     provides template for new .devcontainer.json files - returns table
+        {generate_commands}                (boolean|nil)                      can be set to false to prevent plugin from creating commands (true by default)
+        {autocommands}                     (DevcontainerAutocommandOpts|nil)  can be set to enable autocommands, disabled by default
+        {log_level}                        (log_level|nil)                    can be used to override library logging level
+        {disable_recursive_config_search}  (boolean|nil)                      can be used to disable recursive .devcontainer search
+        {attach_mounts}                    (AttachMountsOpts|nil)             can be used to configure mounts when adding neovim to containers
+        {always_mount}                     (List[string]|nil)                 list of mounts to add to every container
 
 
 M.setup({opts})                                             *devcontainer.setup*
