@@ -513,7 +513,8 @@ function M.stop_auto(callback)
 					end,
 				})
 			else
-				vim.notify("Can't find container to stop", vim.log.levels.ERROR)
+				log.info("No containers found to stop.")
+				on_success(data)
 			end
 			return
 		end
