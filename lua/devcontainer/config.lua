@@ -74,7 +74,6 @@ local function default_nvim_dockerfile_template(base_image)
 		"RUN cd /root/TMP && git clone https://github.com/neovim/neovim",
 		"RUN cd /root/TMP/neovim && (git checkout " .. version_string .. " || true) && make -j4 && make install",
 		"RUN rm -rf /root/TMP",
-		"RUN mkdir -p /root/config/nvim",
 	}
 	return table.concat(lines, "\n")
 end
