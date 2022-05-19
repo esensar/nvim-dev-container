@@ -112,12 +112,12 @@ require("devcontainer").setup {
     },
     -- This takes a list of mounts (strings) that should always be added whenever attaching to containers
     -- This is passed directly as --mount option to docker command
-    -- Or multiple --mount options if there are multiple vaues
+    -- Or multiple --mount options if there are multiple values
     custom_mounts = {}
   },
   -- This takes a list of mounts (strings) that should always be added to every run container
   -- This is passed directly as --mount option to docker command
-  -- Or multiple --mount options if there are multiple vaues
+  -- Or multiple --mount options if there are multiple values
   always_mount = {}
 }
 ```
