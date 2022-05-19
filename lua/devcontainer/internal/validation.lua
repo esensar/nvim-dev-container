@@ -18,14 +18,18 @@ function M.validate_callbacks(opts)
 end
 
 function M.validate_opts(opts, mapping)
+	M.validate_deep(opts, "opts", mapping)
+end
+
+function M.validate_deep(obj, name, mapping)
 	local validation = {}
 	for k, v in pairs(mapping) do
 		if type(v) == "function" then
-			validation["opts." .. k] = { opts[k], v }
+			validation[name .. "." .. k] = { obj[k], v }
 		elseif type(v) == "table" then
-			validation["opts." .. k] = { opts[k], vim.list_extend(v, { "nil" }) }
+			validation[name .. "." .. k] = { obj[k], vim.list_extend(v, { "nil" }) }
 		else
-			validation["opts." .. k] = { opts[k], { v, "nil" } }
+			validation[name .. "." .. k] = { obj[k], { v, "nil" } }
 		end
 	end
 	vim.validate(validation)

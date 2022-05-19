@@ -8,6 +8,7 @@ local config = require("devcontainer.config")
 local commands = require("devcontainer.commands")
 local log = require("devcontainer.internal.log")
 local parse = require("devcontainer.config_file.parse")
+local v = require("devcontainer.internal.validation")
 
 local configured = false
 
@@ -36,6 +37,64 @@ function M.setup(opts)
 		log.info("Already configured, skipping!")
 		return
 	end
+
+	vim.validate({
+		opts = { opts, "table" },
+	})
+	opts = opts or {}
+	v.validate_opts(opts, {
+		config_search_start = "function",
+		workspace_folder_provider = "function",
+		terminal_handler = "function",
+		nvim_dockerfile_template = "function",
+		devcontainer_json_template = "function",
+		generate_commands = "boolean",
+		autocommands = "table",
+		log_level = "string",
+		disable_recursive_config_search = "boolean",
+		attach_mounts = "table",
+		always_mount = function(t)
+			return t == nil or vim.tbl_islist(t)
+		end,
+	})
+	if opts.autocommands then
+		v.validate_deep(opts.autocommands, "opts.autocommands", {
+			init = "boolean",
+			clean = "boolean",
+			update = "boolean",
+		})
+	end
+	if opts.attach_mounts then
+		local am = opts.attach_mounts
+		v.validate_deep(am, "opts.attach_mounts", {
+			neovim_config = "table",
+			neovim_data = "table",
+			neovim_state = "table",
+			custom_mounts = function(t)
+				return t == nil or vim.tbl_islist(t)
+			end,
+		})
+
+		local mount_opts_mapping = {
+			enabled = "boolean",
+			options = function(t)
+				return t == nil or vim.tbl_islist(t)
+			end,
+		}
+
+		if am.neovim_config then
+			v.validate_deep(am.neovim_config, "opts.attach_mounts.neovim_config", mount_opts_mapping)
+		end
+
+		if am.neovim_data then
+			v.validate_deep(am.neovim_data, "opts.attach_mounts.neovim_data", mount_opts_mapping)
+		end
+
+		if am.neovim_state then
+			v.validate_deep(am.neovim_state, "opts.attach_mounts.neovim_state", mount_opts_mapping)
+		end
+	end
+
 	configured = true
 
 	config.terminal_hander = opts.terminal_handler or config.terminal_handler
