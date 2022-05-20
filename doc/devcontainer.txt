@@ -107,22 +107,26 @@ It is possible to override some of the functionality of the plugin with options 
     -- This can be useful to mount local configuration
     -- And any other mounts when attaching to containers with this plugin
     attach_mounts = {
+      -- Can be set to true to always mount items defined below
+      -- And not only when directly attaching
+      -- This can be useful if executing attach command separately
+      always = false,
       neovim_config = {
         -- enables mounting local config to /root/.config/nvim in container
-        enabled = true,
+        enabled = false,
         -- makes mount readonly in container
         options = { "readonly" }
       },
       neovim_data = {
         -- enables mounting local data to /root/.local/share/nvim in container
-        enabled = true,
+        enabled = false,
         -- no options by default
         options = {}
       },
       -- Only useful if using neovim 0.8.0+
       neovim_state = {
         -- enables mounting local state to /root/.local/state/nvim in container
-        enabled = true,
+        enabled = false,
         -- no options by default
         options = {}
       },
@@ -152,6 +156,8 @@ If not disabled by using {generate_commands = false} in setup, this plugin provi
 *:DevcontainerComposeDown* - run docker-compose down based on devcontainer.json
 *:DevcontainerComposeRm* - run docker-compose rm based on devcontainer.json
 *:DevcontainerStartAuto* - start whatever is defined in devcontainer.json
+*:DevcontainerStartAutoAndAttach* - start and attach to whatever is defined in devcontainer.json
+*:DevcontainerAttachAuto* - attach to whatever is defined in devcontainer.json
 *:DevcontainerStopAuto* - stop whatever was started based on devcontainer.json
 *:DevcontainerStopAll* - stop everything started with this plugin (in current session)
 *:DevcontainerRemoveAll* - remove everything started with this plugin (in current session)
@@ -164,358 +170,6 @@ FUNCTIONS                                        *devcontainer-functions*
 This plugin provides multiple modules related to devcontainer functionality,
 but not all of them are needed for use tasks. Many of the functionalities are
 exposed to enable custom functionality.
-
-================================================================================
-Devcontainer plugin config module                          *devcontainer.status*
-
-Provides access to current status and is used internally to update it
-Don't change directly!
-Can be used for read-only access
-
-DevcontainerImageStatus                                *DevcontainerImageStatus*
-
-
-    Fields: ~
-        {image_id}           (string)      id of the image
-        {source_dockerfile}  (string)      path to the file used to build the image
-        {neovim_added}       (boolean)     true if add_neovim flag was used to add neovim to the image
-        {tmp_dockerfile}     (string|nil)  path to temporary dockerfile if add neovim was used
-
-
-DevcontainerContainerStatus                        *DevcontainerContainerStatus*
-
-
-    Fields: ~
-        {container_id}  (string)   id of the container
-        {image_id}      (string)   id of the used image
-        {autoremove}    (boolean)  true if this container was started with autoremove flag
-
-
-DevcontainerComposeStatus                            *DevcontainerComposeStatus*
-
-
-    Fields: ~
-        {file}  (string)  path to compose file
-
-
-DevcontainerBuildStatus                                *DevcontainerBuildStatus*
-
-
-    Fields: ~
-        {progress}           (number)      0-100 percentage
-        {step_count}         (number)      number of steps to build
-        {current_step}       (number)      current step
-        {image_id}           (string|nil)  id of the built image
-        {source_dockerfile}  (string)      path to the file used to build the image
-        {build_command}      (string)      command used to build the image
-        {commands_run}       (string)      list of commands run by build (layers)
-        {running}            (boolean)     true if still running
-
-
-DevcontainerStatus                                          *DevcontainerStatus*
-
-
-    Fields: ~
-        {images_built}        (List[DevcontainerImageStatus])      
-        {running_containers}  (List[DevcontainerContainerStatus])  
-        {stopped_containers}  (List[DevcontainerContainerStatus])  
-        {build_status}        (List[DevcontainerBuildStatus])      
-        {compose_services}    (List[DevcontainerComposeStatus])    
-
-
-M.get_status()                                  *devcontainer.status.get_status*
-    Returns current devcontainer status in a table
-
-    Returns: ~
-        {DevcontainerStatus}  
-
-
-M.find_container({opts})                    *devcontainer.status.find_container*
-    Finds container with requested opts
-    Read-only
-
-    Parameters: ~
-        {opts}  (DevcontainerContainerStatus)  required opts
-
-    Returns: ~
-        {DevcontainerContainerStatus}  
-
-
-M.find_image({opts})                            *devcontainer.status.find_image*
-    Finds image with requested opts
-    Read-only
-
-    Parameters: ~
-        {opts}  (DevcontainerImageStatus)  required opts
-
-    Returns: ~
-        {DevcontainerImageStatus}  
-
-
-M.find_build({opts})                            *devcontainer.status.find_build*
-    Finds build status with requested opts
-    Read-only
-
-    Parameters: ~
-        {opts}  (DevcontainerBuildStatus)  required opts
-
-    Returns: ~
-        {DevcontainerBuildStatus}  
-
-
-================================================================================
-Main devcontainer module - used to setup the plugin               *devcontainer*
-
-Provides setup function
-
-DevcontainerAutocommandOpts                        *DevcontainerAutocommandOpts*
-
-
-    Fields: ~
-        {init}    (boolean|nil)  set to true to enable automatic devcontainer start
-        {clean}   (boolean|nil)  set to true to enable automatic devcontainer stop and clean
-        {update}  (boolean|nil)  set to true to enable automatic devcontainer update when config file is changed
-
-
-DevcontainerSetupOpts                                    *DevcontainerSetupOpts*
-
-
-    Fields: ~
-        {config_search_start}              (function|nil)                     provides starting point for .devcontainer.json seach
-        {workspace_folder_provider}        (function|nil)                     provides current workspace folder
-        {terminal_handler}                 (function|nil)                     handles terminal command requests, useful for floating terminals and similar
-        {nvim_dockerfile_template}         (function|nil)                     provides dockerfile template based on passed base_image - returns string
-        {devcontainer_json_template}       (function|nil)                     provides template for new .devcontainer.json files - returns table
-        {generate_commands}                (boolean|nil)                      can be set to false to prevent plugin from creating commands (true by default)
-        {autocommands}                     (DevcontainerAutocommandOpts|nil)  can be set to enable autocommands, disabled by default
-        {log_level}                        (log_level|nil)                    can be used to override library logging level
-        {disable_recursive_config_search}  (boolean|nil)                      can be used to disable recursive .devcontainer search
-        {attach_mounts}                    (AttachMountsOpts|nil)             can be used to configure mounts when adding neovim to containers
-        {always_mount}                     (List[string]|nil)                 list of mounts to add to every container
-
-
-M.setup({opts})                                             *devcontainer.setup*
-    Starts the plugin and sets it up with provided options
-
-    Parameters: ~
-        {opts}  (DevcontainerSetupOpts|nil)  
-
-
-================================================================================
-Docker module                                              *devcontainer.docker*
-
-Provides functions related to docker control:
- - building
- - attaching
- - running
-
-DockerPullOpts                                                  *DockerPullOpts*
-
-
-    Fields: ~
-        {on_success}  (function())  success callback
-        {on_fail}     (function())  failure callback
-
-
-M.pull({image}, {opts})                               *devcontainer.docker.pull*
-    Pull passed image using docker pull
-
-    Parameters: ~
-        {image}  (string)          Docker image to pull
-        {opts}   (DockerPullOpts)  Additional options including callbacks
-
-    Usage: ~
-        >
-            require("devcontainer.docker").pull("alpine", { on_success = function() end, on_fail = function() end})
-        <
-
-
-DockerBuildOpts                                                *DockerBuildOpts*
-
-
-    Fields: ~
-        {tag}          (string|nil)                         tag for the image built
-        {add_neovim}   (boolean|nil)                        install neovim in the image (useful only for attaching to image)
-        {args}         (table|nil)                          list of additional arguments to build command
-        {on_success}   (function(image_id))                 success callback taking the image_id of the built image
-        {on_progress}  (function(DevcontainerBuildStatus))  callback taking build status object
-        {on_fail}      (function())                         failure callback
-
-
-M.build({file}, {path}, {opts})                      *devcontainer.docker.build*
-    Build image from passed dockerfile using docker build
-
-    Parameters: ~
-        {file}  (string)           Path to Dockerfile to build
-        {path}  (string|nil)       Path to the workspace, vim.lsp.buf.list_workspace_folders()[1] by default
-        {opts}  (DockerBuildOpts)  Additional options including callbacks and tag
-
-    Usage: ~
-        >
-            docker.build("Dockerfile", { on_success = function(image_id) end, on_fail = function() end })
-        <
-
-
-DockerRunOpts                                                    *DockerRunOpts*
-
-
-    Fields: ~
-        {autoremove}        (boolean)                 automatically remove container after stopping - true by default
-        {tty}               (boolean)                 attach to container TTY and display it in terminal buffer, using configured terminal handler
-        {command}           (string|table|nil)        command to run in container
-        {args}              (table|nil)               list of additional arguments to run command
-        {terminal_handler}  (function(command))       override to open terminal in a different way, :tabnew + termopen by default
-        {on_success}        (function(container_id))  success callback taking the id of the started container - not invoked if tty
-        {on_fail}           (function())              failure callback
-
-
-M.run({image}, {opts})                                 *devcontainer.docker.run*
-    Run passed image using docker run
-    NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
-
-    Parameters: ~
-        {image}  (string)         Docker image to run
-        {opts}   (DockerRunOpts)  Additional options including callbacks
-
-    Usage: ~
-        >
-            docker.run("alpine", { on_success = function(id) end, on_fail = function() end })
-        <
-
-
-DockerContainerStopOpts                                *DockerContainerStopOpts*
-
-
-    Fields: ~
-        {on_success}  (function())  success callback
-        {on_fail}     (function())  failure callback
-
-
-M.container_stop({containers}, {opts})      *devcontainer.docker.container_stop*
-    Stop passed containers
-
-    Parameters: ~
-        {containers}  (List[string])             ids of containers to stop
-        {opts}        (DockerContainerStopOpts)  Additional options including callbacks
-
-    Usage: ~
-        >
-            docker.container_stop({ "some_id" }, { on_success = function() end, on_fail = function() end })
-        <
-
-
-DockerImageRmOpts                                            *DockerImageRmOpts*
-
-
-    Fields: ~
-        {force}       (boolean|nil)  force deletion
-        {on_success}  (function())   success callback
-        {on_fail}     (function())   failure callback
-
-
-M.image_rm({images}, {opts})                      *devcontainer.docker.image_rm*
-    Removes passed images
-
-    Parameters: ~
-        {images}  (List[string])       ids of images to remove
-        {opts}    (DockerImageRmOpts)  Additional options including callbacks
-
-    Usage: ~
-        >
-            docker.image_rm({ "some_id" }, { on_success = function() end, on_fail = function() end })
-        <
-
-
-DockerContainerRmOpts                                    *DockerContainerRmOpts*
-
-
-    Fields: ~
-        {force}       (boolean|nil)  force deletion
-        {on_success}  (function())   success callback
-        {on_fail}     (function())   failure callback
-
-
-M.container_rm({containers}, {opts})          *devcontainer.docker.container_rm*
-    Removes passed containers
-
-    Parameters: ~
-        {containers}  (List[string])           ids of containers to remove
-        {opts}        (DockerContainerRmOpts)  Additional options including callbacks
-
-    Usage: ~
-        >
-            docker.container_rm({ "some_id" }, { on_success = function() end, on_fail = function() end })
-        <
-
-
-================================================================================
-Docker-compose module                              *devcontainer.docker-compose*
-
-Provides functions related to docker-compose control
-
-DockerComposeUpOpts                                        *DockerComposeUpOpts*
-
-
-    Fields: ~
-        {args}        (table|nil)   list of additional arguments to up command
-        {on_success}  (function())  success callback
-        {on_fail}     (function())  failure callback
-
-
-M.up({compose_file}, {opts})                    *devcontainer.docker-compose.up*
-    Run docker-compose up with passed file
-
-    Parameters: ~
-        {compose_file}  (string|table)         path to docker-compose.yml file or files
-        {opts}          (DockerComposeUpOpts)  Additional options including callbacks
-
-    Usage: ~
-        >
-            require("devcontainer.docker-compose").up("docker-compose.yml")
-        <
-
-
-DockerComposeDownOpts                                    *DockerComposeDownOpts*
-
-
-    Fields: ~
-        {on_success}  (function())  success callback
-        {on_fail}     (function())  failure callback
-
-
-M.down({compose_file}, {opts})                *devcontainer.docker-compose.down*
-    Run docker-compose down with passed file
-
-    Parameters: ~
-        {compose_file}  (string|table)           path to docker-compose.yml file or files
-        {opts}          (DockerComposeDownOpts)  Additional options including callbacks
-
-    Usage: ~
-        >
-            require("devcontainer.docker-compose").down("docker-compose.yml")
-        <
-
-
-DockerComposeRmOpts                                        *DockerComposeRmOpts*
-
-
-    Fields: ~
-        {on_success}  (function())  success callback
-        {on_fail}     (function())  failure callback
-
-
-M.rm({compose_file}, {opts})                    *devcontainer.docker-compose.rm*
-    Run docker-compose rm with passed file
-
-    Parameters: ~
-        {compose_file}  (string|table)         path to docker-compose.yml file or files
-        {opts}          (DockerComposeRmOpts)  Additional options including callbacks
-
-    Usage: ~
-        >
-            require("devcontainer.docker-compose").rm("docker-compose.yml")
-        <
-
 
 ================================================================================
 Devcontainer plugin config module                          *devcontainer.config*
@@ -590,6 +244,7 @@ AttachMountsOpts                                              *AttachMountsOpts*
 
 
     Fields: ~
+        {always}         (boolean|nil)    if true these mounts are used on every run, to be available when attaching later
         {neovim_config}  (MountOpts|nil)  if true attaches neovim local config to /root/.config/nvim in container
         {neovim_data}    (MountOpts|nil)  if true attaches neovim data to /root/.local/share/nvim in container
         {neovim_state}   (MountOpts|nil)  if true attaches neovim state to /root/.local/state/nvim in container
@@ -598,6 +253,8 @@ AttachMountsOpts                                              *AttachMountsOpts*
 
 M.attach_mounts                              *devcontainer.config.attach_mounts*
     Configuration for mounts when using attach command
+    NOTE: when attaching in a separate command, it is useful to set
+    always to true, since these have to be attached when starting
     Useful to mount neovim configuration into container
     Applicable only to `devcontainer.commands` functions!
 
@@ -724,8 +381,24 @@ M.docker_build_run_and_attach({callback})
         <
 
 
-M.start_auto({callback})                      *devcontainer.commands.start_auto*
+M.start_auto({callback}, {attach})            *devcontainer.commands.start_auto*
     Parses devcontainer.json and starts whatever is defined there
+    Looks for dockerComposeFile first
+    Then it looks for dockerfile
+    And last it looks for image
+
+    Parameters: ~
+        {callback}  (function|nil)  called on success - devcontainer config is passed to the callback
+        {attach}    (boolean|nil)   if true, automatically attach after starting
+
+    Usage: ~
+        >
+            require("devcontainer.commands").start_auto()
+        <
+
+
+M.attach_auto({callback})                    *devcontainer.commands.attach_auto*
+    Parses devcontainer.json and attaches to whatever is defined there
     Looks for dockerComposeFile first
     Then it looks for dockerfile
     And last it looks for image
@@ -735,7 +408,7 @@ M.start_auto({callback})                      *devcontainer.commands.start_auto*
 
     Usage: ~
         >
-            require("devcontainer.commands").start_auto()
+            require("devcontainer.commands").attach_auto()
         <
 
 
@@ -808,27 +481,41 @@ M.edit_devcontainer_config()
 
 
 ================================================================================
-Jsonc parsing module                            *devcontainer.config_file.jsonc*
+Main devcontainer module - used to setup the plugin               *devcontainer*
 
-Vim supports Json parsing by default, but devcontainer config files are Jsonc.
-This module supports Jsonc parsing by removing comments and then parsing as Json.
-Treesitter is used for this and jsonc parser needs to be installed.
+Provides setup function
 
-                                    *devcontainer.config_file.jsonc.parse_jsonc*
-M.parse_jsonc({jsonc_content})
-    Parse Json string into a Lua table
-    Usually file should be read and content should be passed as a string into the function
+DevcontainerAutocommandOpts                        *DevcontainerAutocommandOpts*
+
+
+    Fields: ~
+        {init}    (boolean|nil)  set to true to enable automatic devcontainer start
+        {clean}   (boolean|nil)  set to true to enable automatic devcontainer stop and clean
+        {update}  (boolean|nil)  set to true to enable automatic devcontainer update when config file is changed
+
+
+DevcontainerSetupOpts                                    *DevcontainerSetupOpts*
+
+
+    Fields: ~
+        {config_search_start}              (function|nil)                     provides starting point for .devcontainer.json seach
+        {workspace_folder_provider}        (function|nil)                     provides current workspace folder
+        {terminal_handler}                 (function|nil)                     handles terminal command requests, useful for floating terminals and similar
+        {nvim_dockerfile_template}         (function|nil)                     provides dockerfile template based on passed base_image - returns string
+        {devcontainer_json_template}       (function|nil)                     provides template for new .devcontainer.json files - returns table
+        {generate_commands}                (boolean|nil)                      can be set to false to prevent plugin from creating commands (true by default)
+        {autocommands}                     (DevcontainerAutocommandOpts|nil)  can be set to enable autocommands, disabled by default
+        {log_level}                        (log_level|nil)                    can be used to override library logging level
+        {disable_recursive_config_search}  (boolean|nil)                      can be used to disable recursive .devcontainer search
+        {attach_mounts}                    (AttachMountsOpts|nil)             can be used to configure mounts when adding neovim to containers
+        {always_mount}                     (List[string]|nil)                 list of mounts to add to every container
+
+
+M.setup({opts})                                             *devcontainer.setup*
+    Starts the plugin and sets it up with provided options
 
     Parameters: ~
-        {jsonc_content}  (string)  
-
-    Returns: ~
-        {table}  
-
-    Usage: ~
-        >
-            require("devcontainer.config_file.jsonc").parse_jsonc([[{ "test": "value" }]])
-        <
+        {opts}  (DevcontainerSetupOpts|nil)  
 
 
 ================================================================================
@@ -905,6 +592,371 @@ M.find_nearest_devcontainer_config({callback})
         >
             require("devcontainer.config_file.parse").find_nearest_devcontainer_config()
         <
+
+
+================================================================================
+Jsonc parsing module                            *devcontainer.config_file.jsonc*
+
+Vim supports Json parsing by default, but devcontainer config files are Jsonc.
+This module supports Jsonc parsing by removing comments and then parsing as Json.
+Treesitter is used for this and jsonc parser needs to be installed.
+
+                                    *devcontainer.config_file.jsonc.parse_jsonc*
+M.parse_jsonc({jsonc_content})
+    Parse Json string into a Lua table
+    Usually file should be read and content should be passed as a string into the function
+
+    Parameters: ~
+        {jsonc_content}  (string)  
+
+    Returns: ~
+        {table}  
+
+    Usage: ~
+        >
+            require("devcontainer.config_file.jsonc").parse_jsonc([[{ "test": "value" }]])
+        <
+
+
+================================================================================
+Docker module                                              *devcontainer.docker*
+
+Provides functions related to docker control:
+ - building
+ - attaching
+ - running
+
+DockerPullOpts                                                  *DockerPullOpts*
+
+
+    Fields: ~
+        {on_success}  (function())  success callback
+        {on_fail}     (function())  failure callback
+
+
+M.pull({image}, {opts})                               *devcontainer.docker.pull*
+    Pull passed image using docker pull
+
+    Parameters: ~
+        {image}  (string)          Docker image to pull
+        {opts}   (DockerPullOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            require("devcontainer.docker").pull("alpine", { on_success = function() end, on_fail = function() end})
+        <
+
+
+DockerBuildOpts                                                *DockerBuildOpts*
+
+
+    Fields: ~
+        {tag}          (string|nil)                         tag for the image built
+        {add_neovim}   (boolean|nil)                        install neovim in the image (useful only for attaching to image)
+        {args}         (table|nil)                          list of additional arguments to build command
+        {on_success}   (function(image_id))                 success callback taking the image_id of the built image
+        {on_progress}  (function(DevcontainerBuildStatus))  callback taking build status object
+        {on_fail}      (function())                         failure callback
+
+
+M.build({file}, {path}, {opts})                      *devcontainer.docker.build*
+    Build image from passed dockerfile using docker build
+
+    Parameters: ~
+        {file}  (string)           Path to Dockerfile to build
+        {path}  (string|nil)       Path to the workspace, vim.lsp.buf.list_workspace_folders()[1] by default
+        {opts}  (DockerBuildOpts)  Additional options including callbacks and tag
+
+    Usage: ~
+        >
+            docker.build("Dockerfile", { on_success = function(image_id) end, on_fail = function() end })
+        <
+
+
+DockerRunOpts                                                    *DockerRunOpts*
+
+
+    Fields: ~
+        {autoremove}  (boolean)                 automatically remove container after stopping - true by default
+        {command}     (string|table|nil)        command to run in container
+        {args}        (table|nil)               list of additional arguments to run command
+        {on_success}  (function(container_id))  success callback taking the id of the started container - not invoked if tty
+        {on_fail}     (function())              failure callback
+
+
+M.run({image}, {opts})                                 *devcontainer.docker.run*
+    Run passed image using docker run
+    NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
+
+    Parameters: ~
+        {image}  (string)         Docker image to run
+        {opts}   (DockerRunOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            docker.run("alpine", { on_success = function(id) end, on_fail = function() end })
+        <
+
+
+DockerExecOpts                                                  *DockerExecOpts*
+
+
+    Fields: ~
+        {tty}               (boolean)            attach to container TTY and display it in terminal buffer, using configured terminal handler
+        {terminal_handler}  (function(command))  override to open terminal in a different way, :tabnew + termopen by default
+        {command}           (string|table|nil)   command to run in container
+        {args}              (table|nil)          list of additional arguments to exec command
+        {on_success}        (function())         success callback - not called if tty
+        {on_fail}           (function())         failure callback - not called if tty
+
+
+M.exec({container_id}, {opts})                        *devcontainer.docker.exec*
+    Run command on a container using docker exec
+    Useful for attaching to neovim
+    NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
+
+    Parameters: ~
+        {container_id}  (string)         Docker container to exec on
+        {opts}          (DockerRunOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            docker.exec("some_id", { command = "nvim", on_success = function() end, on_fail = function() end })
+        <
+
+
+DockerContainerStopOpts                                *DockerContainerStopOpts*
+
+
+    Fields: ~
+        {on_success}  (function())  success callback
+        {on_fail}     (function())  failure callback
+
+
+M.container_stop({containers}, {opts})      *devcontainer.docker.container_stop*
+    Stop passed containers
+
+    Parameters: ~
+        {containers}  (List[string])             ids of containers to stop
+        {opts}        (DockerContainerStopOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            docker.container_stop({ "some_id" }, { on_success = function() end, on_fail = function() end })
+        <
+
+
+DockerImageRmOpts                                            *DockerImageRmOpts*
+
+
+    Fields: ~
+        {force}       (boolean|nil)  force deletion
+        {on_success}  (function())   success callback
+        {on_fail}     (function())   failure callback
+
+
+M.image_rm({images}, {opts})                      *devcontainer.docker.image_rm*
+    Removes passed images
+
+    Parameters: ~
+        {images}  (List[string])       ids of images to remove
+        {opts}    (DockerImageRmOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            docker.image_rm({ "some_id" }, { on_success = function() end, on_fail = function() end })
+        <
+
+
+DockerContainerRmOpts                                    *DockerContainerRmOpts*
+
+
+    Fields: ~
+        {force}       (boolean|nil)  force deletion
+        {on_success}  (function())   success callback
+        {on_fail}     (function())   failure callback
+
+
+M.container_rm({containers}, {opts})          *devcontainer.docker.container_rm*
+    Removes passed containers
+
+    Parameters: ~
+        {containers}  (List[string])           ids of containers to remove
+        {opts}        (DockerContainerRmOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            docker.container_rm({ "some_id" }, { on_success = function() end, on_fail = function() end })
+        <
+
+
+================================================================================
+Docker-compose module                              *devcontainer.docker-compose*
+
+Provides functions related to docker-compose control
+
+DockerComposeUpOpts                                        *DockerComposeUpOpts*
+
+
+    Fields: ~
+        {args}        (table|nil)   list of additional arguments to up command
+        {on_success}  (function())  success callback
+        {on_fail}     (function())  failure callback
+
+
+M.up({compose_file}, {opts})                    *devcontainer.docker-compose.up*
+    Run docker-compose up with passed file
+
+    Parameters: ~
+        {compose_file}  (string|table)         path to docker-compose.yml file or files
+        {opts}          (DockerComposeUpOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            require("devcontainer.docker-compose").up("docker-compose.yml")
+        <
+
+
+DockerComposeDownOpts                                    *DockerComposeDownOpts*
+
+
+    Fields: ~
+        {on_success}  (function())  success callback
+        {on_fail}     (function())  failure callback
+
+
+M.down({compose_file}, {opts})                *devcontainer.docker-compose.down*
+    Run docker-compose down with passed file
+
+    Parameters: ~
+        {compose_file}  (string|table)           path to docker-compose.yml file or files
+        {opts}          (DockerComposeDownOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            require("devcontainer.docker-compose").down("docker-compose.yml")
+        <
+
+
+DockerComposeGetContainerIdOpts                *DockerComposeGetContainerIdOpts*
+
+
+    Fields: ~
+        {on_success}  (function(container_id))  success callback
+        {on_fail}     (function())              failure callback
+
+
+                                  *devcontainer.docker-compose.get_container_id*
+M.get_container_id({compose_file}, {service}, {opts})
+    Run docker-compose ps with passed file and service to get its container_id
+
+    Parameters: ~
+        {compose_file}  (string|table)                     path to docker-compose.yml file or files
+        {service}       (string)                           service name
+        {opts}          (DockerComposeGetContainerIdOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            docker_compose.get_container_id("docker-compose.yml", { on_success = function(container_id) end })
+        <
+
+
+================================================================================
+Devcontainer plugin config module                          *devcontainer.status*
+
+Provides access to current status and is used internally to update it
+Don't change directly!
+Can be used for read-only access
+
+DevcontainerImageStatus                                *DevcontainerImageStatus*
+
+
+    Fields: ~
+        {image_id}           (string)      id of the image
+        {source_dockerfile}  (string)      path to the file used to build the image
+        {neovim_added}       (boolean)     true if add_neovim flag was used to add neovim to the image
+        {tmp_dockerfile}     (string|nil)  path to temporary dockerfile if add neovim was used
+
+
+DevcontainerContainerStatus                        *DevcontainerContainerStatus*
+
+
+    Fields: ~
+        {container_id}  (string)   id of the container
+        {image_id}      (string)   id of the used image
+        {autoremove}    (boolean)  true if this container was started with autoremove flag
+
+
+DevcontainerComposeStatus                            *DevcontainerComposeStatus*
+
+
+    Fields: ~
+        {file}  (string)  path to compose file
+
+
+DevcontainerBuildStatus                                *DevcontainerBuildStatus*
+
+
+    Fields: ~
+        {progress}           (number)      0-100 percentage
+        {step_count}         (number)      number of steps to build
+        {current_step}       (number)      current step
+        {image_id}           (string|nil)  id of the built image
+        {source_dockerfile}  (string)      path to the file used to build the image
+        {build_command}      (string)      command used to build the image
+        {commands_run}       (string)      list of commands run by build (layers)
+        {running}            (boolean)     true if still running
+
+
+DevcontainerStatus                                          *DevcontainerStatus*
+
+
+    Fields: ~
+        {images_built}        (List[DevcontainerImageStatus])      
+        {running_containers}  (List[DevcontainerContainerStatus])  
+        {stopped_containers}  (List[DevcontainerContainerStatus])  
+        {build_status}        (List[DevcontainerBuildStatus])      
+        {compose_services}    (List[DevcontainerComposeStatus])    
+
+
+M.get_status()                                  *devcontainer.status.get_status*
+    Returns current devcontainer status in a table
+
+    Returns: ~
+        {DevcontainerStatus}  
+
+
+M.find_container({opts})                    *devcontainer.status.find_container*
+    Finds container with requested opts
+    Read-only
+
+    Parameters: ~
+        {opts}  (DevcontainerContainerStatus)  required opts
+
+    Returns: ~
+        {DevcontainerContainerStatus}  
+
+
+M.find_image({opts})                            *devcontainer.status.find_image*
+    Finds image with requested opts
+    Read-only
+
+    Parameters: ~
+        {opts}  (DevcontainerImageStatus)  required opts
+
+    Returns: ~
+        {DevcontainerImageStatus}  
+
+
+M.find_build({opts})                            *devcontainer.status.find_build*
+    Finds build status with requested opts
+    Read-only
+
+    Parameters: ~
+        {opts}  (DevcontainerBuildStatus)  required opts
+
+    Returns: ~
+        {DevcontainerBuildStatus}  
 
 
 

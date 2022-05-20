@@ -2,7 +2,7 @@
 
 if ! type lemmy-help > /dev/null 2>&1
 then
-	echo "lemmy-help is required to generate docs. Install with `cargo install lemmy-help --features=cli`"
+	echo "lemmy-help is required to generate docs. Install with 'cargo install lemmy-help --features=cli'"
 	exit 1
 fi
 
