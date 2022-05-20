@@ -54,7 +54,6 @@ end
 
 local function generate_common_run_command_args(data)
 	local run_args = nil
-	-- TODO: Add support for remoteEnv?
 	if data.forwardPorts then
 		run_args = run_args or {}
 		for _, v in ipairs(data.forwardPorts) do
@@ -67,19 +66,20 @@ end
 
 local function generate_run_command_args(data, attaching)
 	local run_args = generate_common_run_command_args(data)
+	-- TODO: Add support for containerEnv!
 	if data.containerUser then
 		run_args = run_args or {}
 		table.insert(run_args, "--user")
 		table.insert(run_args, data.containerUser)
 	end
 	if data.workspaceFolder or data.workspaceMount then
-		if data.workspaceMount == nil or data.workspaceFolder == nil then
-			vim.notify("workspaceFolder and workspaceMount have to both be defined to be used!", vim.log.levels.WARN)
-		else
-			run_args = run_args or {}
-			table.insert(run_args, "--mount")
-			table.insert(run_args, data.workspaceMount)
-		end
+		-- if data.workspaceMount == nil or data.workspaceFolder == nil then
+		-- 	vim.notify("workspaceFolder and workspaceMount have to both be defined to be used!", vim.log.levels.WARN)
+		-- else
+		run_args = run_args or {}
+		table.insert(run_args, "--mount")
+		table.insert(run_args, data.workspaceMount)
+		-- end
 	end
 	if data.mounts then
 		run_args = run_args or {}
@@ -95,7 +95,7 @@ local function generate_run_command_args(data, attaching)
 			table.insert(run_args, v)
 		end
 	end
-	if attaching and plugin_config.attach_mounts then
+	if plugin_config.attach_mounts and (attaching or plugin_config.attach_mounts.always) then
 		run_args = run_args or {}
 		local am = plugin_config.attach_mounts
 
@@ -150,6 +150,21 @@ local function generate_run_command_args(data, attaching)
 		end
 	end
 	return run_args
+end
+
+local function generate_exec_command_args(data)
+	local exec_args = nil
+	-- remoteEnv currently unsupported
+	if data.workspaceFolder or data.workspaceMount then
+		-- if data.workspaceMount == nil or data.workspaceFolder == nil then
+		-- 	vim.notify("workspaceFolder and workspaceMount have to both be defined to be used!", vim.log.levels.WARN)
+		-- else
+		exec_args = exec_args or {}
+		table.insert(exec_args, "--workdir")
+		table.insert(exec_args, data.workspaceFolder)
+		-- end
+	end
+	return exec_args
 end
 
 local function generate_compose_up_command_args(data)
@@ -339,23 +354,55 @@ function M.docker_image_run(callback)
 	end)
 end
 
-local function spawn_docker_build_and_run(data, on_success, add_neovim)
+local function attach_to_container(data, container_id, on_success)
+	docker.exec(container_id, {
+		tty = true,
+		command = "nvim",
+		args = generate_exec_command_args(data),
+		on_success = on_success,
+		on_fail = function()
+			vim.notify("Attaching to container (" .. container_id .. ") failed!", vim.log.levels.ERROR)
+		end,
+	})
+end
+
+local function attach_to_compose_service(data, on_success)
+	if not data.service then
+		vim.notify(
+			"service must be defined in " .. data.metadata.file_path .. " to attach to docker compose",
+			vim.log.levels.ERROR
+		)
+		return
+	end
+	vim.notify("Found docker compose file definition. Attaching to service: " .. data.service)
+	docker_compose.get_container_id(data.dockerComposeFile, data.service, {
+		on_success = function(container_id)
+			attach_to_container(data, container_id, function()
+				on_success(data)
+			end)
+		end,
+	})
+end
+
+local function spawn_docker_build_and_run(data, on_success, add_neovim, attach)
 	docker.build(data.build.dockerfile, data.build.context, {
 		args = generate_build_command_args(data),
 		add_neovim = add_neovim,
 		on_success = function(image_id)
 			docker.run(image_id, {
 				args = generate_run_command_args(data, add_neovim),
-				tty = add_neovim,
-				-- TODO: Potentially add in the future for better compatibility
-				-- or (data.overrideCommand and {
-				-- "/bin/sh",
-				-- "-c",
-				-- "'while sleep 1000; do :; done'",
-				-- })
-				command = (add_neovim and "nvim") or nil,
+				-- -- TODO: Potentially add in the future for better compatibility
+				-- -- or (data.overrideCommand and {
+				-- -- "/bin/sh",
+				-- -- "-c",
+				-- -- "'while sleep 1000; do :; done'",
+				-- -- })
 				on_success = function(container_id)
-					on_success(data, image_id, container_id)
+					if attach then
+						attach_to_container(data, container_id, function()
+							on_success(data, image_id, container_id)
+						end)
+					end
 				end,
 				on_fail = function()
 					vim.notify("Running built image (" .. image_id .. ") failed!", vim.log.levels.ERROR)
@@ -389,7 +436,7 @@ local function execute_docker_build_and_run(callback, add_neovim)
 			)
 			return
 		end
-		spawn_docker_build_and_run(data, on_success, add_neovim)
+		spawn_docker_build_and_run(data, on_success, add_neovim, add_neovim)
 	end)
 end
 
@@ -421,8 +468,9 @@ end
 ---Then it looks for dockerfile
 ---And last it looks for image
 ---@param callback function|nil called on success - devcontainer config is passed to the callback
+---@param attach boolean|nil if true, automatically attach after starting
 ---@usage `require("devcontainer.commands").start_auto()`
-function M.start_auto(callback)
+function M.start_auto(callback, attach)
 	vim.validate({
 		callback = { callback, { "function", "nil" } },
 	})
@@ -438,7 +486,11 @@ function M.start_auto(callback)
 			docker_compose.up(data.dockerComposeFile, {
 				args = generate_compose_up_command_args(data),
 				on_success = function()
-					on_success(data)
+					if attach then
+						attach_to_compose_service(data, on_success)
+					else
+						on_success(data)
+					end
 				end,
 				on_fail = function()
 					vim.notify("Docker compose up failed!", vim.log.levels.ERROR)
@@ -449,14 +501,14 @@ function M.start_auto(callback)
 
 		if data.build.dockerfile then
 			vim.notify("Found dockerfile definition. Running docker build and run...")
-			spawn_docker_build_and_run(data, on_success, false)
+			spawn_docker_build_and_run(data, on_success, attach, attach)
 			return
 		end
 
 		if data.image then
 			vim.notify("Found image definition. Running docker run...")
 			docker.run(data.image, {
-				args = generate_run_command_args(data, false),
+				args = generate_run_command_args(data, attach),
 				on_success = function(_)
 					on_success(data)
 				end,
@@ -464,6 +516,48 @@ function M.start_auto(callback)
 					vim.notify("Running image " .. data.image .. " failed!", vim.log.levels.ERROR)
 				end,
 			})
+			return
+		end
+	end)
+end
+
+---Parses devcontainer.json and attaches to whatever is defined there
+---Looks for dockerComposeFile first
+---Then it looks for dockerfile
+---And last it looks for image
+---@param callback function|nil called on success - devcontainer config is passed to the callback
+---@usage `require("devcontainer.commands").attach_auto()`
+function M.attach_auto(callback)
+	vim.validate({
+		callback = { callback, { "function", "nil" } },
+	})
+
+	local on_success = callback
+		or function(config)
+			vim.notify("Successfully attached to container from " .. config.metadata.file_path)
+		end
+
+	get_nearest_devcontainer_config(function(data)
+		if data.dockerComposeFile then
+			attach_to_compose_service(data, on_success)
+			return
+		end
+
+		if data.build.dockerfile then
+			vim.notify("Found dockerfile definition. Attaching to the container...")
+			local container = status.find_container({ source_dockerfile = data.build.dockerfile })
+			attach_to_container(data, container.container_id, function()
+				on_success(data)
+			end)
+			return
+		end
+
+		if data.image then
+			vim.notify("Found image definition. Attaaching to the container...")
+			local container = status.find_container({ source_dockerfile = data.build.dockerfile })
+			attach_to_container(data, container.container_id, function()
+				on_success(data)
+			end)
 			return
 		end
 	end)
