@@ -238,10 +238,8 @@ end
 
 ---@class DockerRunOpts
 ---@field autoremove boolean automatically remove container after stopping - true by default
----@field tty boolean attach to container TTY and display it in terminal buffer, using configured terminal handler
 ---@field command string|table|nil command to run in container
 ---@field args table|nil list of additional arguments to run command
----@field terminal_handler function(command) override to open terminal in a different way, :tabnew + termopen by default
 ---@field on_success function(container_id) success callback taking the id of the started container - not invoked if tty
 ---@field on_fail function() failure callback
 
@@ -259,8 +257,6 @@ function M.run(image, opts)
 	v.validate_opts_with_callbacks(opts, {
 		command = { "string", "table" },
 		autoremove = "boolean",
-		tty = "boolean",
-		terminal_handler = "function",
 		args = function(x)
 			return vim.tbl_islist(x)
 		end,
@@ -274,12 +270,7 @@ function M.run(image, opts)
 			vim.notify("Starting image " .. image .. " failed!", vim.log.levels.ERROR)
 		end
 
-	local command = { "run", "-i" }
-	if opts.tty then
-		table.insert(command, "-t")
-	else
-		table.insert(command, "-d")
-	end
+	local command = { "run", "-i", "-d" }
 	if opts.autoremove ~= false then
 		table.insert(command, "--rm")
 	end
@@ -295,24 +286,90 @@ function M.run(image, opts)
 		end
 	end
 
+	local container_id = nil
+	run_docker(command, {
+		stdout = function(_, data)
+			if data then
+				container_id = vim.split(data, "\n")[1]
+			end
+		end,
+	}, function(code, _)
+		if code == 0 then
+			status.add_container({
+				image_id = image,
+				container_id = container_id,
+				autoremove = opts.autoremove,
+			})
+			on_success(container_id)
+		else
+			on_fail()
+		end
+	end)
+end
+
+---@class DockerExecOpts
+---@field tty boolean attach to container TTY and display it in terminal buffer, using configured terminal handler
+---@field terminal_handler function(command) override to open terminal in a different way, :tabnew + termopen by default
+---@field command string|table|nil command to run in container
+---@field args table|nil list of additional arguments to exec command
+---@field on_success function() success callback - not called if tty
+---@field on_fail function() failure callback - not called if tty
+
+---Run command on a container using docker exec
+---Useful for attaching to neovim
+---NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
+---@param container_id string Docker container to exec on
+---@param opts DockerRunOpts Additional options including callbacks
+---@usage `docker.exec("some_id", { command = "nvim", on_success = function() end, on_fail = function() end })`
+function M.exec(container_id, opts)
+	vim.validate({
+		container_id = { container_id, "string" },
+		opts = { opts, { "table", "nil" } },
+	})
+	opts = opts or {}
+	v.validate_opts_with_callbacks(opts, {
+		command = { "string", "table" },
+		tty = "boolean",
+		terminal_handler = "function",
+		args = function(x)
+			return vim.tbl_islist(x)
+		end,
+	})
+
+	local on_success = opts.on_success
+		or function()
+			vim.notify("Successfully executed command " .. opts.command .. "on container " .. container_id)
+		end
+	local on_fail = opts.on_fail
+		or function()
+			vim.notify(
+				"Executing command " .. opts.command .. " on container " .. container_id .. " failed!",
+				vim.log.levels.ERROR
+			)
+		end
+
+	local command = { "exec", "-i" }
+	if opts.tty then
+		table.insert(command, "-t")
+	end
+
+	vim.list_extend(command, opts.args or {})
+
+	table.insert(command, container_id)
+	if opts.command then
+		if type(opts.command) == "string" then
+			table.insert(command, opts.command)
+		elseif type(opts.command) == "table" then
+			vim.list_extend(command, opts.command)
+		end
+	end
+
 	if opts.tty then
 		(opts.terminal_handler or config.terminal_handler)(vim.list_extend({ "docker" }, command))
 	else
-		local container_id = nil
-		run_docker(command, {
-			stdout = function(_, data)
-				if data then
-					container_id = vim.split(data, "\n")[1]
-				end
-			end,
-		}, function(code, _)
+		run_docker(command, nil, function(code, _)
 			if code == 0 then
-				status.add_container({
-					image_id = image,
-					container_id = container_id,
-					autoremove = opts.autoremove,
-				})
-				on_success(container_id)
+				on_success()
 			else
 				on_fail()
 			end

@@ -117,33 +117,45 @@ function M.down(compose_file, opts)
 	end)
 end
 
----@class DockerComposeRmOpts
----@field on_success function() success callback
+---@class DockerComposeGetContainerIdOpts
+---@field on_success function(container_id) success callback
 ---@field on_fail function() failure callback
 
----Run docker-compose rm with passed file
+---Run docker-compose ps with passed file and service to get its container_id
 ---@param compose_file string|table path to docker-compose.yml file or files
----@param opts DockerComposeRmOpts Additional options including callbacks
----@usage `require("devcontainer.docker-compose").rm("docker-compose.yml")`
-function M.rm(compose_file, opts)
+---@param service string service name
+---@param opts DockerComposeGetContainerIdOpts Additional options including callbacks
+---@usage `docker_compose.get_container_id("docker-compose.yml", { on_success = function(container_id) end })`
+function M.get_container_id(compose_file, service, opts)
 	vim.validate({
 		compose_file = { compose_file, { "string", "table" } },
+		service = { service, "string" },
 	})
 	opts = opts or {}
 	v.validate_callbacks(opts)
 	local on_success = opts.on_success
-		or function()
-			vim.notify("Successfully removed containers from " .. compose_file)
+		or function(container_id)
+			vim.notify("Container id of service " .. service .. " from " .. compose_file .. " is " .. container_id)
 		end
 	local on_fail = opts.on_fail
 		or function()
-			vim.notify("Removing containers from " .. compose_file .. " failed!", vim.log.levels.ERROR)
+			vim.notify(
+				"Fetching container id for " .. service .. " from " .. compose_file .. " failed!",
+				vim.log.levels.ERROR
+			)
 		end
 	local command = get_compose_files_command(compose_file)
-	vim.list_extend(command, { "rm", "-fsv" })
-	run_docker_compose(command, nil, function(code, _)
+	vim.list_extend(command, { "ps", "-q", service })
+	local container_id = nil
+	run_docker_compose(command, {
+		stdout = function(_, data)
+			if data then
+				container_id = vim.split(data, "\n")[1]
+			end
+		end,
+	}, function(code, _)
 		if code == 0 then
-			on_success()
+			on_success(container_id)
 		else
 			on_fail()
 		end

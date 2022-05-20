@@ -91,22 +91,26 @@ require("devcontainer").setup {
   -- This can be useful to mount local configuration
   -- And any other mounts when attaching to containers with this plugin
   attach_mounts = {
+    -- Can be set to true to always mount items defined below
+    -- And not only when directly attaching
+    -- This can be useful if executing attach command separately
+    always = false,
     neovim_config = {
       -- enables mounting local config to /root/.config/nvim in container
-      enabled = true,
+      enabled = false,
       -- makes mount readonly in container
       options = { "readonly" }
     },
     neovim_data = {
       -- enables mounting local data to /root/.local/share/nvim in container
-      enabled = true,
+      enabled = false,
       -- no options by default
       options = {}
     },
     -- Only useful if using neovim 0.8.0+
     neovim_state = {
       -- enables mounting local state to /root/.local/state/nvim in container
-      enabled = true,
+      enabled = false,
       -- no options by default
       options = {}
     },
@@ -136,6 +140,8 @@ If not disabled by using `generate_commands = false` in setup, this plugin provi
 - `DevcontainerComposeDown` - run docker-compose down based on devcontainer.json
 - `DevcontainerComposeRm` - run docker-compose rm based on devcontainer.json
 - `DevcontainerStartAuto` - start whatever is defined in devcontainer.json
+- `DevcontainerStartAutoAndAttach` - start and attach to whatever is defined in devcontainer.json
+- `DevcontainerAttachAuto` - attach to whatever is defined in devcontainer.json
 - `DevcontainerStopAuto` - stop whatever was started based on devcontainer.json
 - `DevcontainerStopAll` - stop everything started with this plugin (in current session)
 - `DevcontainerRemoveAll` - remove everything started with this plugin (in current session)

@@ -149,26 +149,30 @@ M.devcontainer_json_template = default_devcontainer_json_template
 ---@field options List[string]|nil additional bind options, useful to define { "readonly" }
 
 ---@class AttachMountsOpts
+---@field always boolean|nil if true these mounts are used on every run, to be available when attaching later
 ---@field neovim_config MountOpts|nil if true attaches neovim local config to /root/.config/nvim in container
 ---@field neovim_data MountOpts|nil if true attaches neovim data to /root/.local/share/nvim in container
 ---@field neovim_state MountOpts|nil if true attaches neovim state to /root/.local/state/nvim in container
 ---@field custom_mounts List[string] list of custom mounts to add when attaching
 
 ---Configuration for mounts when using attach command
+---NOTE: when attaching in a separate command, it is useful to set
+---always to true, since these have to be attached when starting
 ---Useful to mount neovim configuration into container
 ---Applicable only to `devcontainer.commands` functions!
 ---@type AttachMountsOpts
 M.attach_mounts = {
+	always = false,
 	neovim_config = {
-		enabled = true,
+		enabled = false,
 		options = { "readonly" },
 	},
 	neovim_data = {
-		enabled = true,
+		enabled = false,
 		options = {},
 	},
 	neovim_state = {
-		enabled = true,
+		enabled = false,
 		options = {},
 	},
 	custom_mounts = {},

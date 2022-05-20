@@ -67,6 +67,7 @@ function M.setup(opts)
 	if opts.attach_mounts then
 		local am = opts.attach_mounts
 		v.validate_deep(am, "opts.attach_mounts", {
+			always = "boolean",
 			neovim_config = "table",
 			neovim_data = "table",
 			neovim_state = "table",
@@ -165,6 +166,18 @@ function M.setup(opts)
 		end, {
 			nargs = 0,
 			desc = "Start either compose, dockerfile or image from .devcontainer.json",
+		})
+		vim.api.nvim_create_user_command("DevcontainerStartAutoAndAttach", function(_)
+			commands.start_auto(nil, true)
+		end, {
+			nargs = 0,
+			desc = "Start and attach to either compose, dockerfile or image from .devcontainer.json",
+		})
+		vim.api.nvim_create_user_command("DevcontainerAttachAuto", function(_)
+			commands.attach_auto()
+		end, {
+			nargs = 0,
+			desc = "Attach to either compose, dockerfile or image from .devcontainer.json",
 		})
 		vim.api.nvim_create_user_command("DevcontainerStopAuto", function(_)
 			commands.stop_auto()
