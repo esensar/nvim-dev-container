@@ -200,7 +200,15 @@ local function sub_variables(config_string)
 		return vim.env[part] or ""
 	end)
 	-- TODO: containerWorkspaceFolder support
-	-- TODO: containerEnv support
+	return config_string
+end
+
+local function sub_container_env(config_string, env_map)
+	config_string = string.gsub(config_string, "${containerEnv:[a-zA-Z_]+[a-zA-Z0-9_]*}", function(part)
+		part = string.gsub(part, "${containerEnv:", "")
+		part = string.sub(part, 1, #part - 1)
+		return env_map[part] or ""
+	end)
 	return config_string
 end
 
@@ -279,6 +287,41 @@ function M.fill_defaults(config_file)
 	config_file.remoteEnv = config_file.remoteEnv or {}
 
 	return sub_variables_recursive(config_file)
+end
+
+---Checks if remoteEnv property needs env values to be filled
+---This can be used to prevent making needless calls to the container
+---@param remote_env table remoteEnv property of parsed config
+---@return boolean true if environment is required to fill out remoteEnv
+function M.remote_env_needs_fill(remote_env)
+	vim.validate({
+		remote_env = { remote_env, "table" },
+	})
+
+	for _, v in pairs(remote_env) do
+		if string.match(v, "${containerEnv:[a-zA-Z_]+[a-zA-Z0-9_]*}") then
+			return true
+		end
+	end
+	return false
+end
+
+---Fill passed remoteEnv table with values from env_map
+---Env_map should usually be generated from environment of the running container
+---NOTE: This mutates passed remoteEnv!
+---@param remote_env table remoteEnv property of parsed config
+---@param env_map table map of container environment
+---@return table remoteEnv with replaced containerEnv values
+function M.fill_remote_env(remote_env, env_map)
+	vim.validate({
+		remote_env = { remote_env, "table" },
+		env_map = { env_map, "table" },
+	})
+
+	for k, v in pairs(remote_env) do
+		remote_env[k] = sub_container_env(v, env_map)
+	end
+	return remote_env
 end
 
 ---Return path of the nearest devcontainer.json file

@@ -67,7 +67,7 @@ local function build_with_neovim(original_dockerfile, image, path, opts)
 		tag = opts.tag,
 		add_neovim = false,
 		_neovim_build = true,
-		_source_dockerfile = original_dockerfile,
+		_original_dockerfile = original_dockerfile,
 	})
 end
 
@@ -310,6 +310,7 @@ end
 ---@class DockerExecOpts
 ---@field tty boolean attach to container TTY and display it in terminal buffer, using configured terminal handler
 ---@field terminal_handler function(command) override to open terminal in a different way, :tabnew + termopen by default
+---@field capture_output boolean if true captures output and passes it to success callback - incompatible with tty
 ---@field command string|table|nil command to run in container
 ---@field args table|nil list of additional arguments to exec command
 ---@field on_success function() success callback - not called if tty
@@ -319,7 +320,7 @@ end
 ---Useful for attaching to neovim
 ---NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
 ---@param container_id string Docker container to exec on
----@param opts DockerRunOpts Additional options including callbacks
+---@param opts DockerExecOpts Additional options including callbacks
 ---@usage `docker.exec("some_id", { command = "nvim", on_success = function() end, on_fail = function() end })`
 function M.exec(container_id, opts)
 	vim.validate({
@@ -330,9 +331,10 @@ function M.exec(container_id, opts)
 	v.validate_opts_with_callbacks(opts, {
 		command = { "string", "table" },
 		tty = "boolean",
+		capture_output = "boolean",
 		terminal_handler = "function",
 		args = function(x)
-			return vim.tbl_islist(x)
+			return x == nil or vim.tbl_islist(x)
 		end,
 	})
 
@@ -367,9 +369,24 @@ function M.exec(container_id, opts)
 	if opts.tty then
 		(opts.terminal_handler or config.terminal_handler)(vim.list_extend({ "docker" }, command))
 	else
-		run_docker(command, nil, function(code, _)
+		local run_opts = nil
+		local captured = nil
+		if opts.capture_output then
+			run_opts = {
+				stdout = function(_, data)
+					if data then
+						captured = data
+					end
+				end,
+			}
+		end
+		run_docker(command, run_opts, function(code, _)
 			if code == 0 then
-				on_success()
+				if opts.capture_output then
+					on_success(captured)
+				else
+					on_success()
+				end
 			else
 				on_fail()
 			end
