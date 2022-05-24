@@ -195,4 +195,9 @@ M.always_mount = {}
 ---@type log_level
 M.log_level = "info"
 
+---List of env variables to add to all containers started with this plugin
+---Applicable only to `devcontainer.commands` functions!
+---@type Map[string, string]
+M.container_env = {}
+
 return M

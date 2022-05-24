@@ -26,6 +26,7 @@ local configured = false
 ---@field generate_commands boolean|nil can be set to false to prevent plugin from creating commands (true by default)
 ---@field autocommands DevcontainerAutocommandOpts|nil can be set to enable autocommands, disabled by default
 ---@field log_level log_level|nil can be used to override library logging level
+---@field container_env table|nil can be used to override containerEnv for all started containers
 ---@field disable_recursive_config_search boolean|nil can be used to disable recursive .devcontainer search
 ---@field attach_mounts AttachMountsOpts|nil can be used to configure mounts when adding neovim to containers
 ---@field always_mount List[string]|nil list of mounts to add to every container
@@ -51,6 +52,7 @@ function M.setup(opts)
 		generate_commands = "boolean",
 		autocommands = "table",
 		log_level = "string",
+		container_env = "table",
 		disable_recursive_config_search = "boolean",
 		attach_mounts = "table",
 		always_mount = function(t)
@@ -112,6 +114,7 @@ function M.setup(opts)
 	else
 		config.log_level = opts.log_level or config.log_level
 	end
+	config.container_env = opts.container_env or config.container_env
 
 	if opts.generate_commands ~= false then
 		-- Docker
