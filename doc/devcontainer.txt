@@ -172,124 +172,6 @@ but not all of them are needed for use tasks. Many of the functionalities are
 exposed to enable custom functionality.
 
 ================================================================================
-Devcontainer plugin config module                          *devcontainer.config*
-
-Provides current devcontainer plugin configuration
-Don't change directly, use `devcontainer.setup{}` instead
-Can be used for read-only access
-
-M.terminal_handler                        *devcontainer.config.terminal_handler*
-    Handles terminal requests (mainly used for attaching to container)
-    By default it uses terminal command
-
-    Type: ~
-        (function)  
-
-
-                                  *devcontainer.config.nvim_dockerfile_template*
-M.nvim_dockerfile_template
-    Handles terminal requests (mainly used for attaching to container)
-    By default it uses a template which installs neovim from source
-
-    Type: ~
-        (function)  
-
-
-                                 *devcontainer.config.workspace_folder_provider*
-M.workspace_folder_provider
-    Provides docker build path
-    By default uses first LSP workplace folder or vim.loop.cwd()
-
-    Type: ~
-        (function)  
-
-
-M.config_search_start                  *devcontainer.config.config_search_start*
-    Provides starting search path for .devcontainer.json
-    After this search moves up until root
-    By default it uses vim.loop.cwd()
-
-    Type: ~
-        (function)  
-
-
-                           *devcontainer.config.disable_recursive_config_search*
-M.disable_recursive_config_search
-    Flag to disable recursive search for .devcontainer config files
-    By default plugin will move up to root looking for .devcontainer files
-    This flag can be used to prevent it and only look in M.config_search_start
-
-    Type: ~
-        (boolean)  
-
-
-                                *devcontainer.config.devcontainer_json_template*
-M.devcontainer_json_template
-    Provides template for creating new .devcontainer.json files
-    This function should return a table listing lines of the file
-
-    Type: ~
-        (function)  
-
-
-MountOpts                                                            *MountOpts*
-
-
-    Fields: ~
-        {enabled}  (boolean)           if true this mount is enabled
-        {options}  (List[string]|nil)  additional bind options, useful to define { "readonly" }
-
-
-AttachMountsOpts                                              *AttachMountsOpts*
-
-
-    Fields: ~
-        {always}         (boolean|nil)    if true these mounts are used on every run, to be available when attaching later
-        {neovim_config}  (MountOpts|nil)  if true attaches neovim local config to /root/.config/nvim in container
-        {neovim_data}    (MountOpts|nil)  if true attaches neovim data to /root/.local/share/nvim in container
-        {neovim_state}   (MountOpts|nil)  if true attaches neovim state to /root/.local/state/nvim in container
-        {custom_mounts}  (List[string])   list of custom mounts to add when attaching
-
-
-M.attach_mounts                              *devcontainer.config.attach_mounts*
-    Configuration for mounts when using attach command
-    NOTE: when attaching in a separate command, it is useful to set
-    always to true, since these have to be attached when starting
-    Useful to mount neovim configuration into container
-    Applicable only to `devcontainer.commands` functions!
-
-    Type: ~
-        (AttachMountsOpts)  
-
-
-M.always_mount                                *devcontainer.config.always_mount*
-    List of mounts to always add to all containers
-    Applicable only to `devcontainer.commands` functions!
-
-    Type: ~
-        (List)  [string]
-
-
-log_level                                                            *log_level*
-    '"trace"'
-
-    Type: ~
-        ---|
-
-
-M.log_level                                      *devcontainer.config.log_level*
-    | '"debug"'
-    | '"info"'
-    | '"warn"'
-    | '"error"'
-    | '"fatal"'
-    Current log level
-
-    Type: ~
-        (log_level)  
-
-
-================================================================================
 High level devcontainer commands                         *devcontainer.commands*
 
 Provides functions representing high level devcontainer commands
@@ -481,41 +363,27 @@ M.edit_devcontainer_config()
 
 
 ================================================================================
-Main devcontainer module - used to setup the plugin               *devcontainer*
+Jsonc parsing module                            *devcontainer.config_file.jsonc*
 
-Provides setup function
+Vim supports Json parsing by default, but devcontainer config files are Jsonc.
+This module supports Jsonc parsing by removing comments and then parsing as Json.
+Treesitter is used for this and jsonc parser needs to be installed.
 
-DevcontainerAutocommandOpts                        *DevcontainerAutocommandOpts*
-
-
-    Fields: ~
-        {init}    (boolean|nil)  set to true to enable automatic devcontainer start
-        {clean}   (boolean|nil)  set to true to enable automatic devcontainer stop and clean
-        {update}  (boolean|nil)  set to true to enable automatic devcontainer update when config file is changed
-
-
-DevcontainerSetupOpts                                    *DevcontainerSetupOpts*
-
-
-    Fields: ~
-        {config_search_start}              (function|nil)                     provides starting point for .devcontainer.json seach
-        {workspace_folder_provider}        (function|nil)                     provides current workspace folder
-        {terminal_handler}                 (function|nil)                     handles terminal command requests, useful for floating terminals and similar
-        {nvim_dockerfile_template}         (function|nil)                     provides dockerfile template based on passed base_image - returns string
-        {devcontainer_json_template}       (function|nil)                     provides template for new .devcontainer.json files - returns table
-        {generate_commands}                (boolean|nil)                      can be set to false to prevent plugin from creating commands (true by default)
-        {autocommands}                     (DevcontainerAutocommandOpts|nil)  can be set to enable autocommands, disabled by default
-        {log_level}                        (log_level|nil)                    can be used to override library logging level
-        {disable_recursive_config_search}  (boolean|nil)                      can be used to disable recursive .devcontainer search
-        {attach_mounts}                    (AttachMountsOpts|nil)             can be used to configure mounts when adding neovim to containers
-        {always_mount}                     (List[string]|nil)                 list of mounts to add to every container
-
-
-M.setup({opts})                                             *devcontainer.setup*
-    Starts the plugin and sets it up with provided options
+                                    *devcontainer.config_file.jsonc.parse_jsonc*
+M.parse_jsonc({jsonc_content})
+    Parse Json string into a Lua table
+    Usually file should be read and content should be passed as a string into the function
 
     Parameters: ~
-        {opts}  (DevcontainerSetupOpts|nil)  
+        {jsonc_content}  (string)  
+
+    Returns: ~
+        {table}  
+
+    Usage: ~
+        >
+            require("devcontainer.config_file.jsonc").parse_jsonc([[{ "test": "value" }]])
+        <
 
 
 ================================================================================
@@ -595,26 +463,199 @@ M.find_nearest_devcontainer_config({callback})
 
 
 ================================================================================
-Jsonc parsing module                            *devcontainer.config_file.jsonc*
+Devcontainer plugin config module                          *devcontainer.config*
 
-Vim supports Json parsing by default, but devcontainer config files are Jsonc.
-This module supports Jsonc parsing by removing comments and then parsing as Json.
-Treesitter is used for this and jsonc parser needs to be installed.
+Provides current devcontainer plugin configuration
+Don't change directly, use `devcontainer.setup{}` instead
+Can be used for read-only access
 
-                                    *devcontainer.config_file.jsonc.parse_jsonc*
-M.parse_jsonc({jsonc_content})
-    Parse Json string into a Lua table
-    Usually file should be read and content should be passed as a string into the function
+M.terminal_handler                        *devcontainer.config.terminal_handler*
+    Handles terminal requests (mainly used for attaching to container)
+    By default it uses terminal command
+
+    Type: ~
+        (function)  
+
+
+                                  *devcontainer.config.nvim_dockerfile_template*
+M.nvim_dockerfile_template
+    Handles terminal requests (mainly used for attaching to container)
+    By default it uses a template which installs neovim from source
+
+    Type: ~
+        (function)  
+
+
+                                 *devcontainer.config.workspace_folder_provider*
+M.workspace_folder_provider
+    Provides docker build path
+    By default uses first LSP workplace folder or vim.loop.cwd()
+
+    Type: ~
+        (function)  
+
+
+M.config_search_start                  *devcontainer.config.config_search_start*
+    Provides starting search path for .devcontainer.json
+    After this search moves up until root
+    By default it uses vim.loop.cwd()
+
+    Type: ~
+        (function)  
+
+
+                           *devcontainer.config.disable_recursive_config_search*
+M.disable_recursive_config_search
+    Flag to disable recursive search for .devcontainer config files
+    By default plugin will move up to root looking for .devcontainer files
+    This flag can be used to prevent it and only look in M.config_search_start
+
+    Type: ~
+        (boolean)  
+
+
+                                *devcontainer.config.devcontainer_json_template*
+M.devcontainer_json_template
+    Provides template for creating new .devcontainer.json files
+    This function should return a table listing lines of the file
+
+    Type: ~
+        (function)  
+
+
+MountOpts                                                            *MountOpts*
+
+
+    Fields: ~
+        {enabled}  (boolean)           if true this mount is enabled
+        {options}  (List[string]|nil)  additional bind options, useful to define { "readonly" }
+
+
+AttachMountsOpts                                              *AttachMountsOpts*
+
+
+    Fields: ~
+        {always}         (boolean|nil)    if true these mounts are used on every run, to be available when attaching later
+        {neovim_config}  (MountOpts|nil)  if true attaches neovim local config to /root/.config/nvim in container
+        {neovim_data}    (MountOpts|nil)  if true attaches neovim data to /root/.local/share/nvim in container
+        {neovim_state}   (MountOpts|nil)  if true attaches neovim state to /root/.local/state/nvim in container
+        {custom_mounts}  (List[string])   list of custom mounts to add when attaching
+
+
+M.attach_mounts                              *devcontainer.config.attach_mounts*
+    Configuration for mounts when using attach command
+    NOTE: when attaching in a separate command, it is useful to set
+    always to true, since these have to be attached when starting
+    Useful to mount neovim configuration into container
+    Applicable only to `devcontainer.commands` functions!
+
+    Type: ~
+        (AttachMountsOpts)  
+
+
+M.always_mount                                *devcontainer.config.always_mount*
+    List of mounts to always add to all containers
+    Applicable only to `devcontainer.commands` functions!
+
+    Type: ~
+        (List)  [string]
+
+
+log_level                                                            *log_level*
+    '"trace"'
+
+    Type: ~
+        ---|
+
+
+M.log_level                                      *devcontainer.config.log_level*
+    | '"debug"'
+    | '"info"'
+    | '"warn"'
+    | '"error"'
+    | '"fatal"'
+    Current log level
+
+    Type: ~
+        (log_level)  
+
+
+M.container_env                              *devcontainer.config.container_env*
+    List of env variables to add to all containers started with this plugin
+    Applicable only to `devcontainer.commands` functions!
+
+    Type: ~
+        (Map)  [string, string]
+
+
+================================================================================
+Docker-compose module                              *devcontainer.docker-compose*
+
+Provides functions related to docker-compose control
+
+DockerComposeUpOpts                                        *DockerComposeUpOpts*
+
+
+    Fields: ~
+        {args}        (table|nil)   list of additional arguments to up command
+        {on_success}  (function())  success callback
+        {on_fail}     (function())  failure callback
+
+
+M.up({compose_file}, {opts})                    *devcontainer.docker-compose.up*
+    Run docker-compose up with passed file
 
     Parameters: ~
-        {jsonc_content}  (string)  
-
-    Returns: ~
-        {table}  
+        {compose_file}  (string|table)         path to docker-compose.yml file or files
+        {opts}          (DockerComposeUpOpts)  Additional options including callbacks
 
     Usage: ~
         >
-            require("devcontainer.config_file.jsonc").parse_jsonc([[{ "test": "value" }]])
+            require("devcontainer.docker-compose").up("docker-compose.yml")
+        <
+
+
+DockerComposeDownOpts                                    *DockerComposeDownOpts*
+
+
+    Fields: ~
+        {on_success}  (function())  success callback
+        {on_fail}     (function())  failure callback
+
+
+M.down({compose_file}, {opts})                *devcontainer.docker-compose.down*
+    Run docker-compose down with passed file
+
+    Parameters: ~
+        {compose_file}  (string|table)           path to docker-compose.yml file or files
+        {opts}          (DockerComposeDownOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            require("devcontainer.docker-compose").down("docker-compose.yml")
+        <
+
+
+DockerComposeGetContainerIdOpts                *DockerComposeGetContainerIdOpts*
+
+
+    Fields: ~
+        {on_success}  (function(container_id))  success callback
+        {on_fail}     (function())              failure callback
+
+
+                                  *devcontainer.docker-compose.get_container_id*
+M.get_container_id({compose_file}, {service}, {opts})
+    Run docker-compose ps with passed file and service to get its container_id
+
+    Parameters: ~
+        {compose_file}  (string|table)                     path to docker-compose.yml file or files
+        {service}       (string)                           service name
+        {opts}          (DockerComposeGetContainerIdOpts)  Additional options including callbacks
+
+    Usage: ~
+        >
+            docker_compose.get_container_id("docker-compose.yml", { on_success = function(container_id) end })
         <
 
 
@@ -791,74 +832,42 @@ M.container_rm({containers}, {opts})          *devcontainer.docker.container_rm*
 
 
 ================================================================================
-Docker-compose module                              *devcontainer.docker-compose*
+Main devcontainer module - used to setup the plugin               *devcontainer*
 
-Provides functions related to docker-compose control
+Provides setup function
 
-DockerComposeUpOpts                                        *DockerComposeUpOpts*
-
-
-    Fields: ~
-        {args}        (table|nil)   list of additional arguments to up command
-        {on_success}  (function())  success callback
-        {on_fail}     (function())  failure callback
-
-
-M.up({compose_file}, {opts})                    *devcontainer.docker-compose.up*
-    Run docker-compose up with passed file
-
-    Parameters: ~
-        {compose_file}  (string|table)         path to docker-compose.yml file or files
-        {opts}          (DockerComposeUpOpts)  Additional options including callbacks
-
-    Usage: ~
-        >
-            require("devcontainer.docker-compose").up("docker-compose.yml")
-        <
-
-
-DockerComposeDownOpts                                    *DockerComposeDownOpts*
+DevcontainerAutocommandOpts                        *DevcontainerAutocommandOpts*
 
 
     Fields: ~
-        {on_success}  (function())  success callback
-        {on_fail}     (function())  failure callback
+        {init}    (boolean|nil)  set to true to enable automatic devcontainer start
+        {clean}   (boolean|nil)  set to true to enable automatic devcontainer stop and clean
+        {update}  (boolean|nil)  set to true to enable automatic devcontainer update when config file is changed
 
 
-M.down({compose_file}, {opts})                *devcontainer.docker-compose.down*
-    Run docker-compose down with passed file
-
-    Parameters: ~
-        {compose_file}  (string|table)           path to docker-compose.yml file or files
-        {opts}          (DockerComposeDownOpts)  Additional options including callbacks
-
-    Usage: ~
-        >
-            require("devcontainer.docker-compose").down("docker-compose.yml")
-        <
-
-
-DockerComposeGetContainerIdOpts                *DockerComposeGetContainerIdOpts*
+DevcontainerSetupOpts                                    *DevcontainerSetupOpts*
 
 
     Fields: ~
-        {on_success}  (function(container_id))  success callback
-        {on_fail}     (function())              failure callback
+        {config_search_start}              (function|nil)                     provides starting point for .devcontainer.json seach
+        {workspace_folder_provider}        (function|nil)                     provides current workspace folder
+        {terminal_handler}                 (function|nil)                     handles terminal command requests, useful for floating terminals and similar
+        {nvim_dockerfile_template}         (function|nil)                     provides dockerfile template based on passed base_image - returns string
+        {devcontainer_json_template}       (function|nil)                     provides template for new .devcontainer.json files - returns table
+        {generate_commands}                (boolean|nil)                      can be set to false to prevent plugin from creating commands (true by default)
+        {autocommands}                     (DevcontainerAutocommandOpts|nil)  can be set to enable autocommands, disabled by default
+        {log_level}                        (log_level|nil)                    can be used to override library logging level
+        {container_env}                    (table|nil)                        can be used to override containerEnv for all started containers
+        {disable_recursive_config_search}  (boolean|nil)                      can be used to disable recursive .devcontainer search
+        {attach_mounts}                    (AttachMountsOpts|nil)             can be used to configure mounts when adding neovim to containers
+        {always_mount}                     (List[string]|nil)                 list of mounts to add to every container
 
 
-                                  *devcontainer.docker-compose.get_container_id*
-M.get_container_id({compose_file}, {service}, {opts})
-    Run docker-compose ps with passed file and service to get its container_id
+M.setup({opts})                                             *devcontainer.setup*
+    Starts the plugin and sets it up with provided options
 
     Parameters: ~
-        {compose_file}  (string|table)                     path to docker-compose.yml file or files
-        {service}       (string)                           service name
-        {opts}          (DockerComposeGetContainerIdOpts)  Additional options including callbacks
-
-    Usage: ~
-        >
-            docker_compose.get_container_id("docker-compose.yml", { on_success = function(container_id) end })
-        <
+        {opts}  (DevcontainerSetupOpts|nil)  
 
 
 ================================================================================

@@ -66,11 +66,27 @@ end
 
 local function generate_run_command_args(data, attaching)
 	local run_args = generate_common_run_command_args(data)
-	-- TODO: Add support for containerEnv!
 	if data.containerUser then
 		run_args = run_args or {}
 		table.insert(run_args, "--user")
 		table.insert(run_args, data.containerUser)
+	end
+
+	local env_vars = nil
+	if data.containerEnv then
+		env_vars = env_vars or {}
+		env_vars = vim.tbl_extend("force", env_vars, data.containerEnv)
+	end
+	if plugin_config.container_env then
+		env_vars = env_vars or {}
+		env_vars = vim.tbl_extend("force", env_vars, plugin_config.container_env)
+	end
+	if env_vars then
+		run_args = run_args or {}
+		for k, v in pairs(env_vars) do
+			table.insert(run_args, "--env")
+			table.insert(run_args, k .. "=" .. v)
+		end
 	end
 	if data.workspaceFolder or data.workspaceMount then
 		-- if data.workspaceMount == nil or data.workspaceFolder == nil then
