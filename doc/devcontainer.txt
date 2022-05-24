@@ -443,6 +443,32 @@ M.fill_defaults({config_file})
         {table}  with filled defaults and absolute paths
 
 
+                          *devcontainer.config_file.parse.remote_env_needs_fill*
+M.remote_env_needs_fill({remote_env})
+    Checks if remoteEnv property needs env values to be filled
+    This can be used to prevent making needless calls to the container
+
+    Parameters: ~
+        {remote_env}  (table)  remoteEnv property of parsed config
+
+    Returns: ~
+        {boolean}  if environment is required to fill out remoteEnv
+
+
+                                *devcontainer.config_file.parse.fill_remote_env*
+M.fill_remote_env({remote_env}, {env_map})
+    Fill passed remoteEnv table with values from env_map
+    Env_map should usually be generated from environment of the running container
+    NOTE: This mutates passed remoteEnv!
+
+    Parameters: ~
+        {remote_env}  (table)  remoteEnv property of parsed config
+        {env_map}     (table)  map of container environment
+
+    Returns: ~
+        {table}  with replaced containerEnv values
+
+
                *devcontainer.config_file.parse.find_nearest_devcontainer_config*
 M.find_nearest_devcontainer_config({callback})
     Return path of the nearest devcontainer.json file
@@ -583,6 +609,16 @@ M.log_level                                      *devcontainer.config.log_level*
 M.container_env                              *devcontainer.config.container_env*
     List of env variables to add to all containers started with this plugin
     Applicable only to `devcontainer.commands` functions!
+    NOTE: This does not support "${localEnv:VAR_NAME}" syntax - use vim.env
+
+    Type: ~
+        (Map)  [string, string]
+
+
+M.remote_env                                    *devcontainer.config.remote_env*
+    List of env variables to add to all containers when attaching
+    Applicable only to `devcontainer.commands` functions!
+    NOTE: This supports "${containerEnv:VAR_NAME}" syntax to use variables from container
 
     Type: ~
         (Map)  [string, string]
@@ -745,6 +781,7 @@ DockerExecOpts                                                  *DockerExecOpts*
     Fields: ~
         {tty}               (boolean)            attach to container TTY and display it in terminal buffer, using configured terminal handler
         {terminal_handler}  (function(command))  override to open terminal in a different way, :tabnew + termopen by default
+        {capture_output}    (boolean)            if true captures output and passes it to success callback - incompatible with tty
         {command}           (string|table|nil)   command to run in container
         {args}              (table|nil)          list of additional arguments to exec command
         {on_success}        (function())         success callback - not called if tty
@@ -757,8 +794,8 @@ M.exec({container_id}, {opts})                        *devcontainer.docker.exec*
     NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
 
     Parameters: ~
-        {container_id}  (string)         Docker container to exec on
-        {opts}          (DockerRunOpts)  Additional options including callbacks
+        {container_id}  (string)          Docker container to exec on
+        {opts}          (DockerExecOpts)  Additional options including callbacks
 
     Usage: ~
         >
@@ -832,6 +869,30 @@ M.container_rm({containers}, {opts})          *devcontainer.docker.container_rm*
 
 
 ================================================================================
+High level docker utility functions                  *devcontainer.docker-utils*
+
+Provides functions for interacting with docker containers
+High-level functions
+
+DockerUtilsGetContainerEnvOpts                  *DockerUtilsGetContainerEnvOpts*
+
+
+    Fields: ~
+        {on_success}  (function(table))  success callback with env map parameter
+        {on_fail}     (function())       failure callback
+
+
+                                   *devcontainer.docker-utils.get_container_env*
+M.get_container_env({container_id}, {opts})
+    Returns env variables from passed container in success callback
+    Env variables are retrieved using printenv
+
+    Parameters: ~
+        {container_id}  (string)                              
+        {opts}          (DockerUtilsGetContainerEnvOpts|nil)  
+
+
+================================================================================
 Main devcontainer module - used to setup the plugin               *devcontainer*
 
 Provides setup function
@@ -858,6 +919,7 @@ DevcontainerSetupOpts                                    *DevcontainerSetupOpts*
         {autocommands}                     (DevcontainerAutocommandOpts|nil)  can be set to enable autocommands, disabled by default
         {log_level}                        (log_level|nil)                    can be used to override library logging level
         {container_env}                    (table|nil)                        can be used to override containerEnv for all started containers
+        {remote_env}                       (table|nil)                        can be used to override remoteEnv when attaching to containers
         {disable_recursive_config_search}  (boolean|nil)                      can be used to disable recursive .devcontainer search
         {attach_mounts}                    (AttachMountsOpts|nil)             can be used to configure mounts when adding neovim to containers
         {always_mount}                     (List[string]|nil)                 list of mounts to add to every container

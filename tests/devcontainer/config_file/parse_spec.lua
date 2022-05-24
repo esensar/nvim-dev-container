@@ -387,7 +387,7 @@ describe("devcontainer.config_file.parse:", function()
 		end)
 	end)
 
-	describe("given compltex devcontainer config", function()
+	describe("given complex devcontainer config", function()
 		describe("fill_defaults", function()
 			local test_it = function(name, block)
 				it(name, function()
@@ -490,6 +490,34 @@ describe("devcontainer.config_file.parse:", function()
 
 			test_it("should return an error that no files were found", function(success, _, _)
 				assert.is_not_true(success)
+			end)
+		end)
+	end)
+
+	describe("given remoteEnv", function()
+		describe("fill_remote_env", function()
+			local test_it = function(name, block)
+				it(name, function()
+					local remoteEnv = {
+						TEST_VAR = "${containerEnv:TEST_VAR}",
+						COMBINED_VARS = "${containerEnv:COMBINED_VAR1}-${containerEnv:COMBINED_VAR2}",
+					}
+					local env_map = {
+						TEST_VAR = "test_var_value",
+						COMBINED_VAR1 = "var1_value",
+						COMBINED_VAR2 = "var2_value",
+					}
+
+					vim.pretty_print(subject)
+					local data = subject.fill_remote_env(remoteEnv, env_map)
+
+					block(data)
+				end)
+			end
+
+			test_it("should update remoteEnv with replaced variables", function(data, _)
+				assert.are.same("test_var_value", data.TEST_VAR)
+				assert.are.same("var1_value-var2_value", data.COMBINED_VARS)
 			end)
 		end)
 	end)

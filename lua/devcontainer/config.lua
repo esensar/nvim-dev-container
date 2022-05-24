@@ -197,7 +197,14 @@ M.log_level = "info"
 
 ---List of env variables to add to all containers started with this plugin
 ---Applicable only to `devcontainer.commands` functions!
+---NOTE: This does not support "${localEnv:VAR_NAME}" syntax - use vim.env
 ---@type Map[string, string]
 M.container_env = {}
+
+---List of env variables to add to all containers when attaching
+---Applicable only to `devcontainer.commands` functions!
+---NOTE: This supports "${containerEnv:VAR_NAME}" syntax to use variables from container
+---@type Map[string, string]
+M.remote_env = {}
 
 return M

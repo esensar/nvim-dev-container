@@ -4,6 +4,7 @@
 ---@brief ]]
 local docker_compose = require("devcontainer.docker-compose")
 local docker = require("devcontainer.docker")
+local docker_utils = require("devcontainer.docker_utils")
 local config_file = require("devcontainer.config_file.parse")
 local log = require("devcontainer.internal.log")
 local status = require("devcontainer.status")
@@ -168,9 +169,13 @@ local function generate_run_command_args(data, attaching)
 	return run_args
 end
 
-local function generate_exec_command_args(data)
+local function generate_exec_command_args(container_id, data, continuation)
 	local exec_args = nil
-	-- remoteEnv currently unsupported
+	if data.remoteUser then
+		exec_args = exec_args or {}
+		table.insert(exec_args, "--user")
+		table.insert(exec_args, data.remoteUser)
+	end
 	if data.workspaceFolder or data.workspaceMount then
 		-- if data.workspaceMount == nil or data.workspaceFolder == nil then
 		-- 	vim.notify("workspaceFolder and workspaceMount have to both be defined to be used!", vim.log.levels.WARN)
@@ -180,7 +185,44 @@ local function generate_exec_command_args(data)
 		table.insert(exec_args, data.workspaceFolder)
 		-- end
 	end
-	return exec_args
+
+	local function continue_with_env(current_exec_args, env_vars)
+		for k, v in pairs(env_vars) do
+			table.insert(current_exec_args, "--env")
+			table.insert(current_exec_args, k .. "=" .. v)
+		end
+		continuation(current_exec_args)
+	end
+
+	-- Env is filled asynchronously, due to dependency on current container state
+	local env_vars = nil
+	if data.remoteEnv then
+		env_vars = env_vars or {}
+		env_vars = vim.tbl_extend("force", env_vars, data.remoteEnv)
+	end
+	if plugin_config.remote_env then
+		env_vars = env_vars or {}
+		env_vars = vim.tbl_extend("force", env_vars, plugin_config.remote_env)
+	end
+	if env_vars then
+		exec_args = exec_args or {}
+		if config_file.remote_env_needs_fill(env_vars) then
+			docker_utils.get_container_env(container_id, {
+				on_success = function(env_map)
+					env_vars = config_file.fill_remote_env(env_vars, env_map)
+					continue_with_env(exec_args, env_vars)
+				end,
+				on_fail = function()
+					vim.notify("Loading container env failed, continuing with missing env", vim.log.levels.WARN)
+					continue_with_env(exec_args, env_vars)
+				end,
+			})
+		else
+			continue_with_env(exec_args, env_vars)
+		end
+	else
+		continuation(exec_args)
+	end
 end
 
 local function generate_compose_up_command_args(data)
@@ -371,15 +413,17 @@ function M.docker_image_run(callback)
 end
 
 local function attach_to_container(data, container_id, on_success)
-	docker.exec(container_id, {
-		tty = true,
-		command = "nvim",
-		args = generate_exec_command_args(data),
-		on_success = on_success,
-		on_fail = function()
-			vim.notify("Attaching to container (" .. container_id .. ") failed!", vim.log.levels.ERROR)
-		end,
-	})
+	generate_exec_command_args(container_id, data, function(args)
+		docker.exec(container_id, {
+			tty = true,
+			command = "nvim",
+			args = args,
+			on_success = on_success,
+			on_fail = function()
+				vim.notify("Attaching to container (" .. container_id .. ") failed!", vim.log.levels.ERROR)
+			end,
+		})
+	end)
 end
 
 local function attach_to_compose_service(data, on_success)
