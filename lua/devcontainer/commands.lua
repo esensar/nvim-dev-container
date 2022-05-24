@@ -418,6 +418,8 @@ local function spawn_docker_build_and_run(data, on_success, add_neovim, attach)
 						attach_to_container(data, container_id, function()
 							on_success(data, image_id, container_id)
 						end)
+					else
+						on_success(data, image_id, container_id)
 					end
 				end,
 				on_fail = function()
@@ -561,7 +563,8 @@ function M.attach_auto(callback)
 
 		if data.build.dockerfile then
 			vim.notify("Found dockerfile definition. Attaching to the container...")
-			local container = status.find_container({ source_dockerfile = data.build.dockerfile })
+			local image = status.find_image({ source_dockerfile = data.build.dockerfile })
+			local container = status.find_container({ image_id = image.image_id })
 			attach_to_container(data, container.container_id, function()
 				on_success(data)
 			end)
