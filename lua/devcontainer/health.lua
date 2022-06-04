@@ -1,4 +1,9 @@
-local health = require("health")
+local health
+if vim.fn.has("nvim-0.8") then
+	health = vim.health
+else
+	health = require("health")
+end
 
 local function vim_version_string()
 	local v = vim.version()
