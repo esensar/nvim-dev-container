@@ -9,14 +9,6 @@ local M = {}
 
 M.logfile = string.format("%s/%s.log", vim.api.nvim_call_function("stdpath", { "cache" }), "devcontainer")
 
--- Any messages above this level will be logged.
--- @type log_level
-if vim.env.NVIM_DEVCONTAINER_DEBUG then
-	M.level = "trace"
-else
-	M.level = config.log_level
-end
-
 -- Level configuration
 M.modes = {
 	{ name = "trace", hl = "Comment" },
@@ -42,7 +34,7 @@ end
 
 function M.log_at_level(level, level_config, message_maker, ...)
 	-- Return early if we're below the config.level
-	if level < M.levels[M.level] then
+	if level < M.levels[config.log_level] then
 		return
 	end
 	local nameupper = level_config.name:upper()
