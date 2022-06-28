@@ -47,3 +47,15 @@ jobs:
           git clone --depth 1 https://github.com/nvim-treesitter/nvim-treesitter ~/.local/share/nvim/site/pack/vendor/start/nvim-treesitter
       - name: Run tests
         run: scripts/test
+
+  doc-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup neovim
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: stable
+      - name: Run helptags test
+        run: nvim --headless --noplugin -V1 -es -c "helptags doc"
