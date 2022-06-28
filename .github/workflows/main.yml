@@ -58,4 +58,4 @@ jobs:
           neovim: true
           version: stable
       - name: Run helptags test
-        run: nvim --headless --noplugin -Es -c "helptags doc"
+        run: nvim --headless --noplugin -V1 -es -c "helptags doc"
