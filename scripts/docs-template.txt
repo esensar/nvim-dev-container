@@ -1,6 +1,6 @@
 *devcontainer.txt* Description
 
-INTRODUCTION                                     *devcontainer*
+INTRODUCTION                                     *devcontainer-main*
 
 Description
 
