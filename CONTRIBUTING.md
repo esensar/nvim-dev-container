@@ -14,10 +14,6 @@ Following is a basic set of guidelines for contributing to this repository and i
   - [Lint](#lint)
 - [Additional info](#additional-info)
 
-## Asking questions
-
-For asking questions, please make sure to use [**Discussions**](https://github.com/esensar/nvim-dev-container/discussions) instead of **Issues**.
-
 ## Reporting bugs
 
 Follow the issue template when reporting a new bug. Also try to provide log which can be found with `DevcontainerLogs` command or with `require("devcontainer.commands").open_logs()` function. Export env variable `NVIM_DEVCONTAINER_DEBUG=1` to produce more logs (e.g. start neovim with `NVIM_DEVCONTAINER_DEBUG=1 nvim`).

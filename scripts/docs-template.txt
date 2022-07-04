@@ -142,7 +142,7 @@ It is possible to override some of the functionality of the plugin with options 
   }
 <
 
-Check out [wiki](https://github.com/esensar/nvim-dev-container/wiki) for tips.
+Check out [wiki](https://codeberg.org/esensar/nvim-dev-container/wiki) for tips.
 
 COMMANDS                                         *devcontainer-commands*
 
@@ -151,7 +151,7 @@ If not disabled by using {generate_commands = false} in setup, this plugin provi
 *:DevcontainerBuild* - builds image from nearest devcontainer.json
 *:DevcontainerImageRun* - runs image from nearest devcontainer.json
 *:DevcontainerBuildAndRun* - builds image from nearest devcontainer.json and then runs it
-*:DevcontainerBuildRunAndAttach* - builds image from nearest devcontainer.json (with neovim added), runs it and attaches to neovim in it - currently using `terminal_handler`, but in the future with Neovim 0.8.0 maybe directly (https://github.com/esensar/nvim-dev-container/issues/30)
+*:DevcontainerBuildRunAndAttach* - builds image from nearest devcontainer.json (with neovim added), runs it and attaches to neovim in it - currently using `terminal_handler`, but in the future with Neovim 0.8.0 maybe directly (https://codeberg.org/esensar/nvim-dev-container/issues/30)
 *:DevcontainerComposeUp* - run docker-compose up based on devcontainer.json
 *:DevcontainerComposeDown* - run docker-compose down based on devcontainer.json
 *:DevcontainerComposeRm* - run docker-compose rm based on devcontainer.json
@@ -188,12 +188,12 @@ Example:
 ISSUES                                           *devcontainer-issues*
 
 If you experience issues using plugin, please report them at
-<https://github.com/esensar/nvim-dev-container/issues>.
+<https://codeberg.org/esensar/nvim-dev-container/issues>.
 
 CONTRIBUTING                                     *devcontainer-contributing*
 
 Feel free to look at already reported issues at
-<https://github.com/esensar/nvim-dev-container/issues>.
+<https://codeberg.org/esensar/nvim-dev-container/issues>.
 If available, check out CONTRIBUTING.md in the repository.
 Otherwise, feel free to create a new issue or pull request.
 

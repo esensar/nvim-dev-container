@@ -17,7 +17,7 @@ e.g. Using [Packer.nvim](https://github.com/wbthomason/packer.nvim)
 
 ```lua
 use {
-  'esensar/nvim-dev-container',
+  'https://codeberg.org/esensar/nvim-dev-container',
   requires = { 'nvim-treesitter/nvim-treesitter' }
 }
 ```
@@ -25,7 +25,7 @@ use {
 or assuming `nvim-treesitter` is already available:
 
 ```lua
-use { 'esensar/nvim-dev-container' }
+use { 'https://codeberg.org/esensar/nvim-dev-container' }
 ```
 
 ## Usage
@@ -126,7 +126,7 @@ require("devcontainer").setup {
 }
 ```
 
-Check out [wiki](https://github.com/esensar/nvim-dev-container/wiki) for more information.
+Check out [wiki](https://codeberg.org/esensar/nvim-dev-container/wiki) for more information.
 
 ### Commands
 
@@ -135,7 +135,7 @@ If not disabled by using `generate_commands = false` in setup, this plugin provi
 - `DevcontainerBuild` - builds image from nearest devcontainer.json
 - `DevcontainerImageRun` - runs image from nearest devcontainer.json
 - `DevcontainerBuildAndRun` - builds image from nearest devcontainer.json and then runs it
-- `DevcontainerBuildRunAndAttach` - builds image from nearest devcontainer.json (with neovim added), runs it and attaches to neovim in it - currently using `terminal_handler`, but in the future with Neovim 0.8.0 maybe directly ([#30](https://github.com/esensar/nvim-dev-container/issues/30))
+- `DevcontainerBuildRunAndAttach` - builds image from nearest devcontainer.json (with neovim added), runs it and attaches to neovim in it - currently using `terminal_handler`, but in the future with Neovim 0.8.0 maybe directly ([#30](https://codeberg.org/esensar/nvim-dev-container/issues/30))
 - `DevcontainerComposeUp` - run docker-compose up based on devcontainer.json
 - `DevcontainerComposeDown` - run docker-compose down based on devcontainer.json
 - `DevcontainerComposeRm` - run docker-compose rm based on devcontainer.json
