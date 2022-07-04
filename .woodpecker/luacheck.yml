@@ -1,0 +1,7 @@
+pipeline:
+  luacheck:
+    image: pipelinecomponents/luacheck
+    commands:
+      - luacheck .
+
+branches: main

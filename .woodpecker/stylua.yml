@@ -1,0 +1,7 @@
+pipeline:
+  stylua:
+    image: fnichol/stylua
+    commands:
+      - stylua --check .
+
+branches: main

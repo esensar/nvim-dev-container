@@ -1,0 +1,8 @@
+pipeline:
+  test:
+    image: alpine
+    commands:
+      - apk add neovim
+      - nvim --headless --noplugin -V1 -es -c "helptags doc"
+
+branches: main
