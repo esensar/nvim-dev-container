@@ -2,6 +2,10 @@
 
 Goal of this plugin is to provide functionality similar to VSCode's [remote container development](https://code.visualstudio.com/docs/remote/containers) plugin and other functionality that enables development in docker container. This plugin is inspired by [jamestthompson3/nvim-remote-containers](https://github.com/jamestthompson3/nvim-remote-containers), but aims to enable having neovim embedded in docker container.
 
+**NOTE:** If you do not have an account registered and do not want to register one, you can use mailing lists to report bugs, discuss the project and send patches:
+ - [discussions mailing list](https://lists.sr.ht/~esensar/nvim-dev-container-discuss)
+ - [development mailing list](https://lists.sr.ht/~esensar/nvim-dev-container-devel)
+
 **WORK IN PROGRESS**
 
 ## Requirements

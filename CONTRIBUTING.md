@@ -6,6 +6,10 @@ Following is a basic set of guidelines for contributing to this repository and i
 
 > Parts of this guidelines are taken from https://github.com/atom/atom/blob/master/CONTRIBUTING.md
 
+If you do not have an account registered and do not want to register one, you can use mailing lists to report bugs, discuss the project and send patches:
+ - [discussions mailing list](https://lists.sr.ht/~esensar/nvim-dev-container-discuss)
+ - [development mailing list](https://lists.sr.ht/~esensar/nvim-dev-container-devel)
+
 #### Table of contents
 
 - [Asking questions](#asking-questions)
