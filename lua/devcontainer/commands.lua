@@ -2,9 +2,9 @@
 ---@brief [[
 ---Provides functions representing high level devcontainer commands
 ---@brief ]]
-local docker_compose = require("devcontainer.docker-compose")
-local docker = require("devcontainer.docker")
-local docker_utils = require("devcontainer.docker_utils")
+local compose = require("devcontainer.compose")
+local client = require("devcontainer.client")
+local client_utils = require("devcontainer.client_utils")
 local config_file = require("devcontainer.config_file.parse")
 local log = require("devcontainer.internal.log")
 local status = require("devcontainer.status")
@@ -207,7 +207,7 @@ local function generate_exec_command_args(container_id, data, continuation)
 	if env_vars then
 		exec_args = exec_args or {}
 		if config_file.remote_env_needs_fill(env_vars) then
-			docker_utils.get_container_env(container_id, {
+			client_utils.get_container_env(container_id, {
 				on_success = function(env_map)
 					env_vars = config_file.fill_remote_env(env_vars, env_map)
 					continue_with_env(exec_args, env_vars)
@@ -234,7 +234,7 @@ local function generate_compose_up_command_args(data)
 	return run_args
 end
 
----Run docker-compose up from nearest devcontainer.json file
+---Run compose up from nearest devcontainer.json file
 ---@param callback function|nil called on success - parsed devcontainer config is passed to the callback
 ---@usage `require("devcontainer.commands").compose_up()`
 function M.compose_up(callback)
@@ -258,7 +258,7 @@ function M.compose_up(callback)
 			return
 		end
 
-		docker_compose.up(data.dockerComposeFile, {
+		compose.up(data.dockerComposeFile, {
 			args = generate_compose_up_command_args(data),
 			on_success = function()
 				on_success(data)
@@ -270,7 +270,7 @@ function M.compose_up(callback)
 	end)
 end
 
----Run docker-compose down from nearest devcontainer.json file
+---Run compose down from nearest devcontainer.json file
 ---@param callback function|nil called on success - parsed devcontainer config is passed to the callback
 ---@usage `require("devcontainer.commands").compose_down()`
 function M.compose_down(callback)
@@ -294,7 +294,7 @@ function M.compose_down(callback)
 			return
 		end
 
-		docker_compose.down(data.dockerComposeFile, {
+		compose.down(data.dockerComposeFile, {
 			on_success = function()
 				on_success(data)
 			end,
@@ -305,7 +305,7 @@ function M.compose_down(callback)
 	end)
 end
 
----Run docker-compose rm from nearest devcontainer.json file
+---Run compose rm from nearest devcontainer.json file
 ---@param callback function|nil called on success - parsed devcontainer config is passed to the callback
 ---@usage `require("devcontainer.commands").compose_rm()`
 function M.compose_rm(callback)
@@ -329,7 +329,7 @@ function M.compose_rm(callback)
 			return
 		end
 
-		docker_compose.rm(data.dockerComposeFile, {
+		compose.rm(data.dockerComposeFile, {
 			on_success = function()
 				on_success(data)
 			end,
@@ -361,7 +361,7 @@ function M.docker_build(callback)
 			)
 			return
 		end
-		docker.build(data.build.dockerfile, data.build.context, {
+		client.build(data.build.dockerfile, data.build.context, {
 			args = generate_build_command_args(data),
 			on_success = function(image_id)
 				on_success(data, image_id)
@@ -400,7 +400,7 @@ function M.docker_image_run(callback)
 			)
 			return
 		end
-		docker.run(data.image, {
+		client.run(data.image, {
 			args = generate_run_command_args(data, false),
 			on_success = function(container_id)
 				on_success(data, container_id)
@@ -414,7 +414,7 @@ end
 
 local function attach_to_container(data, container_id, on_success)
 	generate_exec_command_args(container_id, data, function(args)
-		docker.exec(container_id, {
+		client.exec(container_id, {
 			tty = true,
 			command = "nvim",
 			args = args,
@@ -435,7 +435,7 @@ local function attach_to_compose_service(data, on_success)
 		return
 	end
 	vim.notify("Found docker compose file definition. Attaching to service: " .. data.service)
-	docker_compose.get_container_id(data.dockerComposeFile, data.service, {
+	compose.get_container_id(data.dockerComposeFile, data.service, {
 		on_success = function(container_id)
 			attach_to_container(data, container_id, function()
 				on_success(data)
@@ -445,11 +445,11 @@ local function attach_to_compose_service(data, on_success)
 end
 
 local function spawn_docker_build_and_run(data, on_success, add_neovim, attach)
-	docker.build(data.build.dockerfile, data.build.context, {
+	client.build(data.build.dockerfile, data.build.context, {
 		args = generate_build_command_args(data),
 		add_neovim = add_neovim,
 		on_success = function(image_id)
-			docker.run(image_id, {
+			client.run(image_id, {
 				args = generate_run_command_args(data, add_neovim),
 				-- -- TODO: Potentially add in the future for better compatibility
 				-- -- or (data.overrideCommand and {
@@ -545,7 +545,7 @@ function M.start_auto(callback, attach)
 	get_nearest_devcontainer_config(function(data)
 		if data.dockerComposeFile then
 			vim.notify("Found docker compose file definition. Running docker compose up...")
-			docker_compose.up(data.dockerComposeFile, {
+			compose.up(data.dockerComposeFile, {
 				args = generate_compose_up_command_args(data),
 				on_success = function()
 					if attach then
@@ -569,7 +569,7 @@ function M.start_auto(callback, attach)
 
 		if data.image then
 			vim.notify("Found image definition. Running docker run...")
-			docker.run(data.image, {
+			client.run(data.image, {
 				args = generate_run_command_args(data, attach),
 				on_success = function(_)
 					on_success(data)
@@ -645,7 +645,7 @@ function M.stop_auto(callback)
 	get_nearest_devcontainer_config(function(data)
 		if data.dockerComposeFile then
 			vim.notify("Found docker compose file definition. Running docker compose down...")
-			docker_compose.down(data.dockerComposeFile, {
+			compose.down(data.dockerComposeFile, {
 				on_success = function()
 					on_success(data)
 				end,
@@ -661,7 +661,7 @@ function M.stop_auto(callback)
 			local image = status.find_image({ source_dockerfile = data.build.dockerfile })
 			if image then
 				local container = status.find_container({ image_id = image.image_id })
-				docker.container_stop({ container.container_id }, {
+				client.container_stop({ container.container_id }, {
 					on_success = function()
 						on_success(data)
 					end,
@@ -679,7 +679,7 @@ function M.stop_auto(callback)
 		if data.image then
 			vim.notify("Found image definition. Running docker container stop...")
 			local container = status.find_container({ image_id = data.image })
-			docker.container_stop({ container.container_id }, {
+			client.container_stop({ container.container_id }, {
 				on_success = function()
 					on_success(data)
 				end,
@@ -716,7 +716,7 @@ function M.stop_all(callback)
 		return cstatus.container_id
 	end, all_status.running_containers)
 	if #containers_to_stop > 0 then
-		docker.container_stop(containers_to_stop, {
+		client.container_stop(containers_to_stop, {
 			on_success = success_wrapper,
 			on_fail = function()
 				vim.notify("Docker container stop failed!", vim.log.levels.ERROR)
@@ -729,7 +729,7 @@ function M.stop_all(callback)
 		return cstatus.file
 	end, all_status.compose_services)
 	if #compose_services_to_stop > 0 then
-		docker_compose.down(compose_services_to_stop, {
+		compose.down(compose_services_to_stop, {
 			on_success = success_wrapper,
 			on_fail = function()
 				vim.notify("Docker compose down failed!", vim.log.levels.ERROR)
@@ -769,7 +769,7 @@ function M.remove_all(callback)
 		success_count = success_count + 1
 		if success_count == 2 then
 			if #images_to_remove > 0 then
-				docker.image_rm(images_to_remove, {
+				client.image_rm(images_to_remove, {
 					force = true,
 					on_success = success_wrapper,
 					on_fail = function()
@@ -785,7 +785,7 @@ function M.remove_all(callback)
 		end
 	end
 	if #containers_to_remove > 0 then
-		docker.container_rm(containers_to_remove, {
+		client.container_rm(containers_to_remove, {
 			force = true,
 			on_success = success_wrapper,
 			on_fail = function()
@@ -796,7 +796,7 @@ function M.remove_all(callback)
 		success_wrapper()
 	end
 	if #compose_services_to_remove > 0 then
-		docker_compose.rm(compose_services_to_remove, {
+		compose.rm(compose_services_to_remove, {
 			on_success = success_wrapper,
 			on_fail = function()
 				vim.notify("Docker compose remove failed!", vim.log.levels.ERROR)

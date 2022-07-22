@@ -151,19 +151,19 @@ function M.setup(opts)
 			commands.compose_up()
 		end, {
 			nargs = 0,
-			desc = "Run docker-compose up based on .devcontainer.json",
+			desc = "Run compose up based on .devcontainer.json",
 		})
 		vim.api.nvim_create_user_command("DevcontainerComposeDown", function(_)
 			commands.compose_up()
 		end, {
 			nargs = 0,
-			desc = "Run docker-compose down based on .devcontainer.json",
+			desc = "Run compose down based on .devcontainer.json",
 		})
 		vim.api.nvim_create_user_command("DevcontainerComposeRm", function(_)
 			commands.compose_rm()
 		end, {
 			nargs = 0,
-			desc = "Run docker-compose rm based on .devcontainer.json",
+			desc = "Run compose rm based on .devcontainer.json",
 		})
 
 		-- Automatic

@@ -1,6 +1,6 @@
----@mod devcontainer.docker-compose Docker-compose module
+---@mod devcontainer.compose Compose module
 ---@brief [[
----Provides functions related to docker-compose control
+---Provides functions related to compose control
 ---@brief ]]
 local exe = require("devcontainer.internal.executor")
 local v = require("devcontainer.internal.validation")
@@ -12,17 +12,18 @@ local M = {}
 ---@param args string[]
 ---@param opts RunCommandOpts|nil
 ---@param onexit function(code, signal)
-local function run_docker_compose(args, opts, onexit)
-	exe.ensure_executable("docker-compose")
+local function run_compose(args, opts, onexit)
+	-- TODO: Use configured compose command
+	exe.ensure_executable("compose")
 
 	opts = opts or {}
 	exe.run_command(
-		"docker-compose",
+		"compose",
 		vim.tbl_extend("force", opts, {
 			args = args,
 			stderr = vim.schedule_wrap(function(err, data)
 				if data then
-					log.fmt_error("Docker-compose command (%s): %s", args, data)
+					log.fmt_error("Compose command (%s): %s", args, data)
 				end
 				if opts.stderr then
 					opts.stderr(err, data)
@@ -49,15 +50,15 @@ local function get_compose_files_command(compose_file)
 	return command
 end
 
----@class DockerComposeUpOpts
+---@class ComposeUpOpts
 ---@field args table|nil list of additional arguments to up command
 ---@field on_success function() success callback
 ---@field on_fail function() failure callback
 
----Run docker-compose up with passed file
----@param compose_file string|table path to docker-compose.yml file or files
----@param opts DockerComposeUpOpts Additional options including callbacks
----@usage `require("devcontainer.docker-compose").up("docker-compose.yml")`
+---Run compose up with passed file
+---@param compose_file string|table path to compose.yml file or files
+---@param opts ComposeUpOpts Additional options including callbacks
+---@usage `require("devcontainer.compose").up("docker-compose.yml")`
 function M.up(compose_file, opts)
 	vim.validate({
 		compose_file = { compose_file, { "string", "table" } },
@@ -75,7 +76,7 @@ function M.up(compose_file, opts)
 	local command = get_compose_files_command(compose_file)
 	vim.list_extend(command, { "up", "-d" })
 	vim.list_extend(command, opts.args or {})
-	run_docker_compose(command, nil, function(code, _)
+	run_compose(command, nil, function(code, _)
 		if code == 0 then
 			on_success()
 		else
@@ -84,14 +85,14 @@ function M.up(compose_file, opts)
 	end)
 end
 
----@class DockerComposeDownOpts
+---@class ComposeDownOpts
 ---@field on_success function() success callback
 ---@field on_fail function() failure callback
 
----Run docker-compose down with passed file
----@param compose_file string|table path to docker-compose.yml file or files
----@param opts DockerComposeDownOpts Additional options including callbacks
----@usage `require("devcontainer.docker-compose").down("docker-compose.yml")`
+---Run compose down with passed file
+---@param compose_file string|table path to compose.yml file or files
+---@param opts ComposeDownOpts Additional options including callbacks
+---@usage `require("devcontainer.compose").down("docker-compose.yml")`
 function M.down(compose_file, opts)
 	vim.validate({
 		compose_file = { compose_file, { "string", "table" } },
@@ -108,7 +109,7 @@ function M.down(compose_file, opts)
 		end
 	local command = get_compose_files_command(compose_file)
 	vim.list_extend(command, { "down" })
-	run_docker_compose(command, nil, function(code, _)
+	run_compose(command, nil, function(code, _)
 		if code == 0 then
 			on_success()
 		else
@@ -117,15 +118,15 @@ function M.down(compose_file, opts)
 	end)
 end
 
----@class DockerComposeGetContainerIdOpts
+---@class ComposeGetContainerIdOpts
 ---@field on_success function(container_id) success callback
 ---@field on_fail function() failure callback
 
----Run docker-compose ps with passed file and service to get its container_id
----@param compose_file string|table path to docker-compose.yml file or files
+---Run compose ps with passed file and service to get its container_id
+---@param compose_file string|table path to compose.yml file or files
 ---@param service string service name
----@param opts DockerComposeGetContainerIdOpts Additional options including callbacks
----@usage `docker_compose.get_container_id("docker-compose.yml", { on_success = function(container_id) end })`
+---@param opts ComposeGetContainerIdOpts Additional options including callbacks
+---@usage `compose.get_container_id("compose.yml", { on_success = function(container_id) end })`
 function M.get_container_id(compose_file, service, opts)
 	vim.validate({
 		compose_file = { compose_file, { "string", "table" } },
@@ -147,7 +148,7 @@ function M.get_container_id(compose_file, service, opts)
 	local command = get_compose_files_command(compose_file)
 	vim.list_extend(command, { "ps", "-q", service })
 	local container_id = nil
-	run_docker_compose(command, {
+	run_compose(command, {
 		stdout = function(_, data)
 			if data then
 				container_id = vim.split(data, "\n")[1]

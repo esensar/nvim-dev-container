@@ -152,9 +152,9 @@ If not disabled by using {generate_commands = false} in setup, this plugin provi
 *:DevcontainerImageRun* - runs image from nearest devcontainer.json
 *:DevcontainerBuildAndRun* - builds image from nearest devcontainer.json and then runs it
 *:DevcontainerBuildRunAndAttach* - builds image from nearest devcontainer.json (with neovim added), runs it and attaches to neovim in it - currently using `terminal_handler`, but in the future with Neovim 0.8.0 maybe directly (https://codeberg.org/esensar/nvim-dev-container/issues/30)
-*:DevcontainerComposeUp* - run docker-compose up based on devcontainer.json
-*:DevcontainerComposeDown* - run docker-compose down based on devcontainer.json
-*:DevcontainerComposeRm* - run docker-compose rm based on devcontainer.json
+*:DevcontainerComposeUp* - run compose up based on devcontainer.json
+*:DevcontainerComposeDown* - run compose down based on devcontainer.json
+*:DevcontainerComposeRm* - run compose rm based on devcontainer.json
 *:DevcontainerStartAuto* - start whatever is defined in devcontainer.json
 *:DevcontainerStartAutoAndAttach* - start and attach to whatever is defined in devcontainer.json
 *:DevcontainerAttachAuto* - attach to whatever is defined in devcontainer.json
@@ -375,10 +375,10 @@ M.parse_jsonc({jsonc_content})
     Usually file should be read and content should be passed as a string into the function
 
     Parameters: ~
-        {jsonc_content}  (string)  
+        {jsonc_content}  (string)
 
     Returns: ~
-        {table}  
+        {table}
 
     Usage: ~
         >
@@ -399,7 +399,7 @@ M.parse_devcontainer_config({config_file_path}, {callback})
     Ensures that at least one of "image", "dockerFile" or "dockerComposeFile" keys is present
 
     Parameters: ~
-        {config_file_path}  (string)                  
+        {config_file_path}  (string)
         {callback}          (function(err,data)|nil)  if nil run sync, otherwise run async and pass result to the callback
 
     Returns: ~
@@ -500,7 +500,7 @@ M.terminal_handler                        *devcontainer.config.terminal_handler*
     By default it uses terminal command
 
     Type: ~
-        (function)  
+        (function)
 
 
                                   *devcontainer.config.nvim_dockerfile_template*
@@ -509,7 +509,7 @@ M.nvim_dockerfile_template
     By default it uses a template which installs neovim from source
 
     Type: ~
-        (function)  
+        (function)
 
 
                                  *devcontainer.config.workspace_folder_provider*
@@ -518,7 +518,7 @@ M.workspace_folder_provider
     By default uses first LSP workplace folder or vim.loop.cwd()
 
     Type: ~
-        (function)  
+        (function)
 
 
 M.config_search_start                  *devcontainer.config.config_search_start*
@@ -527,7 +527,7 @@ M.config_search_start                  *devcontainer.config.config_search_start*
     By default it uses vim.loop.cwd()
 
     Type: ~
-        (function)  
+        (function)
 
 
                            *devcontainer.config.disable_recursive_config_search*
@@ -537,7 +537,7 @@ M.disable_recursive_config_search
     This flag can be used to prevent it and only look in M.config_search_start
 
     Type: ~
-        (boolean)  
+        (boolean)
 
 
                                 *devcontainer.config.devcontainer_json_template*
@@ -546,7 +546,7 @@ M.devcontainer_json_template
     This function should return a table listing lines of the file
 
     Type: ~
-        (function)  
+        (function)
 
 
 MountOpts                                                            *MountOpts*
@@ -576,7 +576,7 @@ M.attach_mounts                              *devcontainer.config.attach_mounts*
     Applicable only to `devcontainer.commands` functions!
 
     Type: ~
-        (AttachMountsOpts)  
+        (AttachMountsOpts)
 
 
 M.always_mount                                *devcontainer.config.always_mount*
@@ -603,7 +603,7 @@ M.log_level                                      *devcontainer.config.log_level*
     Current log level
 
     Type: ~
-        (log_level)  
+        (log_level)
 
 
 M.container_env                              *devcontainer.config.container_env*
@@ -888,8 +888,8 @@ M.get_container_env({container_id}, {opts})
     Env variables are retrieved using printenv
 
     Parameters: ~
-        {container_id}  (string)                              
-        {opts}          (DockerUtilsGetContainerEnvOpts|nil)  
+        {container_id}  (string)
+        {opts}          (DockerUtilsGetContainerEnvOpts|nil)
 
 
 ================================================================================
@@ -929,7 +929,7 @@ M.setup({opts})                                             *devcontainer.setup*
     Starts the plugin and sets it up with provided options
 
     Parameters: ~
-        {opts}  (DevcontainerSetupOpts|nil)  
+        {opts}  (DevcontainerSetupOpts|nil)
 
 
 ================================================================================
@@ -983,18 +983,18 @@ DevcontainerStatus                                          *DevcontainerStatus*
 
 
     Fields: ~
-        {images_built}        (List[DevcontainerImageStatus])      
-        {running_containers}  (List[DevcontainerContainerStatus])  
-        {stopped_containers}  (List[DevcontainerContainerStatus])  
-        {build_status}        (List[DevcontainerBuildStatus])      
-        {compose_services}    (List[DevcontainerComposeStatus])    
+        {images_built}        (List[DevcontainerImageStatus])
+        {running_containers}  (List[DevcontainerContainerStatus])
+        {stopped_containers}  (List[DevcontainerContainerStatus])
+        {build_status}        (List[DevcontainerBuildStatus])
+        {compose_services}    (List[DevcontainerComposeStatus])
 
 
 M.get_status()                                  *devcontainer.status.get_status*
     Returns current devcontainer status in a table
 
     Returns: ~
-        {DevcontainerStatus}  
+        {DevcontainerStatus}
 
 
 M.find_container({opts})                    *devcontainer.status.find_container*
@@ -1005,7 +1005,7 @@ M.find_container({opts})                    *devcontainer.status.find_container*
         {opts}  (DevcontainerContainerStatus)  required opts
 
     Returns: ~
-        {DevcontainerContainerStatus}  
+        {DevcontainerContainerStatus}
 
 
 M.find_image({opts})                            *devcontainer.status.find_image*
@@ -1016,7 +1016,7 @@ M.find_image({opts})                            *devcontainer.status.find_image*
         {opts}  (DevcontainerImageStatus)  required opts
 
     Returns: ~
-        {DevcontainerImageStatus}  
+        {DevcontainerImageStatus}
 
 
 M.find_build({opts})                            *devcontainer.status.find_build*
@@ -1027,7 +1027,7 @@ M.find_build({opts})                            *devcontainer.status.find_build*
         {opts}  (DevcontainerBuildStatus)  required opts
 
     Returns: ~
-        {DevcontainerBuildStatus}  
+        {DevcontainerBuildStatus}
 
 
 

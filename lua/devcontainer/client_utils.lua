@@ -1,14 +1,14 @@
----@mod devcontainer.docker-utils High level docker utility functions
+---@mod devcontainer.client-utils High level docker utility functions
 ---@brief [[
 ---Provides functions for interacting with docker containers
 ---High-level functions
 ---@brief ]]
-local docker = require("devcontainer.docker")
+local client = require("devcontainer.client")
 local v = require("devcontainer.internal.validation")
 
 local M = {}
 
----@class DockerUtilsGetContainerEnvOpts
+---@class ClientUtilsGetContainerEnvOpts
 ---@field on_success function(table) success callback with env map parameter
 ---@field on_fail function() failure callback
 
@@ -26,7 +26,7 @@ function M.get_container_env(container_id, opts)
 	local on_success = opts.on_success or function(_) end
 	local on_fail = opts.on_fail or function() end
 
-	docker.exec(container_id, {
+	client.exec(container_id, {
 		capture_output = true,
 		command = "printenv",
 		on_success = function(output)

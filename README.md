@@ -140,9 +140,9 @@ If not disabled by using `generate_commands = false` in setup, this plugin provi
 - `DevcontainerImageRun` - runs image from nearest devcontainer.json
 - `DevcontainerBuildAndRun` - builds image from nearest devcontainer.json and then runs it
 - `DevcontainerBuildRunAndAttach` - builds image from nearest devcontainer.json (with neovim added), runs it and attaches to neovim in it - currently using `terminal_handler`, but in the future with Neovim 0.8.0 maybe directly ([#30](https://codeberg.org/esensar/nvim-dev-container/issues/30))
-- `DevcontainerComposeUp` - run docker-compose up based on devcontainer.json
-- `DevcontainerComposeDown` - run docker-compose down based on devcontainer.json
-- `DevcontainerComposeRm` - run docker-compose rm based on devcontainer.json
+- `DevcontainerComposeUp` - run compose up based on devcontainer.json
+- `DevcontainerComposeDown` - run compose down based on devcontainer.json
+- `DevcontainerComposeRm` - run compose rm based on devcontainer.json
 - `DevcontainerStartAuto` - start whatever is defined in devcontainer.json
 - `DevcontainerStartAutoAndAttach` - start and attach to whatever is defined in devcontainer.json
 - `DevcontainerAttachAuto` - attach to whatever is defined in devcontainer.json

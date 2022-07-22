@@ -32,6 +32,7 @@ return {
 
 		health.report_start("External dependencies")
 
+		-- TODO: Only require compose by default!
 		local required_executables = { "docker", "docker-compose" }
 		for _, executable in ipairs(required_executables) do
 			if vim.fn.has("win32") == 1 then

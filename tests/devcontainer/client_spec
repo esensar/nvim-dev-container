@@ -1,0 +1,6 @@
+local subject = require("devcontainer.client")
+
+-- TODO: Add specs
+describe("devcontainer.client:", function()
+	local _ = subject
+end)

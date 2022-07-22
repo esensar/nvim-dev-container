@@ -16,7 +16,7 @@ local function default_terminal_handler(command)
 	if vim.fn.has("nvim-0.8") == 1 then
 		vim.o.cmdheight = 0
 	end
-	local au_id = vim.api.nvim_create_augroup("devcontainer.docker.terminal", {})
+	local au_id = vim.api.nvim_create_augroup("devcontainer.client.terminal", {})
 	vim.api.nvim_create_autocmd("BufEnter", {
 		buffer = bufnr,
 		group = au_id,
