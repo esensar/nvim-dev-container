@@ -1,5 +1,5 @@
 local health
-if vim.fn.has("nvim-0.8") then
+if vim.fn.has("nvim-0.8") == 1 then
 	health = vim.health
 else
 	health = require("health")
@@ -14,7 +14,7 @@ return {
 	check = function()
 		health.report_start("Neovim version")
 
-		if not vim.fn.has("nvim-0.7") then
+		if vim.fn.has("nvim-0.7") == 0 then
 			health.report_warn("Latest Neovim version is recommended for full feature set!")
 		else
 			health.report_ok("Neovim version tested and supported: " .. vim_version_string())
