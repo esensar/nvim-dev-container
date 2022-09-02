@@ -14,14 +14,14 @@ local u = require("devcontainer.internal.utils")
 local M = {}
 
 local function get_nearest_devcontainer_config(callback)
-	config_file.parse_nearest_devcontainer_config(function(err, data)
+	config_file.parse_nearest_devcontainer_config(vim.schedule_wrap(function(err, data)
 		if err then
 			vim.notify("Parsing devcontainer config failed: " .. vim.inspect(err), vim.log.levels.ERROR)
 			return
 		end
 
 		callback(config_file.fill_defaults(data))
-	end)
+	end))
 end
 
 local function generate_build_command_args(data)
