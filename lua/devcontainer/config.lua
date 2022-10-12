@@ -206,7 +206,7 @@ M.attach_mounts = {
 ---@type List[string]
 M.always_mount = {}
 
----@alias log_level
+---@alias LogLevel
 ---| '"trace"'
 ---| '"debug"'
 ---| '"info"'
@@ -215,7 +215,7 @@ M.always_mount = {}
 ---| '"fatal"'
 
 ---Current log level
----@type log_level
+---@type LogLevel
 M.log_level = "info"
 
 ---List of env variables to add to all containers started with this plugin
