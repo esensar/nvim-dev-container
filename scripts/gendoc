@@ -17,5 +17,5 @@ done
 
 LINE_NR=$(grep -n "\-\-\-INSERT HERE\-\-\-" scripts/docs-template.txt | cut -f1 -d ':')
 head -n $(($LINE_NR - 1)) scripts/docs-template.txt > doc/devcontainer.txt
-lemmy-help -M $FILES >> doc/devcontainer.txt
+lemmy-help -f -a -c -t -M $FILES >> doc/devcontainer.txt
 tail --lines=+$(($LINE_NR + 1)) scripts/docs-template.txt >> doc/devcontainer.txt

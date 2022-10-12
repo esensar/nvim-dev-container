@@ -194,9 +194,9 @@ describe("devcontainer.config_file.parse:", function()
 					uv_mock.fs_stat.on_call_with(cwd .. "/.devcontainer/devcontainer.json").invokes(missing_file_func)
 					uv_mock.fs_stat.on_call_with(cwd .. "/..").returns({ ino = 456 })
 					uv_mock.fs_stat.on_call_with(cwd .. "/../.devcontainer.json").invokes(missing_file_func)
-					uv_mock.fs_stat.on_call_with(cwd .. "/../.devcontainer/devcontainer.json").invokes(
-						missing_file_func
-					)
+					uv_mock.fs_stat
+						.on_call_with(cwd .. "/../.devcontainer/devcontainer.json")
+						.invokes(missing_file_func)
 					uv_mock.fs_stat.on_call_with(cwd .. "/../..").returns({ ino = 456 })
 
 					local success, data = pcall(subject.parse_nearest_devcontainer_config)

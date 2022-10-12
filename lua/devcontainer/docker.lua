@@ -18,11 +18,11 @@ local M = {}
 ---@param opts RunCommandOpts|nil
 ---@param onexit function(code, signal)
 local function run_docker(args, opts, onexit)
-	exe.ensure_executable("docker")
+	exe.ensure_executable(config.container_runtime)
 
 	opts = opts or {}
 	exe.run_command(
-		"docker",
+		config.container_runtime,
 		vim.tbl_extend("force", opts, {
 			args = args,
 			stderr = vim.schedule_wrap(function(err, data)
@@ -62,8 +62,14 @@ local function build_with_neovim(original_dockerfile, image, path, opts)
 
 	-- Now build the new dockerfile
 	M.build(temp_dockerfile, path, {
-		on_fail = opts.on_fail,
-		on_success = opts.on_success,
+		on_fail = function()
+			run_docker({ "rmi", opts.tag }, nil, function(_, _) end)
+			opts.on_fail()
+		end,
+		on_success = function(image_id)
+			run_docker({ "rmi", opts.tag }, nil, function(_, _) end)
+			opts.on_success(image_id)
+		end,
 		tag = opts.tag,
 		add_neovim = false,
 		_neovim_build = true,
@@ -175,13 +181,14 @@ function M.build(file, path, opts)
 		current_step = 0,
 		image_id = nil,
 		source_dockerfile = file,
-		build_command = table.concat(vim.list_extend({ "docker" }, command), " "),
+		build_command = table.concat(vim.list_extend({ config.container_runtime }, command), " "),
 		commands_run = {},
 		running = true,
 	}
 	status.add_build(build_status)
 
 	local image_id = nil
+	local last_line = nil
 	run_docker(command, {
 		stdout = vim.schedule_wrap(function(_, data)
 			if data then
@@ -189,7 +196,7 @@ function M.build(file, path, opts)
 				--TODO: Is there a better way to get image ID
 				--There is the --iidfile maybe
 				local image_id_regex = vim.regex("Successfully built .*")
-				local step_regex = vim.regex("Step [[:digit:]]*/[[:digit:]]* : .*")
+				local step_regex = vim.regex("\\cStep [[:digit:]]*/[[:digit:]]* *: .*")
 				for _, line in ipairs(lines) do
 					if not image_id and image_id_regex:match_str(line) then
 						local result_line = vim.split(line, " ")
@@ -204,10 +211,16 @@ function M.build(file, path, opts)
 						build_status.progress = math.floor((build_status.current_step / build_status.step_count) * 100)
 						on_progress(vim.deepcopy(build_status))
 					end
+					if line ~= nil and line ~= "" then
+						last_line = line
+					end
 				end
 			end
 		end),
 	}, function(code, _)
+		if image_id == nil then
+			image_id = last_line
+		end
 		build_status.running = false
 		on_progress(vim.deepcopy(build_status))
 		if code == 0 then
@@ -367,7 +380,7 @@ function M.exec(container_id, opts)
 	end
 
 	if opts.tty then
-		(opts.terminal_handler or config.terminal_handler)(vim.list_extend({ "docker" }, command))
+		(opts.terminal_handler or config.terminal_handler)(vim.list_extend({ config.container_runtime }, command))
 	else
 		local run_opts = nil
 		local captured = nil

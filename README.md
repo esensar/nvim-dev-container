@@ -126,7 +126,15 @@ require("devcontainer").setup {
   -- This takes a list of mounts (strings) that should always be added to every run container
   -- This is passed directly as --mount option to docker command
   -- Or multiple --mount options if there are multiple values
-  always_mount = {}
+  always_mount = {},
+  -- This takes a string (usually either "podman" or "docker") representing container runtime
+  -- That is the command that will be invoked for container operations
+  -- If it is nil, plugin will use whatever is available (trying "podman" first)
+  container_runtime = nil,
+  -- This takes a string (usually either "podman-compose" or "docker-compose") representing compose command
+  -- That is the command that will be invoked for compose operations
+  -- If it is nil, plugin will use whatever is available (trying "podman-compose" first)
+  compose_command = nil,
 }
 ```
 

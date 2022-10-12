@@ -228,12 +228,9 @@ describe("devcontainer.config_file.parse(async):", function()
 			test_it(
 				"should call parse_devcontainer_config with .devcontainer/devcontainer.json path",
 				function(_, uv_mock)
-					assert.stub(uv_mock.fs_open).was_called_with(
-						"./.devcontainer/devcontainer.json",
-						"r",
-						match._,
-						match._
-					)
+					assert
+						.stub(uv_mock.fs_open)
+						.was_called_with("./.devcontainer/devcontainer.json", "r", match._, match._)
 				end
 			)
 		end)

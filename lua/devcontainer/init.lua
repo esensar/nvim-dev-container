@@ -9,6 +9,7 @@ local commands = require("devcontainer.commands")
 local log = require("devcontainer.internal.log")
 local parse = require("devcontainer.config_file.parse")
 local v = require("devcontainer.internal.validation")
+local executor = require("devcontainer.internal.executor")
 
 local configured = false
 
@@ -18,7 +19,7 @@ local configured = false
 ---@field update boolean|nil set to true to enable automatic devcontainer update when config file is changed
 
 ---@class DevcontainerSetupOpts
----@field config_search_start function|nil provides starting point for .devcontainer.json seach
+---@field config_search_start function|nil provides starting point for .devcontainer.json search
 ---@field workspace_folder_provider function|nil provides current workspace folder
 ---@field terminal_handler function|nil handles terminal command requests, useful for floating terminals and similar
 ---@field nvim_dockerfile_template function|nil provides dockerfile template based on passed base_image - returns string
@@ -31,6 +32,8 @@ local configured = false
 ---@field disable_recursive_config_search boolean|nil can be used to disable recursive .devcontainer search
 ---@field attach_mounts AttachMountsOpts|nil can be used to configure mounts when adding neovim to containers
 ---@field always_mount List[string]|nil list of mounts to add to every container
+---@field container_runtime string|nil container runtime to use ("docker", "podman")
+---@field compose_command string|nil command to use for compose
 
 ---Starts the plugin and sets it up with provided options
 ---@param opts DevcontainerSetupOpts|nil
@@ -118,6 +121,26 @@ function M.setup(opts)
 	end
 	config.container_env = opts.container_env or config.container_env
 	config.remote_env = opts.remote_env or config.remote_env
+	config.container_runtime = opts.container_runtime or config.container_runtime
+	config.compose_command = opts.compose_command or config.compose_command
+
+	if config.compose_command == nil then
+		if executor.is_executable("podman-compose") then
+			config.compose_command = "podman-compose"
+		elseif executor.is_executable("docker-compose") then
+			config.compose_command = "docker-compose"
+		elseif executor.is_executable("docker compose") then
+			config.compose_command = "docker compose"
+		end
+	end
+
+	if config.container_runtime == nil then
+		if executor.is_executable("podman") then
+			config.container_runtime = "podman"
+		elseif executor.is_executable("docker") then
+			config.container_runtime = "docker"
+		end
+	end
 
 	if opts.generate_commands ~= false then
 		-- Docker

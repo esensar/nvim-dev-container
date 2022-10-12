@@ -10,6 +10,9 @@ local function vim_version_string()
 	return v.major .. "." .. v.minor .. "." .. v.patch
 end
 
+local config = require("devcontainer.config")
+local executor = require("devcontainer.internal.executor")
+
 return {
 	check = function()
 		health.report_start("Neovim version")
@@ -32,20 +35,66 @@ return {
 
 		health.report_start("External dependencies")
 
-		local required_executables = { "docker", "docker-compose" }
-		for _, executable in ipairs(required_executables) do
-			if vim.fn.has("win32") == 1 then
-				executable = executable .. ".exe"
-			end
-			if vim.fn.executable(executable) == 0 then
-				health.report_error(
-					executable .. " is not executable! It is required for full functionality of this plugin!"
-				)
+		if config.container_runtime ~= nil then
+			if executor.is_executable(config.container_runtime) then
+				local handle = io.popen(config.container_runtime .. " --version")
+				if handle ~= nil then
+					local version = handle:read("*a")
+					handle:close()
+					health.report_ok(version)
+				end
 			else
-				local handle = io.popen(executable .. " --version")
-				local version = handle:read("*a")
-				handle:close()
-				health.report_ok(version)
+				health.report_error(config.container_runtime .. " is not executable. Make sure it is installed!")
+			end
+		else
+			local runtimes = { "podman", "docker" }
+			local has_any = false
+			for _, executable in ipairs(runtimes) do
+				if executor.is_executable(executable) then
+					has_any = true
+					local handle = io.popen(executable .. " --version")
+					if handle ~= nil then
+						local version = handle:read("*a")
+						handle:close()
+						health.report_ok("Found " .. executable .. ": " .. version)
+					end
+				end
+			end
+			if not has_any then
+				health.report_error("No container runtime is available! Install either podman or docker!")
+			end
+		end
+
+		if config.compose_command ~= nil then
+			if executor.is_executable(config.compose_command) then
+				local handle = io.popen(config.compose_command .. " --version")
+				if handle ~= nil then
+					local version = handle:read("*a")
+					handle:close()
+					health.report_ok(version)
+				end
+			else
+				health.report_error(
+					config.compose_command
+						.. " is not executable! It is required for full functionality of this plugin!"
+				)
+			end
+		else
+			local compose_runtimes = { "podman-compose", "docker-compose", "docker compose" }
+			local has_any = false
+			for _, executable in ipairs(compose_runtimes) do
+				if executor.is_executable(executable) then
+					has_any = true
+					local handle = io.popen(executable .. " --version")
+					if handle ~= nil then
+						local version = handle:read("*a")
+						handle:close()
+						health.report_ok("Found " .. executable .. ": " .. version)
+					end
+				end
+			end
+			if not has_any then
+				health.report_error("No compose tool is available! Install either podman-compose or docker-compose!")
 			end
 		end
 	end,

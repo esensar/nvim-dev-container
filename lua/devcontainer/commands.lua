@@ -131,6 +131,7 @@ local function generate_run_command_args(data, attaching)
 			end
 			return table.concat(mount, ",")
 		end
+
 		if am.neovim_config and am.neovim_config.enabled then
 			table.insert(run_args, "--mount")
 			table.insert(run_args, build_mount("config", am.neovim_config.options, "/root/.config/nvim"))

@@ -5,6 +5,7 @@
 local exe = require("devcontainer.internal.executor")
 local v = require("devcontainer.internal.validation")
 local log = require("devcontainer.internal.log")
+local config = require("devcontainer.config")
 
 local M = {}
 
@@ -13,11 +14,11 @@ local M = {}
 ---@param opts RunCommandOpts|nil
 ---@param onexit function(code, signal)
 local function run_docker_compose(args, opts, onexit)
-	exe.ensure_executable("docker-compose")
+	exe.ensure_executable(config.compose_command)
 
 	opts = opts or {}
 	exe.run_command(
-		"docker-compose",
+		config.compose_command,
 		vim.tbl_extend("force", opts, {
 			args = args,
 			stderr = vim.schedule_wrap(function(err, data)

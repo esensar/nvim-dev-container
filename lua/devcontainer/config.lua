@@ -157,6 +157,16 @@ M.disable_recursive_config_search = false
 ---@type function
 M.devcontainer_json_template = default_devcontainer_json_template
 
+---Used to set current container runtime
+---By default plugin will try to use "docker" or "podman"
+---@type string|nil
+M.container_runtime = nil
+
+---Used to set current compose command
+---By default plugin will try to use "docker-compose" or "podman-compose"
+---@type string|nil
+M.compose_command = nil
+
 ---@class MountOpts
 ---@field enabled boolean if true this mount is enabled
 ---@field options List[string]|nil additional bind options, useful to define { "readonly" }

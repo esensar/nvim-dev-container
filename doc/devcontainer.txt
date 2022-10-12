@@ -375,10 +375,10 @@ M.parse_jsonc({jsonc_content})
     Usually file should be read and content should be passed as a string into the function
 
     Parameters: ~
-        {jsonc_content}  (string)  
+        {jsonc_content}  (string)
 
     Returns: ~
-        {table}  
+        {table}
 
     Usage: ~
         >
@@ -399,7 +399,7 @@ M.parse_devcontainer_config({config_file_path}, {callback})
     Ensures that at least one of "image", "dockerFile" or "dockerComposeFile" keys is present
 
     Parameters: ~
-        {config_file_path}  (string)                  
+        {config_file_path}  (string)
         {callback}          (function(err,data)|nil)  if nil run sync, otherwise run async and pass result to the callback
 
     Returns: ~
@@ -500,7 +500,7 @@ M.terminal_handler                        *devcontainer.config.terminal_handler*
     By default it uses terminal command
 
     Type: ~
-        (function)  
+        (function)
 
 
                                   *devcontainer.config.nvim_dockerfile_template*
@@ -509,7 +509,7 @@ M.nvim_dockerfile_template
     By default it uses a template which installs neovim from source
 
     Type: ~
-        (function)  
+        (function)
 
 
                                  *devcontainer.config.workspace_folder_provider*
@@ -518,7 +518,7 @@ M.workspace_folder_provider
     By default uses first LSP workplace folder or vim.loop.cwd()
 
     Type: ~
-        (function)  
+        (function)
 
 
 M.config_search_start                  *devcontainer.config.config_search_start*
@@ -527,7 +527,7 @@ M.config_search_start                  *devcontainer.config.config_search_start*
     By default it uses vim.loop.cwd()
 
     Type: ~
-        (function)  
+        (function)
 
 
                            *devcontainer.config.disable_recursive_config_search*
@@ -537,7 +537,7 @@ M.disable_recursive_config_search
     This flag can be used to prevent it and only look in M.config_search_start
 
     Type: ~
-        (boolean)  
+        (boolean)
 
 
                                 *devcontainer.config.devcontainer_json_template*
@@ -546,19 +546,33 @@ M.devcontainer_json_template
     This function should return a table listing lines of the file
 
     Type: ~
-        (function)  
+        (function)
 
 
-MountOpts                                                            *MountOpts*
+M.container_runtime                      *devcontainer.config.container_runtime*
+    Used to set current container runtime
+    By default plugin will try to use "docker" or "podman"
 
+    Type: ~
+        (string|nil)
+
+
+M.compose_command                          *devcontainer.config.compose_command*
+    Used to set current compose command
+    By default plugin will try to use "docker-compose" or "podman-compose"
+
+    Type: ~
+        (string|nil)
+
+
+MountOpts                                        *devcontainer.config.MountOpts*
 
     Fields: ~
         {enabled}  (boolean)           if true this mount is enabled
         {options}  (List[string]|nil)  additional bind options, useful to define { "readonly" }
 
 
-AttachMountsOpts                                              *AttachMountsOpts*
-
+AttachMountsOpts                          *devcontainer.config.AttachMountsOpts*
 
     Fields: ~
         {always}         (boolean|nil)    if true these mounts are used on every run, to be available when attaching later
@@ -576,7 +590,7 @@ M.attach_mounts                              *devcontainer.config.attach_mounts*
     Applicable only to `devcontainer.commands` functions!
 
     Type: ~
-        (AttachMountsOpts)  
+        (AttachMountsOpts)
 
 
 M.always_mount                                *devcontainer.config.always_mount*
@@ -584,26 +598,25 @@ M.always_mount                                *devcontainer.config.always_mount*
     Applicable only to `devcontainer.commands` functions!
 
     Type: ~
-        (List)  [string]
+        (List[string])
 
 
-log_level                                                            *log_level*
-    '"trace"'
+log_level                                        *devcontainer.config.log_level*
 
-    Type: ~
-        ---|
+    Variants: ~
+        ("trace")
+        ("debug")
+        ("info")
+        ("warn")
+        ("error")
+        ("fatal")
 
 
 M.log_level                                      *devcontainer.config.log_level*
-    | '"debug"'
-    | '"info"'
-    | '"warn"'
-    | '"error"'
-    | '"fatal"'
     Current log level
 
     Type: ~
-        (log_level)  
+        (log_level)
 
 
 M.container_env                              *devcontainer.config.container_env*
@@ -612,7 +625,7 @@ M.container_env                              *devcontainer.config.container_env*
     NOTE: This does not support "${localEnv:VAR_NAME}" syntax - use vim.env
 
     Type: ~
-        (Map)  [string, string]
+        (Map[string,)  string]
 
 
 M.remote_env                                    *devcontainer.config.remote_env*
@@ -621,7 +634,7 @@ M.remote_env                                    *devcontainer.config.remote_env*
     NOTE: This supports "${containerEnv:VAR_NAME}" syntax to use variables from container
 
     Type: ~
-        (Map)  [string, string]
+        (Map[string,)  string]
 
 
 ================================================================================
@@ -629,8 +642,8 @@ Docker-compose module                              *devcontainer.docker-compose*
 
 Provides functions related to docker-compose control
 
-DockerComposeUpOpts                                        *DockerComposeUpOpts*
-
+                               *devcontainer.docker-compose.DockerComposeUpOpts*
+DockerComposeUpOpts
 
     Fields: ~
         {args}        (table|nil)   list of additional arguments to up command
@@ -651,8 +664,8 @@ M.up({compose_file}, {opts})                    *devcontainer.docker-compose.up*
         <
 
 
-DockerComposeDownOpts                                    *DockerComposeDownOpts*
-
+                             *devcontainer.docker-compose.DockerComposeDownOpts*
+DockerComposeDownOpts
 
     Fields: ~
         {on_success}  (function())  success callback
@@ -672,8 +685,8 @@ M.down({compose_file}, {opts})                *devcontainer.docker-compose.down*
         <
 
 
-DockerComposeGetContainerIdOpts                *DockerComposeGetContainerIdOpts*
-
+                   *devcontainer.docker-compose.DockerComposeGetContainerIdOpts*
+DockerComposeGetContainerIdOpts
 
     Fields: ~
         {on_success}  (function(container_id))  success callback
@@ -703,8 +716,7 @@ Provides functions related to docker control:
  - attaching
  - running
 
-DockerPullOpts                                                  *DockerPullOpts*
-
+DockerPullOpts                              *devcontainer.docker.DockerPullOpts*
 
     Fields: ~
         {on_success}  (function())  success callback
@@ -724,8 +736,7 @@ M.pull({image}, {opts})                               *devcontainer.docker.pull*
         <
 
 
-DockerBuildOpts                                                *DockerBuildOpts*
-
+DockerBuildOpts                            *devcontainer.docker.DockerBuildOpts*
 
     Fields: ~
         {tag}          (string|nil)                         tag for the image built
@@ -750,8 +761,7 @@ M.build({file}, {path}, {opts})                      *devcontainer.docker.build*
         <
 
 
-DockerRunOpts                                                    *DockerRunOpts*
-
+DockerRunOpts                                *devcontainer.docker.DockerRunOpts*
 
     Fields: ~
         {autoremove}  (boolean)                 automatically remove container after stopping - true by default
@@ -775,8 +785,7 @@ M.run({image}, {opts})                                 *devcontainer.docker.run*
         <
 
 
-DockerExecOpts                                                  *DockerExecOpts*
-
+DockerExecOpts                              *devcontainer.docker.DockerExecOpts*
 
     Fields: ~
         {tty}               (boolean)            attach to container TTY and display it in terminal buffer, using configured terminal handler
@@ -803,8 +812,8 @@ M.exec({container_id}, {opts})                        *devcontainer.docker.exec*
         <
 
 
-DockerContainerStopOpts                                *DockerContainerStopOpts*
-
+                                   *devcontainer.docker.DockerContainerStopOpts*
+DockerContainerStopOpts
 
     Fields: ~
         {on_success}  (function())  success callback
@@ -824,8 +833,7 @@ M.container_stop({containers}, {opts})      *devcontainer.docker.container_stop*
         <
 
 
-DockerImageRmOpts                                            *DockerImageRmOpts*
-
+DockerImageRmOpts                        *devcontainer.docker.DockerImageRmOpts*
 
     Fields: ~
         {force}       (boolean|nil)  force deletion
@@ -846,8 +854,8 @@ M.image_rm({images}, {opts})                      *devcontainer.docker.image_rm*
         <
 
 
-DockerContainerRmOpts                                    *DockerContainerRmOpts*
-
+                                     *devcontainer.docker.DockerContainerRmOpts*
+DockerContainerRmOpts
 
     Fields: ~
         {force}       (boolean|nil)  force deletion
@@ -874,8 +882,8 @@ High level docker utility functions                  *devcontainer.docker-utils*
 Provides functions for interacting with docker containers
 High-level functions
 
-DockerUtilsGetContainerEnvOpts                  *DockerUtilsGetContainerEnvOpts*
-
+                      *devcontainer.docker-utils.DockerUtilsGetContainerEnvOpts*
+DockerUtilsGetContainerEnvOpts
 
     Fields: ~
         {on_success}  (function(table))  success callback with env map parameter
@@ -888,8 +896,8 @@ M.get_container_env({container_id}, {opts})
     Env variables are retrieved using printenv
 
     Parameters: ~
-        {container_id}  (string)                              
-        {opts}          (DockerUtilsGetContainerEnvOpts|nil)  
+        {container_id}  (string)
+        {opts}          (DockerUtilsGetContainerEnvOpts|nil)
 
 
 ================================================================================
@@ -897,8 +905,7 @@ Main devcontainer module - used to setup the plugin               *devcontainer*
 
 Provides setup function
 
-DevcontainerAutocommandOpts                        *DevcontainerAutocommandOpts*
-
+DevcontainerAutocommandOpts           *devcontainer.DevcontainerAutocommandOpts*
 
     Fields: ~
         {init}    (boolean|nil)  set to true to enable automatic devcontainer start
@@ -906,11 +913,10 @@ DevcontainerAutocommandOpts                        *DevcontainerAutocommandOpts*
         {update}  (boolean|nil)  set to true to enable automatic devcontainer update when config file is changed
 
 
-DevcontainerSetupOpts                                    *DevcontainerSetupOpts*
-
+DevcontainerSetupOpts                       *devcontainer.DevcontainerSetupOpts*
 
     Fields: ~
-        {config_search_start}              (function|nil)                     provides starting point for .devcontainer.json seach
+        {config_search_start}              (function|nil)                     provides starting point for .devcontainer.json search
         {workspace_folder_provider}        (function|nil)                     provides current workspace folder
         {terminal_handler}                 (function|nil)                     handles terminal command requests, useful for floating terminals and similar
         {nvim_dockerfile_template}         (function|nil)                     provides dockerfile template based on passed base_image - returns string
@@ -923,13 +929,15 @@ DevcontainerSetupOpts                                    *DevcontainerSetupOpts*
         {disable_recursive_config_search}  (boolean|nil)                      can be used to disable recursive .devcontainer search
         {attach_mounts}                    (AttachMountsOpts|nil)             can be used to configure mounts when adding neovim to containers
         {always_mount}                     (List[string]|nil)                 list of mounts to add to every container
+        {container_runtime}                (string|nil)                       container runtime to use ("docker", "podman")
+        {compose_command}                  (string|nil)                       command to use for compose
 
 
 M.setup({opts})                                             *devcontainer.setup*
     Starts the plugin and sets it up with provided options
 
     Parameters: ~
-        {opts}  (DevcontainerSetupOpts|nil)  
+        {opts}  (DevcontainerSetupOpts|nil)
 
 
 ================================================================================
@@ -939,8 +947,8 @@ Provides access to current status and is used internally to update it
 Don't change directly!
 Can be used for read-only access
 
-DevcontainerImageStatus                                *DevcontainerImageStatus*
-
+                                   *devcontainer.status.DevcontainerImageStatus*
+DevcontainerImageStatus
 
     Fields: ~
         {image_id}           (string)      id of the image
@@ -949,8 +957,8 @@ DevcontainerImageStatus                                *DevcontainerImageStatus*
         {tmp_dockerfile}     (string|nil)  path to temporary dockerfile if add neovim was used
 
 
-DevcontainerContainerStatus                        *DevcontainerContainerStatus*
-
+                               *devcontainer.status.DevcontainerContainerStatus*
+DevcontainerContainerStatus
 
     Fields: ~
         {container_id}  (string)   id of the container
@@ -958,15 +966,15 @@ DevcontainerContainerStatus                        *DevcontainerContainerStatus*
         {autoremove}    (boolean)  true if this container was started with autoremove flag
 
 
-DevcontainerComposeStatus                            *DevcontainerComposeStatus*
-
+                                 *devcontainer.status.DevcontainerComposeStatus*
+DevcontainerComposeStatus
 
     Fields: ~
         {file}  (string)  path to compose file
 
 
-DevcontainerBuildStatus                                *DevcontainerBuildStatus*
-
+                                   *devcontainer.status.DevcontainerBuildStatus*
+DevcontainerBuildStatus
 
     Fields: ~
         {progress}           (number)      0-100 percentage
@@ -979,22 +987,21 @@ DevcontainerBuildStatus                                *DevcontainerBuildStatus*
         {running}            (boolean)     true if still running
 
 
-DevcontainerStatus                                          *DevcontainerStatus*
-
+DevcontainerStatus                      *devcontainer.status.DevcontainerStatus*
 
     Fields: ~
-        {images_built}        (List[DevcontainerImageStatus])      
-        {running_containers}  (List[DevcontainerContainerStatus])  
-        {stopped_containers}  (List[DevcontainerContainerStatus])  
-        {build_status}        (List[DevcontainerBuildStatus])      
-        {compose_services}    (List[DevcontainerComposeStatus])    
+        {images_built}        (List[DevcontainerImageStatus])
+        {running_containers}  (List[DevcontainerContainerStatus])
+        {stopped_containers}  (List[DevcontainerContainerStatus])
+        {build_status}        (List[DevcontainerBuildStatus])
+        {compose_services}    (List[DevcontainerComposeStatus])
 
 
 M.get_status()                                  *devcontainer.status.get_status*
     Returns current devcontainer status in a table
 
     Returns: ~
-        {DevcontainerStatus}  
+        {DevcontainerStatus}
 
 
 M.find_container({opts})                    *devcontainer.status.find_container*
@@ -1005,7 +1012,7 @@ M.find_container({opts})                    *devcontainer.status.find_container*
         {opts}  (DevcontainerContainerStatus)  required opts
 
     Returns: ~
-        {DevcontainerContainerStatus}  
+        {DevcontainerContainerStatus}
 
 
 M.find_image({opts})                            *devcontainer.status.find_image*
@@ -1016,7 +1023,7 @@ M.find_image({opts})                            *devcontainer.status.find_image*
         {opts}  (DevcontainerImageStatus)  required opts
 
     Returns: ~
-        {DevcontainerImageStatus}  
+        {DevcontainerImageStatus}
 
 
 M.find_build({opts})                            *devcontainer.status.find_build*
@@ -1027,7 +1034,7 @@ M.find_build({opts})                            *devcontainer.status.find_build*
         {opts}  (DevcontainerBuildStatus)  required opts
 
     Returns: ~
-        {DevcontainerBuildStatus}  
+        {DevcontainerBuildStatus}
 
 
 

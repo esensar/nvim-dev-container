@@ -1,5 +1,5 @@
 ---@brief [[
----Internal library for managing and runing executables
+---Internal library for managing and running executables
 ---@brief ]]
 local uv = vim.loop
 local log = require("devcontainer.internal.log")
