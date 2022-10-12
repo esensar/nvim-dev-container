@@ -601,7 +601,7 @@ M.always_mount                                *devcontainer.config.always_mount*
         (List[string])
 
 
-log_level                                        *devcontainer.config.log_level*
+LogLevel                                          *devcontainer.config.LogLevel*
 
     Variants: ~
         ("trace")
@@ -616,7 +616,7 @@ M.log_level                                      *devcontainer.config.log_level*
     Current log level
 
     Type: ~
-        (log_level)
+        (LogLevel)
 
 
 M.container_env                              *devcontainer.config.container_env*
