@@ -10,6 +10,10 @@ local M = {}
 ---@param command string
 ---@return boolean true if executable, false otherwise
 function M.is_executable(command)
+  if string.match(command, " ") then
+    vim.fn.system(command)
+    return vim.v.shell_error == 0
+  end
   if vim.fn.has("win32") == 1 then
     command = command .. ".exe"
   end
