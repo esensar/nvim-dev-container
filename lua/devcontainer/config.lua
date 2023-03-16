@@ -8,121 +8,121 @@
 local M = {}
 
 local function default_terminal_handler(command)
-	local laststatus = vim.o.laststatus
-	local lastheight = vim.o.cmdheight
-	vim.cmd("tabnew")
-	local bufnr = vim.api.nvim_get_current_buf()
-	vim.o.laststatus = 0
-	if vim.fn.has("nvim-0.8") == 1 then
-		vim.o.cmdheight = 0
-	end
-	local au_id = vim.api.nvim_create_augroup("devcontainer.docker.terminal", {})
-	vim.api.nvim_create_autocmd("BufEnter", {
-		buffer = bufnr,
-		group = au_id,
-		callback = function()
-			vim.o.laststatus = 0
-			if vim.fn.has("nvim-0.8") == 1 then
-				vim.o.cmdheight = 0
-			end
-		end,
-	})
-	vim.api.nvim_create_autocmd("BufLeave", {
-		buffer = bufnr,
-		group = au_id,
-		callback = function()
-			vim.o.laststatus = laststatus
-			if vim.fn.has("nvim-0.8") == 1 then
-				vim.o.cmdheight = lastheight
-			end
-		end,
-	})
-	vim.api.nvim_create_autocmd("BufDelete", {
-		buffer = bufnr,
-		group = au_id,
-		callback = function()
-			vim.o.laststatus = laststatus
-			vim.api.nvim_del_augroup_by_id(au_id)
-			if vim.fn.has("nvim-0.8") == 1 then
-				vim.o.cmdheight = lastheight
-			end
-		end,
-	})
-	vim.fn.termopen(command)
+  local laststatus = vim.o.laststatus
+  local lastheight = vim.o.cmdheight
+  vim.cmd("tabnew")
+  local bufnr = vim.api.nvim_get_current_buf()
+  vim.o.laststatus = 0
+  if vim.fn.has("nvim-0.8") == 1 then
+    vim.o.cmdheight = 0
+  end
+  local au_id = vim.api.nvim_create_augroup("devcontainer.docker.terminal", {})
+  vim.api.nvim_create_autocmd("BufEnter", {
+    buffer = bufnr,
+    group = au_id,
+    callback = function()
+      vim.o.laststatus = 0
+      if vim.fn.has("nvim-0.8") == 1 then
+        vim.o.cmdheight = 0
+      end
+    end,
+  })
+  vim.api.nvim_create_autocmd("BufLeave", {
+    buffer = bufnr,
+    group = au_id,
+    callback = function()
+      vim.o.laststatus = laststatus
+      if vim.fn.has("nvim-0.8") == 1 then
+        vim.o.cmdheight = lastheight
+      end
+    end,
+  })
+  vim.api.nvim_create_autocmd("BufDelete", {
+    buffer = bufnr,
+    group = au_id,
+    callback = function()
+      vim.o.laststatus = laststatus
+      vim.api.nvim_del_augroup_by_id(au_id)
+      if vim.fn.has("nvim-0.8") == 1 then
+        vim.o.cmdheight = lastheight
+      end
+    end,
+  })
+  vim.fn.termopen(command)
 end
 
 local function default_nvim_dockerfile_template(base_image)
-	-- Use current version by default
-	local nver = vim.version()
-	local version_string = "v" .. nver.major .. "." .. nver.minor .. "." .. nver.patch
-	local lines = {
-		"FROM " .. base_image,
-		"RUN apt-get update && apt-get -y install " .. table.concat({
-			"curl",
-			"fzf",
-			"ripgrep",
-			"tree",
-			"git",
-			"xclip",
-			"python3",
-			"python3-pip",
-			"nodejs",
-			"npm",
-			"tzdata",
-			"ninja-build",
-			"gettext",
-			"libtool",
-			"libtool-bin",
-			"autoconf",
-			"automake",
-			"cmake",
-			"g++",
-			"pkg-config",
-			"zip",
-			"unzip",
-		}, " "),
-		"RUN pip3 install pynvim",
-		"RUN npm i -g neovim",
-		"RUN mkdir -p /root/TMP",
-		"RUN cd /root/TMP && git clone https://github.com/neovim/neovim",
-		"RUN cd /root/TMP/neovim && (git checkout " .. version_string .. " || true) && make -j4 && make install",
-		"RUN rm -rf /root/TMP",
-	}
-	return table.concat(lines, "\n")
+  -- Use current version by default
+  local nver = vim.version()
+  local version_string = "v" .. nver.major .. "." .. nver.minor .. "." .. nver.patch
+  local lines = {
+    "FROM " .. base_image,
+    "RUN apt-get update && apt-get -y install " .. table.concat({
+      "curl",
+      "fzf",
+      "ripgrep",
+      "tree",
+      "git",
+      "xclip",
+      "python3",
+      "python3-pip",
+      "nodejs",
+      "npm",
+      "tzdata",
+      "ninja-build",
+      "gettext",
+      "libtool",
+      "libtool-bin",
+      "autoconf",
+      "automake",
+      "cmake",
+      "g++",
+      "pkg-config",
+      "zip",
+      "unzip",
+    }, " "),
+    "RUN pip3 install pynvim",
+    "RUN npm i -g neovim",
+    "RUN mkdir -p /root/TMP",
+    "RUN cd /root/TMP && git clone https://github.com/neovim/neovim",
+    "RUN cd /root/TMP/neovim && (git checkout " .. version_string .. " || true) && make -j4 && make install",
+    "RUN rm -rf /root/TMP",
+  }
+  return table.concat(lines, "\n")
 end
 
 local function workspace_folder_provider()
-	return vim.lsp.buf.list_workspace_folders()[1] or vim.loop.cwd()
+  return vim.lsp.buf.list_workspace_folders()[1] or vim.loop.cwd()
 end
 
 local function default_config_search_start()
-	return vim.loop.cwd()
+  return vim.loop.cwd()
 end
 
 local function default_devcontainer_json_template()
-	return {
-		"{",
-		[[  "name": "Your Definition Name Here (Community)",]],
-		[[// Update the 'image' property with your Docker image name.]],
-		[[// "image": "alpine",]],
-		[[// Or define build if using Dockerfile.]],
-		[[// "build": {]],
-		[[//     "dockerfile": "Dockerfile",]],
-		[[// [Optional] You can use build args to set options. e.g. 'VARIANT' below affects the image in the Dockerfile]],
-		[[//     "args": { "VARIANT: "buster" },]],
-		[[// }]],
-		[[// Or use docker-compose]],
-		[[// Update the 'dockerComposeFile' list if you have more compose files or use different names.]],
-		[["dockerComposeFile": "docker-compose.yml",]],
-		[[// Use 'forwardPorts' to make a list of ports inside the container available locally.]],
-		[[// "forwardPorts": [],]],
-		[[// Define mounts.]],
-		[[// "mounts": [ "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename} ]]
-			.. [[,type=bind,consistency=delegated" ],]],
-		[[// Uncomment when using a ptrace-based debugger like C++, Go, and Rust]],
-		[[// "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],]],
-		[[}]],
-	}
+  return {
+    "{",
+    [[  "name": "Your Definition Name Here (Community)",]],
+    [[// Update the 'image' property with your Docker image name.]],
+    [[// "image": "alpine",]],
+    [[// Or define build if using Dockerfile.]],
+    [[// "build": {]],
+    [[//     "dockerfile": "Dockerfile",]],
+    [[// [Optional] You can use build args to set options. e.g. 'VARIANT' below affects the image in the Dockerfile]],
+    [[//     "args": { "VARIANT: "buster" },]],
+    [[// }]],
+    [[// Or use docker-compose]],
+    [[// Update the 'dockerComposeFile' list if you have more compose files or use different names.]],
+    [["dockerComposeFile": "docker-compose.yml",]],
+    [[// Use 'forwardPorts' to make a list of ports inside the container available locally.]],
+    [[// "forwardPorts": [],]],
+    [[// Define mounts.]],
+    [[// "mounts": [ "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename} ]]
+      .. [[,type=bind,consistency=delegated" ],]],
+    [[// Uncomment when using a ptrace-based debugger like C++, Go, and Rust]],
+    [[// "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],]],
+    [[}]],
+  }
 end
 
 ---Handles terminal requests (mainly used for attaching to container)
@@ -185,20 +185,20 @@ M.compose_command = nil
 ---Applicable only to `devcontainer.commands` functions!
 ---@type AttachMountsOpts
 M.attach_mounts = {
-	always = false,
-	neovim_config = {
-		enabled = false,
-		options = { "readonly" },
-	},
-	neovim_data = {
-		enabled = false,
-		options = {},
-	},
-	neovim_state = {
-		enabled = false,
-		options = {},
-	},
-	custom_mounts = {},
+  always = false,
+  neovim_config = {
+    enabled = false,
+    options = { "readonly" },
+  },
+  neovim_data = {
+    enabled = false,
+    options = {},
+  },
+  neovim_state = {
+    enabled = false,
+    options = {},
+  },
+  custom_mounts = {},
 }
 
 ---List of mounts to always add to all containers
