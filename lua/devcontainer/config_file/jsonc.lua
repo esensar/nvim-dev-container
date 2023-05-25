@@ -11,7 +11,7 @@ local function clean_jsonc(jsonc_content)
   local parser = vim.treesitter.get_string_parser(jsonc_content, "jsonc")
   local tree = parser:parse()
   local root = tree[1]:root()
-  local query = vim.treesitter.parse_query("jsonc", "((comment)+ @c)")
+  local query = vim.treesitter.query.parse("jsonc", "((comment)+ @c)")
   local lines = vim.split(jsonc_content, "\n")
 
   for _, node, _ in query:iter_captures(root) do
