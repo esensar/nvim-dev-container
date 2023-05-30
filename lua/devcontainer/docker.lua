@@ -173,6 +173,10 @@ function M.build(file, path, opts)
     table.insert(command, temptag)
   end
 
+  local id_temp_file = vim.fn.tempname()
+  table.insert(command, "--iidfile")
+  table.insert(command, id_temp_file)
+
   vim.list_extend(command, opts.args or {})
 
   local build_status = {
@@ -188,20 +192,12 @@ function M.build(file, path, opts)
   status.add_build(build_status)
 
   local image_id = nil
-  local last_line = nil
   run_docker(command, {
     stdout = vim.schedule_wrap(function(_, data)
       if data then
         local lines = vim.split(data, "\n")
-        --TODO: Is there a better way to get image ID
-        --There is the --iidfile maybe
-        local image_id_regex = vim.regex("Successfully built .*")
         local step_regex = vim.regex("\\cStep [[:digit:]]*/[[:digit:]]* *: .*")
         for _, line in ipairs(lines) do
-          if not image_id and image_id_regex:match_str(line) then
-            local result_line = vim.split(line, " ")
-            image_id = result_line[#result_line]
-          end
           if step_regex:match_str(line) then
             local step_line = vim.split(line, ":")
             local step_numbers = vim.split(vim.split(step_line[1], " ")[2], "/")
@@ -211,16 +207,12 @@ function M.build(file, path, opts)
             build_status.progress = math.floor((build_status.current_step / build_status.step_count) * 100)
             on_progress(vim.deepcopy(build_status))
           end
-          if line ~= nil and line ~= "" then
-            last_line = line
-          end
         end
       end
     end),
   }, function(code, _)
-    if image_id == nil then
-      image_id = last_line
-    end
+    image_id = vim.fn.readfile(id_temp_file)[1]
+    vim.fn.delete(id_temp_file)
     build_status.running = false
     on_progress(vim.deepcopy(build_status))
     if code == 0 then
