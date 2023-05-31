@@ -382,7 +382,8 @@ function M.docker_image_run(callback)
         "Successfully started image ("
           .. config.image
           .. ") from "
-          .. config.metadata.file_path(" - container id: ")
+          .. config.metadata.file_path
+          .. " - container id: "
           .. container_id
       )
     end
