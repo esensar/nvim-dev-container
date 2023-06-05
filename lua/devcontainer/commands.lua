@@ -132,17 +132,23 @@ local function generate_run_command_args(data, attaching)
       return table.concat(mount, ",")
     end
 
+    local home_path = nil
+    if data.remoteUser then
+      home_path = "/home/" .. data.remoteUser .. "/"
+    else
+      home_path = "/root/"
+    end
     if am.neovim_config and am.neovim_config.enabled then
       table.insert(run_args, "--mount")
-      table.insert(run_args, build_mount("config", am.neovim_config.options, "/root/.config/nvim"))
+      table.insert(run_args, build_mount("config", am.neovim_config.options, home_path .. ".config/nvim"))
     end
     if am.neovim_data and am.neovim_data.enabled then
       table.insert(run_args, "--mount")
-      table.insert(run_args, build_mount("data", am.neovim_data.options, "/root/.local/share/nvim"))
+      table.insert(run_args, build_mount("data", am.neovim_data.options, home_path .. ".local/share/nvim"))
     end
     if am.neovim_state and am.neovim_state.enabled and vim.fn.has("nvim-0.8") == 1 then
       table.insert(run_args, "--mount")
-      table.insert(run_args, build_mount("state", am.neovim_state.options, "/root/.local/state/nvim"))
+      table.insert(run_args, build_mount("state", am.neovim_state.options, home_path .. ".local/state/nvim"))
     end
     if am.custom_mounts then
       for _, v in ipairs(am.custom_mounts) do
