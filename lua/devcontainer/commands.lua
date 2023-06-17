@@ -146,7 +146,7 @@ local function generate_run_command_args(data, attaching)
       table.insert(run_args, "--mount")
       table.insert(run_args, build_mount("data", am.neovim_data.options, home_path .. ".local/share/nvim"))
     end
-    if am.neovim_state and am.neovim_state.enabled and vim.fn.has("nvim-0.8") == 1 then
+    if am.neovim_state and am.neovim_state.enabled then
       table.insert(run_args, "--mount")
       table.insert(run_args, build_mount("state", am.neovim_state.options, home_path .. ".local/state/nvim"))
     end

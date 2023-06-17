@@ -13,18 +13,14 @@ local function default_terminal_handler(command)
   vim.cmd("tabnew")
   local bufnr = vim.api.nvim_get_current_buf()
   vim.o.laststatus = 0
-  if vim.fn.has("nvim-0.8") == 1 then
-    vim.o.cmdheight = 0
-  end
+  vim.o.cmdheight = 0
   local au_id = vim.api.nvim_create_augroup("devcontainer.docker.terminal", {})
   vim.api.nvim_create_autocmd("BufEnter", {
     buffer = bufnr,
     group = au_id,
     callback = function()
       vim.o.laststatus = 0
-      if vim.fn.has("nvim-0.8") == 1 then
-        vim.o.cmdheight = 0
-      end
+      vim.o.cmdheight = 0
     end,
   })
   vim.api.nvim_create_autocmd("BufLeave", {
@@ -32,9 +28,7 @@ local function default_terminal_handler(command)
     group = au_id,
     callback = function()
       vim.o.laststatus = laststatus
-      if vim.fn.has("nvim-0.8") == 1 then
-        vim.o.cmdheight = lastheight
-      end
+      vim.o.cmdheight = lastheight
     end,
   })
   vim.api.nvim_create_autocmd("BufDelete", {
@@ -43,9 +37,7 @@ local function default_terminal_handler(command)
     callback = function()
       vim.o.laststatus = laststatus
       vim.api.nvim_del_augroup_by_id(au_id)
-      if vim.fn.has("nvim-0.8") == 1 then
-        vim.o.cmdheight = lastheight
-      end
+      vim.o.cmdheight = lastheight
     end,
   })
   vim.fn.termopen(command)
