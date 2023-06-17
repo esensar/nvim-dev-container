@@ -497,7 +497,6 @@ describe("devcontainer.config_file.parse:", function()
             COMBINED_VAR2 = "var2_value",
           }
 
-          vim.pretty_print(subject)
           local data = subject.fill_remote_env(remoteEnv, env_map)
 
           block(data)
