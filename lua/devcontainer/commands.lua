@@ -446,6 +446,35 @@ local function attach_to_compose_service(data, on_success)
   })
 end
 
+local function run_docker_lifecycle_script(script, data, container_id)
+  if type(script) == "string" then
+    script = {
+      '/bin/sh',
+      '-c',
+      script,
+    }
+  end
+  generate_exec_command_args(container_id, data, function(args)
+    docker.exec(container_id, {
+      tty = false,
+      command = script,
+      args = args,
+    })
+  end)
+end
+
+local function run_docker_lifecycle_scripts(data, container_id)
+  if data.onCreateCommand then
+    run_docker_lifecycle_script(data.onCreateCommand, data, container_id)
+  end
+  if data.updateContentCommand then
+    run_docker_lifecycle_script(data.updateContentCommand, data, container_id)
+  end
+  if data.postCreateCommand then
+    run_docker_lifecycle_script(data.postCreateCommand, data, container_id)
+  end
+end
+
 local function spawn_docker_build_and_run(data, on_success, add_neovim, attach)
   docker.build(data.build.dockerfile, data.build.context, {
     args = generate_build_command_args(data),
@@ -460,6 +489,7 @@ local function spawn_docker_build_and_run(data, on_success, add_neovim, attach)
         -- -- "'while sleep 1000; do :; done'",
         -- -- })
         on_success = function(container_id)
+          run_docker_lifecycle_scripts(data, container_id)
           if attach then
             attach_to_container(data, container_id, function()
               on_success(data, image_id, container_id)

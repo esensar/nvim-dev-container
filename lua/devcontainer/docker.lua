@@ -13,6 +13,15 @@ local log = require("devcontainer.internal.log")
 
 local M = {}
 
+local function command_to_repr(command)
+  if type(command) == "string" then
+    return command
+  elseif type(command) == "table" then
+    return table.concat(command, " ")
+  end
+  return ""
+end
+
 ---Runs docker command with passed arguments
 ---@param args string[]
 ---@param opts RunCommandOpts|nil
@@ -345,12 +354,12 @@ function M.exec(container_id, opts)
 
   local on_success = opts.on_success
     or function()
-      vim.notify("Successfully executed command " .. opts.command .. "on container " .. container_id)
+      vim.notify("Successfully executed command " .. command_to_repr(opts.command) .. " on container " .. container_id)
     end
   local on_fail = opts.on_fail
     or function()
       vim.notify(
-        "Executing command " .. opts.command .. " on container " .. container_id .. " failed!",
+        "Executing command " .. command_to_repr(opts.command) .. " on container " .. container_id .. " failed!",
         vim.log.levels.ERROR
       )
     end
