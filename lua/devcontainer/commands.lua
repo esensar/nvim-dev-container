@@ -132,7 +132,7 @@ local function generate_run_command_args(data, attaching)
       return table.concat(mount, ",")
     end
 
-    local home_path = nil
+    local home_path
     if data.remoteUser then
       home_path = "/home/" .. data.remoteUser .. "/"
     else
