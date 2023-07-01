@@ -449,8 +449,8 @@ end
 local function run_docker_lifecycle_script(script, data, container_id)
   if type(script) == "string" then
     script = {
-      '/bin/sh',
-      '-c',
+      "/bin/sh",
+      "-c",
       script,
     }
   end

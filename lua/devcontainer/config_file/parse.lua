@@ -194,21 +194,35 @@ local function sub_variables(config_string)
   local local_workspace_folder_basename = parts[#parts]
   config_string = string.gsub(config_string, "${localWorkspaceFolder}", local_workspace_folder)
   config_string = string.gsub(config_string, "${localWorkspaceFolderBasename}", local_workspace_folder_basename)
-  config_string = string.gsub(config_string, "${localEnv:[a-zA-Z_]+[a-zA-Z0-9_]*}", function(part)
-    part = string.gsub(part, "${localEnv:", "")
-    part = string.sub(part, 1, #part - 1)
-    return vim.env[part] or ""
-  end)
+  config_string = string.gsub(
+    config_string,
+    "${localEnv:[a-zA-Z_]+[a-zA-Z0-9_]*(:[a-zA-Z_]+[a-zA-Z0-9_]*)?}",
+    function(part)
+      part = string.gsub(part, "${localEnv:", "")
+      part = string.sub(part, 1, #part - 1)
+      part = vim.split(part, ":")
+      part = part[1]
+      local default = part[2] or ""
+      return vim.env[part] or default
+    end
+  )
   -- TODO: containerWorkspaceFolder support
   return config_string
 end
 
 local function sub_container_env(config_string, env_map)
-  config_string = string.gsub(config_string, "${containerEnv:[a-zA-Z_]+[a-zA-Z0-9_]*}", function(part)
-    part = string.gsub(part, "${containerEnv:", "")
-    part = string.sub(part, 1, #part - 1)
-    return env_map[part] or ""
-  end)
+  config_string = string.gsub(
+    config_string,
+    "${containerEnv:[a-zA-Z_]+[a-zA-Z0-9_]*(:[a-zA-Z_]+[a-zA-Z0-9_]*)?}",
+    function(part)
+      part = string.gsub(part, "${containerEnv:", "")
+      part = string.sub(part, 1, #part - 1)
+      part = vim.split(part, ":")
+      part = part[1]
+      local default = part[2] or ""
+      return env_map[part] or default
+    end
+  )
   return config_string
 end
 
@@ -299,7 +313,7 @@ function M.remote_env_needs_fill(remote_env)
   })
 
   for _, v in pairs(remote_env) do
-    if string.match(v, "${containerEnv:[a-zA-Z_]+[a-zA-Z0-9_]*}") then
+    if string.match(v, "${containerEnv:[a-zA-Z_]+[a-zA-Z0-9_]*(:[a-zA-Z_]+[a-zA-Z0-9_]*)?}") then
       return true
     end
   end
