@@ -182,7 +182,7 @@ function M.build(file, path, opts)
     table.insert(command, temptag)
   end
 
-  local id_temp_file = vim.fn.tempname()
+  local id_temp_file = os.tmpname()
   table.insert(command, "--iidfile")
   table.insert(command, id_temp_file)
 
