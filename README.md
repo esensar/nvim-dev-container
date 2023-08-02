@@ -1,5 +1,8 @@
 # devcontainer
 
+[![status-badge](https://ci.codeberg.org/api/badges/8585/status.svg)](https://ci.codeberg.org/8585)
+[![Donate](https://liberapay.com/assets/widgets/donate.svg)](https://liberapay.com/esensar/donate)
+
 Goal of this plugin is to provide functionality similar to VSCode's [remote container development](https://code.visualstudio.com/docs/remote/containers) plugin and other functionality that enables development in docker container. This plugin is inspired by [jamestthompson3/nvim-remote-containers](https://github.com/jamestthompson3/nvim-remote-containers), but aims to enable having neovim embedded in docker container.
 
 **NOTE:** If you do not have an account registered and do not want to register one, you can use mailing lists to report bugs, discuss the project and send patches:
