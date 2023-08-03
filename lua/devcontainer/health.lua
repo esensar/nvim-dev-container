@@ -25,7 +25,7 @@ return {
 
     health.report_start("Required plugins")
 
-    local has_jsonc, jsonc_info = pcall(vim.treesitter.inspect_language, "jsonc")
+    local has_jsonc, jsonc_info = pcall(vim.treesitter.language.inspect, "jsonc")
 
     if not has_jsonc then
       health.report_error("Jsonc treesitter parser missing! devcontainer.json files parsing will fail!")

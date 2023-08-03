@@ -11,12 +11,22 @@ local M = {}
 ---@field image_id string id of the image
 ---@field source_dockerfile string path to the file used to build the image
 ---@field neovim_added boolean true if add_neovim flag was used to add neovim to the image
----@field tmp_dockerfile string|nil path to temporary dockerfile if add neovim was used
+---@field tmp_dockerfile? string path to temporary dockerfile if add neovim was used
+--
+---@class DevcontainerImageQuery
+---@field image_id? string id of the image
+---@field source_dockerfile? string path to the file used to build the image
+---@field neovim_added? boolean true if add_neovim flag was used to add neovim to the image
+---@field tmp_dockerfile? string path to temporary dockerfile if add neovim was used
 
 ---@class DevcontainerContainerStatus
 ---@field container_id string id of the container
 ---@field image_id string id of the used image
 ---@field autoremove boolean true if this container was started with autoremove flag
+--
+---@class DevcontainerContainerQuery
+---@field container_id? string id of the container
+---@field image_id? string id of the used image
 
 ---@class DevcontainerComposeStatus
 ---@field file string path to compose file
@@ -25,18 +35,18 @@ local M = {}
 ---@field progress number 0-100 percentage
 ---@field step_count number number of steps to build
 ---@field current_step number current step
----@field image_id string|nil id of the built image
+---@field image_id? string id of the built image
 ---@field source_dockerfile string path to the file used to build the image
 ---@field build_command string command used to build the image
 ---@field commands_run string list of commands run by build (layers)
 ---@field running boolean true if still running
 
 ---@class DevcontainerStatus
----@field images_built List[DevcontainerImageStatus]
----@field running_containers List[DevcontainerContainerStatus]
----@field stopped_containers List[DevcontainerContainerStatus]
----@field build_status List[DevcontainerBuildStatus]
----@field compose_services List[DevcontainerComposeStatus]
+---@field images_built table[DevcontainerImageStatus]
+---@field running_containers table[DevcontainerContainerStatus]
+---@field stopped_containers table[DevcontainerContainerStatus]
+---@field build_status table[DevcontainerBuildStatus]
+---@field compose_services table[DevcontainerComposeStatus]
 
 ---@type DevcontainerStatus
 local current_status = {
@@ -48,8 +58,8 @@ local current_status = {
 }
 
 ---Finds container with requested opts
----@param opts DevcontainerContainerStatus required opts
----@return DevcontainerContainerStatus
+---@param opts DevcontainerContainerQuery required opts
+---@return DevcontainerContainerStatus?
 local function get_container(opts)
   local all_containers = {}
   vim.list_extend(all_containers, current_status.running_containers)
@@ -69,8 +79,8 @@ local function get_container(opts)
 end
 
 ---Finds image with requested opts
----@param opts DevcontainerImageStatus required opts
----@return DevcontainerImageStatus
+---@param opts DevcontainerImageQuery required opts
+---@return DevcontainerImageStatus?
 local function get_image(opts)
   if not opts then
     return current_status.images_built[1]
@@ -91,7 +101,7 @@ end
 
 ---Finds build with requested opts
 ---@param opts DevcontainerBuildStatus required opts
----@return DevcontainerBuildStatus
+---@return DevcontainerBuildStatus?
 local function get_build(opts)
   if not opts then
     return current_status.build_status[#current_status.build_status]
@@ -230,7 +240,7 @@ end
 
 ---Finds container with requested opts
 ---Read-only
----@param opts DevcontainerContainerStatus required opts
+---@param opts DevcontainerContainerQuery required opts
 ---@return DevcontainerContainerStatus
 function M.find_container(opts)
   return vim.deepcopy(get_container(opts))
@@ -238,7 +248,7 @@ end
 
 ---Finds image with requested opts
 ---Read-only
----@param opts DevcontainerImageStatus required opts
+---@param opts DevcontainerImageQuery required opts
 ---@return DevcontainerImageStatus
 function M.find_image(opts)
   return vim.deepcopy(get_image(opts))

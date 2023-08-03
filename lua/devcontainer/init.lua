@@ -14,29 +14,29 @@ local executor = require("devcontainer.internal.executor")
 local configured = false
 
 ---@class DevcontainerAutocommandOpts
----@field init boolean|nil set to true to enable automatic devcontainer start
----@field clean boolean|nil set to true to enable automatic devcontainer stop and clean
----@field update boolean|nil set to true to enable automatic devcontainer update when config file is changed
+---@field init? boolean set to true to enable automatic devcontainer start
+---@field clean? boolean set to true to enable automatic devcontainer stop and clean
+---@field update? boolean set to true to enable automatic devcontainer update when config file is changed
 
 ---@class DevcontainerSetupOpts
----@field config_search_start function|nil provides starting point for .devcontainer.json search
----@field workspace_folder_provider function|nil provides current workspace folder
----@field terminal_handler function|nil handles terminal command requests, useful for floating terminals and similar
----@field nvim_dockerfile_template function|nil provides dockerfile template based on passed base_image - returns string
----@field devcontainer_json_template function|nil provides template for new .devcontainer.json files - returns table
----@field generate_commands boolean|nil can be set to false to prevent plugin from creating commands (true by default)
----@field autocommands DevcontainerAutocommandOpts|nil can be set to enable autocommands, disabled by default
----@field log_level log_level|nil can be used to override library logging level
----@field container_env table|nil can be used to override containerEnv for all started containers
----@field remote_env table|nil can be used to override remoteEnv when attaching to containers
----@field disable_recursive_config_search boolean|nil can be used to disable recursive .devcontainer search
----@field attach_mounts AttachMountsOpts|nil can be used to configure mounts when adding neovim to containers
----@field always_mount List[string]|nil list of mounts to add to every container
----@field container_runtime string|nil container runtime to use ("docker", "podman")
----@field compose_command string|nil command to use for compose
+---@field config_search_start? function provides starting point for .devcontainer.json search
+---@field workspace_folder_provider? function provides current workspace folder
+---@field terminal_handler? function handles terminal command requests, useful for floating terminals and similar
+---@field nvim_dockerfile_template? function provides dockerfile template based on passed base_image - returns string
+---@field devcontainer_json_template? function provides template for new .devcontainer.json files - returns table
+---@field generate_commands? boolean can be set to false to prevent plugin from creating commands (true by default)
+---@field autocommands? DevcontainerAutocommandOpts can be set to enable autocommands, disabled by default
+---@field log_level? LogLevel can be used to override library logging level
+---@field container_env? table can be used to override containerEnv for all started containers
+---@field remote_env? table can be used to override remoteEnv when attaching to containers
+---@field disable_recursive_config_search? boolean can be used to disable recursive .devcontainer search
+---@field attach_mounts? AttachMountsOpts can be used to configure mounts when adding neovim to containers
+---@field always_mount? table[string] list of mounts to add to every container
+---@field container_runtime? string container runtime to use ("docker", "podman")
+---@field compose_command? string command to use for compose
 
 ---Starts the plugin and sets it up with provided options
----@param opts DevcontainerSetupOpts|nil
+---@param opts? DevcontainerSetupOpts
 function M.setup(opts)
   if configured then
     log.info("Already configured, skipping!")
@@ -71,8 +71,8 @@ function M.setup(opts)
       update = "boolean",
     })
   end
-  if opts.attach_mounts then
-    local am = opts.attach_mounts
+  local am = opts.attach_mounts
+  if am then
     v.validate_deep(am, "opts.attach_mounts", {
       always = "boolean",
       neovim_config = "table",

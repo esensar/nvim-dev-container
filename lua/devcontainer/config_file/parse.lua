@@ -14,11 +14,11 @@ local M = {}
 
 local function readFileAsync(path, callback)
   uv.fs_open(path, "r", 438, function(err_open, fd)
-    if err_open then
+    if err_open or not fd then
       return callback(err_open, nil)
     end
     uv.fs_fstat(fd, function(err_stat, stat)
-      if err_stat then
+      if err_stat or not stat then
         return callback(err_stat, nil)
       end
       uv.fs_read(fd, stat.size, 0, function(err_read, data)
@@ -68,8 +68,8 @@ end
 ---Parse specific devcontainer.json file into a Lua table
 ---Ensures that at least one of "image", "dockerFile" or "dockerComposeFile" keys is present
 ---@param config_file_path string
----@param callback function|nil if nil run sync, otherwise run async and pass result to the callback(err, data)
----@return table|nil result or nil if running async
+---@param callback? function if nil run sync, otherwise run async and pass result to the callback(err, data)
+---@return table? result or nil if running async
 ---@usage `require("devcontainer.config_file.parse").parse_devcontainer_config([[{ "image": "test" }]])`
 function M.parse_devcontainer_config(config_file_path, callback)
   vim.validate({
@@ -94,41 +94,50 @@ function M.parse_devcontainer_config(config_file_path, callback)
   return parse_devcontainer_content(config_file_path, content)
 end
 
-local function find_nearest_devcontainer_file(callback)
+local function find_nearest_devcontainer_file_async(callback)
   local directory = config.config_search_start()
   local last_ino = nil
 
-  local function directory_callback(err, data)
+  local function recur_dir(err, data)
     if err or data == nil or data.ino == last_ino or config.disable_recursive_config_search then
-      if callback then
-        return callback("No devcontainer files found!", nil)
-      else
-        error("No devcontainer files found!")
-      end
+      callback("No devcontainer files found!", nil)
     end
     last_ino = data.ino
     local files = { ".devcontainer.json", ".devcontainer" .. u.path_sep .. "devcontainer.json" }
-    if callback then
-      local index = 1
-      local function file_callback(_, file_data)
-        if file_data then
-          local path = directory .. u.path_sep .. files[index]
-          callback(nil, path)
+    local index = 1
+    local function file_callback(_, file_data)
+      if file_data then
+        local path = directory .. u.path_sep .. files[index]
+        callback(nil, path)
+      else
+        index = index + 1
+        if index > #files then
+          directory = directory .. u.path_sep .. ".."
+          uv.fs_stat(directory, recur_dir)
         else
-          index = index + 1
-          if index > #files then
-            directory = directory .. u.path_sep .. ".."
-            uv.fs_stat(directory, directory_callback)
-          else
-            local path = directory .. u.path_sep .. files[index]
-            uv.fs_stat(path, file_callback)
-          end
+          local path = directory .. u.path_sep .. files[index]
+          uv.fs_stat(path, file_callback)
         end
       end
-
-      local path = directory .. u.path_sep .. files[index]
-      return uv.fs_stat(path, file_callback)
     end
+
+    local path = directory .. u.path_sep .. files[index]
+    uv.fs_stat(path, file_callback)
+  end
+
+  uv.fs_stat(directory, recur_dir)
+end
+
+local function find_nearest_devcontainer_file()
+  local directory = config.config_search_start()
+  local last_ino = nil
+
+  local function recur_dir(err, data)
+    if err or data == nil or data.ino == last_ino or config.disable_recursive_config_search then
+      error("No devcontainer files found!")
+    end
+    last_ino = data.ino
+    local files = { ".devcontainer.json", ".devcontainer" .. u.path_sep .. "devcontainer.json" }
 
     for _, file in pairs(files) do
       local path = directory .. u.path_sep .. file
@@ -146,37 +155,33 @@ local function find_nearest_devcontainer_file(callback)
     else
       dir_err = directory_info or "Not found"
     end
-    return directory_callback(dir_err, dir_data)
+    return recur_dir(dir_err, dir_data)
   end
 
-  if callback then
-    return uv.fs_stat(directory, directory_callback)
+  local dir_exists, directory_info = pcall(uv.fs_stat, directory)
+  local dir_err = nil
+  local dir_data = nil
+  if dir_exists then
+    dir_data = directory_info
   else
-    local dir_exists, directory_info = pcall(uv.fs_stat, directory)
-    local dir_err = nil
-    local dir_data = nil
-    if dir_exists then
-      dir_data = directory_info
-    else
-      dir_err = directory_info
-    end
-    return directory_callback(dir_err, dir_data)
+    dir_err = directory_info
   end
+  return recur_dir(dir_err, dir_data)
 end
 
 ---Parse nearest devcontainer.json file into a Lua table
 ---Prefers .devcontainer.json over .devcontainer/devcontainer.json
 ---Looks in config.config_search_start first and then moves up all the way until root
 ---Fails if no devcontainer.json files were found, or if the first one found is invalid
----@param callback function|nil if nil run sync, otherwise run async and pass result to the callback(err, data)
----@return table|nil result or nil if running async
+---@param callback? function if nil run sync, otherwise run async and pass result to the callback(err, data)
+---@return table? result or nil if running async
 ---@usage `require("devcontainer.config_file.parse").parse_nearest_devcontainer_config()`
 function M.parse_nearest_devcontainer_config(callback)
   vim.validate({
     callback = { callback, { "function", "nil" } },
   })
   if callback then
-    return find_nearest_devcontainer_file(function(err, data)
+    return find_nearest_devcontainer_file_async(function(err, data)
       if err then
         callback(err, nil)
       else
@@ -184,7 +189,7 @@ function M.parse_nearest_devcontainer_config(callback)
       end
     end)
   else
-    return M.parse_devcontainer_config(find_nearest_devcontainer_file(nil), nil)
+    return M.parse_devcontainer_config(find_nearest_devcontainer_file(), nil)
   end
 end
 
@@ -342,17 +347,18 @@ end
 ---Prefers .devcontainer.json over .devcontainer/devcontainer.json
 ---Looks in config.config_search_start first and then moves up all the way until root
 ---Fails if no devcontainer.json files were found, or if the first one found is invalid
----@param callback function|nil if nil run sync, otherwise run async and pass result to the callback(err, data)
----@return string|nil result or nil if running async
+---@param callback? function if nil run sync, otherwise run async and pass result to the callback(err, data)
+---@return string? result or nil if running async
 ---@usage `require("devcontainer.config_file.parse").find_nearest_devcontainer_config()`
 function M.find_nearest_devcontainer_config(callback)
   vim.validate({
     callback = { callback, { "function", "nil" } },
   })
   if callback then
-    return find_nearest_devcontainer_file(callback)
+    find_nearest_devcontainer_file_async()
+    return nil
   else
-    return find_nearest_devcontainer_file(nil)
+    return find_nearest_devcontainer_file()
   end
 end
 

@@ -36,16 +36,16 @@ local function handle_close(handle)
 end
 
 ---@class RunCommandOpts
----@field stdout function
----@field stderr function
----@field args string[]
----@field uv table
+---@field stdout? function
+---@field stderr? function
+---@field args? string[]
+---@field uv? table
 
 ---Runs passed command and passes arguments to vim.loop.spawn
 ---Passes all stdout and stderr data to opts.handler.stdout and opts.handler.stderr
 ---@param command string command to run
 ---@param opts RunCommandOpts contains stdio handlers as well as optionally options for vim.loop
----@param onexit function|nil function(code, signal)
+---@param onexit? function function(code, signal)
 ---@see vim.loop opts.uv are passed to vim.loop.spawn
 ---@see https://github.com/luvit/luv/blob/master/docs.md
 ---@usage `require("devcontainer.internal.executor").run_command("docker", {}, function() end)`
@@ -89,8 +89,12 @@ function M.run_command(command, opts, onexit)
       end
     end)
   )
-  uv.read_start(stdout, opts.stdout or function() end)
-  uv.read_start(stderr, opts.stderr or function() end)
+  if stdout then
+    uv.read_start(stdout, opts.stdout or function() end)
+  end
+  if stderr then
+    uv.read_start(stderr, opts.stderr or function() end)
+  end
 end
 
 log.wrap(M)

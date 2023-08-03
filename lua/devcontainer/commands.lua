@@ -242,7 +242,7 @@ local function generate_compose_up_command_args(data)
 end
 
 ---Run docker-compose up from nearest devcontainer.json file
----@param callback function|nil called on success - parsed devcontainer config is passed to the callback
+---@param callback? function called on success - parsed devcontainer config is passed to the callback
 ---@usage `require("devcontainer.commands").compose_up()`
 function M.compose_up(callback)
   vim.validate({
@@ -276,7 +276,7 @@ function M.compose_up(callback)
 end
 
 ---Run docker-compose down from nearest devcontainer.json file
----@param callback function|nil called on success - parsed devcontainer config is passed to the callback
+---@param callback? function called on success - parsed devcontainer config is passed to the callback
 ---@usage `require("devcontainer.commands").compose_down()`
 function M.compose_down(callback)
   vim.validate({
@@ -309,7 +309,7 @@ function M.compose_down(callback)
 end
 
 ---Run docker-compose rm from nearest devcontainer.json file
----@param callback function|nil called on success - parsed devcontainer config is passed to the callback
+---@param callback? function called on success - parsed devcontainer config is passed to the callback
 ---@usage `require("devcontainer.commands").compose_rm()`
 function M.compose_rm(callback)
   vim.validate({
@@ -342,7 +342,7 @@ function M.compose_rm(callback)
 end
 
 ---Run docker build from nearest devcontainer.json file
----@param callback function|nil called on success - parsed devcontainer config and image id are passed to the callback
+---@param callback? function called on success - parsed devcontainer config and image id are passed to the callback
 ---@usage `require("devcontainer.commands").docker_build()`
 function M.docker_build(callback)
   vim.validate({
@@ -375,7 +375,7 @@ function M.docker_build(callback)
 end
 
 ---Run docker run from nearest devcontainer.json file
----@param callback function|nil called on success - devcontainer config and container id are passed to the callback
+---@param callback? function called on success - devcontainer config and container id are passed to the callback
 ---@usage `require("devcontainer.commands").docker_image_run()`
 function M.docker_image_run(callback)
   vim.validate({
@@ -535,7 +535,7 @@ local function execute_docker_build_and_run(callback, add_neovim)
 end
 
 ---Run docker run from nearest devcontainer.json file, building before that
----@param callback function|nil called on success - devcontainer config and container id are passed to the callback
+---@param callback? function called on success - devcontainer config and container id are passed to the callback
 ---@usage `require("devcontainer.commands").docker_build_and_run()`
 function M.docker_build_and_run(callback)
   vim.validate({
@@ -547,7 +547,7 @@ end
 
 ---Run docker run from nearest devcontainer.json file, building before that
 ---And then attach to the container with neovim added
----@param callback function|nil called on success - devcontainer config and container id are passed to the callback
+---@param callback? function called on success - devcontainer config and container id are passed to the callback
 ---@usage `require("devcontainer.commands").docker_build_run_and_attach()`
 function M.docker_build_run_and_attach(callback)
   vim.validate({
@@ -561,8 +561,8 @@ end
 ---Looks for dockerComposeFile first
 ---Then it looks for dockerfile
 ---And last it looks for image
----@param callback function|nil called on success - devcontainer config is passed to the callback
----@param attach boolean|nil if true, automatically attach after starting
+---@param callback? function called on success - devcontainer config is passed to the callback
+---@param attach? boolean if true, automatically attach after starting
 ---@usage `require("devcontainer.commands").start_auto()`
 function M.start_auto(callback, attach)
   vim.validate({
@@ -619,7 +619,7 @@ end
 ---Looks for dockerComposeFile first
 ---Then it looks for dockerfile
 ---And last it looks for image
----@param callback function|nil called on success - devcontainer config is passed to the callback
+---@param callback? function called on success - devcontainer config is passed to the callback
 ---@usage `require("devcontainer.commands").attach_auto()`
 function M.attach_auto(callback)
   vim.validate({
@@ -662,7 +662,7 @@ end
 ---Looks for dockerComposeFile first
 ---Then it looks for dockerfile
 ---And last it looks for image
----@param callback function|nil called on success - devcontainer config is passed to the callback
+---@param callback? function called on success - devcontainer config is passed to the callback
 ---@usage `require("devcontainer.commands").stop_auto()`
 function M.stop_auto(callback)
   vim.validate({
@@ -725,7 +725,7 @@ function M.stop_auto(callback)
 end
 
 ---Stops everything started with devcontainer plugin
----@param callback function|nil called on success
+---@param callback? function called on success
 ---@usage `require("devcontainer.commands").stop_all()`
 function M.stop_all(callback)
   vim.validate({
@@ -773,7 +773,7 @@ function M.stop_all(callback)
 end
 
 ---Removes everything started with devcontainer plugin
----@param callback function|nil called on success
+---@param callback? function called on success
 ---@usage `require("devcontainer.commands").remove_all()`
 function M.remove_all(callback)
   vim.validate({

@@ -15,7 +15,7 @@ local M = {}
 ---Returns env variables from passed container in success callback
 ---Env variables are retrieved using printenv
 ---@param container_id string
----@param opts DockerUtilsGetContainerEnvOpts|nil
+---@param opts? DockerUtilsGetContainerEnvOpts
 function M.get_container_env(container_id, opts)
   vim.validate({
     container_id = { container_id, "string" },

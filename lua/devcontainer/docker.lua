@@ -24,7 +24,7 @@ end
 
 ---Runs docker command with passed arguments
 ---@param args string[]
----@param opts RunCommandOpts|nil
+---@param opts? RunCommandOpts
 ---@param onexit function(code, signal)
 local function run_docker(args, opts, onexit)
   exe.ensure_executable(config.container_runtime)
@@ -50,7 +50,7 @@ end
 ---Runs docker command with passed arguments
 ---@param image string base image tag
 ---@param path string docker build path / context
----@param opts DockerBuildOpts|nil
+---@param opts? DockerBuildOpts
 local function build_with_neovim(original_dockerfile, image, path, opts)
   opts = opts or {}
   local on_fail = opts.on_fail or function() end
@@ -120,16 +120,16 @@ function M.pull(image, opts)
 end
 
 ---@class DockerBuildOpts
----@field tag string|nil tag for the image built
----@field add_neovim boolean|nil install neovim in the image (useful only for attaching to image)
----@field args table|nil list of additional arguments to build command
+---@field tag? string tag for the image built
+---@field add_neovim? boolean install neovim in the image (useful only for attaching to image)
+---@field args? table list of additional arguments to build command
 ---@field on_success function(image_id) success callback taking the image_id of the built image
----@field on_progress function(DevcontainerBuildStatus) callback taking build status object
+---@field on_progress? function(DevcontainerBuildStatus) callback taking build status object
 ---@field on_fail function() failure callback
 
 ---Build image from passed dockerfile using docker build
 ---@param file string Path to Dockerfile to build
----@param path string|nil Path to the workspace, vim.lsp.buf.list_workspace_folders()[1] by default
+---@param path? string Path to the workspace, vim.lsp.buf.list_workspace_folders()[1] by default
 ---@param opts DockerBuildOpts Additional options including callbacks and tag
 ---@usage `docker.build("Dockerfile", { on_success = function(image_id) end, on_fail = function() end })`
 function M.build(file, path, opts)
@@ -207,6 +207,7 @@ function M.build(file, path, opts)
         local lines = vim.split(data, "\n")
         local step_regex = vim.regex("\\cStep [[:digit:]]*/[[:digit:]]* *: .*")
         for _, line in ipairs(lines) do
+          ---@diagnostic disable-next-line: need-check-nil
           if step_regex:match_str(line) then
             local step_line = vim.split(line, ":")
             local step_numbers = vim.split(vim.split(step_line[1], " ")[2], "/")
@@ -251,9 +252,9 @@ function M.build(file, path, opts)
 end
 
 ---@class DockerRunOpts
----@field autoremove boolean automatically remove container after stopping - true by default
+---@field autoremove? boolean automatically remove container after stopping - true by default
 ---@field command string|table|nil command to run in container
----@field args table|nil list of additional arguments to run command
+---@field args? table list of additional arguments to run command
 ---@field on_success function(container_id) success callback taking the id of the started container - not invoked if tty
 ---@field on_fail function() failure callback
 
@@ -296,6 +297,7 @@ function M.run(image, opts)
     if type(opts.command) == "string" then
       table.insert(command, opts.command)
     elseif type(opts.command) == "table" then
+      ---@diagnostic disable-next-line: param-type-mismatch
       vim.list_extend(command, opts.command)
     end
   end
@@ -322,13 +324,13 @@ function M.run(image, opts)
 end
 
 ---@class DockerExecOpts
----@field tty boolean attach to container TTY and display it in terminal buffer, using configured terminal handler
----@field terminal_handler function(command) override to open terminal in a different way, :tabnew + termopen by default
----@field capture_output boolean if true captures output and passes it to success callback - incompatible with tty
+---@field tty? boolean attach to container TTY and display it in terminal buffer, using configured terminal handler
+---@field terminal_handler? function override to open terminal in a different way, :tabnew + termopen by default
+---@field capture_output? boolean if true captures output and passes it to success callback - incompatible with tty
 ---@field command string|table|nil command to run in container
----@field args table|nil list of additional arguments to exec command
----@field on_success function() success callback - not called if tty
----@field on_fail function() failure callback - not called if tty
+---@field args? table list of additional arguments to exec command
+---@field on_success? function(output?) success callback - not called if tty
+---@field on_fail? function() failure callback - not called if tty
 
 ---Run command on a container using docker exec
 ---Useful for attaching to neovim
@@ -353,7 +355,7 @@ function M.exec(container_id, opts)
   })
 
   local on_success = opts.on_success
-    or function()
+    or function(_)
       vim.notify("Successfully executed command " .. command_to_repr(opts.command) .. " on container " .. container_id)
     end
   local on_fail = opts.on_fail
@@ -376,6 +378,7 @@ function M.exec(container_id, opts)
     if type(opts.command) == "string" then
       table.insert(command, opts.command)
     elseif type(opts.command) == "table" then
+      ---@diagnostic disable-next-line: param-type-mismatch
       vim.list_extend(command, opts.command)
     end
   end
@@ -399,7 +402,7 @@ function M.exec(container_id, opts)
         if opts.capture_output then
           on_success(captured)
         else
-          on_success()
+          on_success(nil)
         end
       else
         on_fail()
@@ -413,7 +416,7 @@ end
 ---@field on_fail function() failure callback
 
 ---Stop passed containers
----@param containers List[string] ids of containers to stop
+---@param containers table[string] ids of containers to stop
 ---@param opts DockerContainerStopOpts Additional options including callbacks
 ---@usage `docker.container_stop({ "some_id" }, { on_success = function() end, on_fail = function() end })`
 function M.container_stop(containers, opts)
@@ -446,12 +449,12 @@ function M.container_stop(containers, opts)
 end
 
 ---@class DockerImageRmOpts
----@field force boolean|nil force deletion
+---@field force? boolean force deletion
 ---@field on_success function() success callback
 ---@field on_fail function() failure callback
 
 ---Removes passed images
----@param images List[string] ids of images to remove
+---@param images table[string] ids of images to remove
 ---@param opts DockerImageRmOpts Additional options including callbacks
 ---@usage `docker.image_rm({ "some_id" }, { on_success = function() end, on_fail = function() end })`
 function M.image_rm(images, opts)
@@ -488,12 +491,12 @@ function M.image_rm(images, opts)
 end
 
 ---@class DockerContainerRmOpts
----@field force boolean|nil force deletion
+---@field force? boolean force deletion
 ---@field on_success function() success callback
 ---@field on_fail function() failure callback
 
 ---Removes passed containers
----@param containers List[string] ids of containers to remove
+---@param containers table[string] ids of containers to remove
 ---@param opts DockerContainerRmOpts Additional options including callbacks
 ---@usage `docker.container_rm({ "some_id" }, { on_success = function() end, on_fail = function() end })`
 function M.container_rm(containers, opts)

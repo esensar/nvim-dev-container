@@ -11,7 +11,7 @@ local M = {}
 
 ---Runs docker command with passed arguments
 ---@param args string[]
----@param opts RunCommandOpts|nil
+---@param opts? RunCommandOpts
 ---@param onexit function(code, signal)
 local function run_docker_compose(args, opts, onexit)
   exe.ensure_executable(config.compose_command)
@@ -51,7 +51,7 @@ local function get_compose_files_command(compose_file)
 end
 
 ---@class DockerComposeUpOpts
----@field args table|nil list of additional arguments to up command
+---@field args? table list of additional arguments to up command
 ---@field on_success function() success callback
 ---@field on_fail function() failure callback
 
@@ -119,8 +119,8 @@ function M.down(compose_file, opts)
 end
 
 ---@class DockerComposeGetContainerIdOpts
----@field on_success function(container_id) success callback
----@field on_fail function() failure callback
+---@field on_success? function(container_id) success callback
+---@field on_fail? function() failure callback
 
 ---Run docker-compose ps with passed file and service to get its container_id
 ---@param compose_file string|table path to docker-compose.yml file or files

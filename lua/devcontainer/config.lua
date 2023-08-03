@@ -151,24 +151,24 @@ M.devcontainer_json_template = default_devcontainer_json_template
 
 ---Used to set current container runtime
 ---By default plugin will try to use "docker" or "podman"
----@type string|nil
+---@type string?
 M.container_runtime = nil
 
 ---Used to set current compose command
 ---By default plugin will try to use "docker-compose" or "podman-compose"
----@type string|nil
+---@type string?
 M.compose_command = nil
 
 ---@class MountOpts
 ---@field enabled boolean if true this mount is enabled
----@field options List[string]|nil additional bind options, useful to define { "readonly" }
+---@field options table[string]|nil additional bind options, useful to define { "readonly" }
 
 ---@class AttachMountsOpts
----@field always boolean|nil if true these mounts are used on every run, to be available when attaching later
----@field neovim_config MountOpts|nil if true attaches neovim local config to /root/.config/nvim in container
----@field neovim_data MountOpts|nil if true attaches neovim data to /root/.local/share/nvim in container
----@field neovim_state MountOpts|nil if true attaches neovim state to /root/.local/state/nvim in container
----@field custom_mounts List[string] list of custom mounts to add when attaching
+---@field always? boolean if true these mounts are used on every run, to be available when attaching later
+---@field neovim_config? MountOpts if true attaches neovim local config to /root/.config/nvim in container
+---@field neovim_data? MountOpts if true attaches neovim data to /root/.local/share/nvim in container
+---@field neovim_state? MountOpts if true attaches neovim state to /root/.local/state/nvim in container
+---@field custom_mounts table[string] list of custom mounts to add when attaching
 
 ---Configuration for mounts when using attach command
 ---NOTE: when attaching in a separate command, it is useful to set
@@ -195,7 +195,7 @@ M.attach_mounts = {
 
 ---List of mounts to always add to all containers
 ---Applicable only to `devcontainer.commands` functions!
----@type List[string]
+---@type table[string]
 M.always_mount = {}
 
 ---@alias LogLevel
@@ -213,13 +213,13 @@ M.log_level = "info"
 ---List of env variables to add to all containers started with this plugin
 ---Applicable only to `devcontainer.commands` functions!
 ---NOTE: This does not support "${localEnv:VAR_NAME}" syntax - use vim.env
----@type Map[string, string]
+---@type table[string, string]
 M.container_env = {}
 
 ---List of env variables to add to all containers when attaching
 ---Applicable only to `devcontainer.commands` functions!
 ---NOTE: This supports "${containerEnv:VAR_NAME}" syntax to use variables from container
----@type Map[string, string]
+---@type table[string, string]
 M.remote_env = {}
 
 return M
