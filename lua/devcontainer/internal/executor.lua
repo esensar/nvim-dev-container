@@ -45,7 +45,7 @@ end
 ---Passes all stdout and stderr data to opts.handler.stdout and opts.handler.stderr
 ---@param command string command to run
 ---@param opts RunCommandOpts contains stdio handlers as well as optionally options for vim.loop
----@param onexit function(code, signal)|nil
+---@param onexit function|nil function(code, signal)
 ---@see vim.loop opts.uv are passed to vim.loop.spawn
 ---@see https://github.com/luvit/luv/blob/master/docs.md
 ---@usage `require("devcontainer.internal.executor").run_command("docker", {}, function() end)`

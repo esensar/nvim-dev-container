@@ -68,7 +68,7 @@ end
 ---Parse specific devcontainer.json file into a Lua table
 ---Ensures that at least one of "image", "dockerFile" or "dockerComposeFile" keys is present
 ---@param config_file_path string
----@param callback function(err,data)|nil if nil run sync, otherwise run async and pass result to the callback
+---@param callback function|nil if nil run sync, otherwise run async and pass result to the callback(err, data)
 ---@return table|nil result or nil if running async
 ---@usage `require("devcontainer.config_file.parse").parse_devcontainer_config([[{ "image": "test" }]])`
 function M.parse_devcontainer_config(config_file_path, callback)
@@ -168,7 +168,7 @@ end
 ---Prefers .devcontainer.json over .devcontainer/devcontainer.json
 ---Looks in config.config_search_start first and then moves up all the way until root
 ---Fails if no devcontainer.json files were found, or if the first one found is invalid
----@param callback function(err,data)|nil if nil run sync, otherwise run async and pass result to the callback
+---@param callback function|nil if nil run sync, otherwise run async and pass result to the callback(err, data)
 ---@return table|nil result or nil if running async
 ---@usage `require("devcontainer.config_file.parse").parse_nearest_devcontainer_config()`
 function M.parse_nearest_devcontainer_config(callback)
@@ -196,13 +196,13 @@ local function sub_variables(config_string)
   config_string = string.gsub(config_string, "${localWorkspaceFolderBasename}", local_workspace_folder_basename)
   config_string = string.gsub(
     config_string,
-    "${localEnv:[a-zA-Z_]+[a-zA-Z0-9_]*(:[a-zA-Z_]+[a-zA-Z0-9_]*)?}",
+    "${localEnv:[a-zA-Z_]+[a-zA-Z0-9_]*:?[a-zA-Z_]*[a-zA-Z0-9_]*}",
     function(part)
       part = string.gsub(part, "${localEnv:", "")
       part = string.sub(part, 1, #part - 1)
       part = vim.split(part, ":")
-      part = part[1]
       local default = part[2] or ""
+      part = part[1]
       return vim.env[part] or default
     end
   )
@@ -213,13 +213,13 @@ end
 local function sub_container_env(config_string, env_map)
   config_string = string.gsub(
     config_string,
-    "${containerEnv:[a-zA-Z_]+[a-zA-Z0-9_]*(:[a-zA-Z_]+[a-zA-Z0-9_]*)?}",
+    "${containerEnv:[a-zA-Z_]+[a-zA-Z0-9_]*:?[a-zA-Z_]*[a-zA-Z0-9_]*}",
     function(part)
       part = string.gsub(part, "${containerEnv:", "")
       part = string.sub(part, 1, #part - 1)
       part = vim.split(part, ":")
-      part = part[1]
       local default = part[2] or ""
+      part = part[1]
       return env_map[part] or default
     end
   )
@@ -313,7 +313,7 @@ function M.remote_env_needs_fill(remote_env)
   })
 
   for _, v in pairs(remote_env) do
-    if string.match(v, "${containerEnv:[a-zA-Z_]+[a-zA-Z0-9_]*(:[a-zA-Z_]+[a-zA-Z0-9_]*)?}") then
+    if string.match(v, "${containerEnv:[a-zA-Z_]+[a-zA-Z0-9_]*:?[a-zA-Z_]*[a-zA-Z0-9_]*}") then
       return true
     end
   end
@@ -342,7 +342,7 @@ end
 ---Prefers .devcontainer.json over .devcontainer/devcontainer.json
 ---Looks in config.config_search_start first and then moves up all the way until root
 ---Fails if no devcontainer.json files were found, or if the first one found is invalid
----@param callback function(err,data)|nil if nil run sync, otherwise run async and pass result to the callback
+---@param callback function|nil if nil run sync, otherwise run async and pass result to the callback(err, data)
 ---@return string|nil result or nil if running async
 ---@usage `require("devcontainer.config_file.parse").find_nearest_devcontainer_config()`
 function M.find_nearest_devcontainer_config(callback)

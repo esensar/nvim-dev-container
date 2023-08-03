@@ -7,6 +7,7 @@ local function mock_file_read(uv_mock, result, opts)
   uv_mock.fs_fstat.returns(opts.fstat or { size = string.len(result) })
   uv_mock.fs_read.returns(result)
   uv_mock.fs_close.returns(true)
+  uv_mock.hrtime.returns(0)
 end
 
 local function missing_file_func()
@@ -90,10 +91,7 @@ describe("devcontainer.config_file.parse:", function()
           local fstat = {
             size = string.len(file_content),
           }
-          uv_mock.fs_open.returns(mock_fd)
-          uv_mock.fs_fstat.returns(fstat)
-          uv_mock.fs_read.returns(file_content)
-          uv_mock.fs_close.returns(true)
+          mock_file_read(uv_mock, file_content, { fd = mock_fd, fstat = fstat })
 
           local success, _ = pcall(subject.parse_devcontainer_config, "test.json")
           assert.are.same(expected, success)
@@ -397,6 +395,7 @@ describe("devcontainer.config_file.parse:", function()
             extensions = {},
             containerEnv = {
               TEST_VAR = "${localEnv:TEST_VAR}",
+              MISSING_VAR = "${localEnv:MISSING_VAR:someDefault}",
               COMBINED_VARS = "${localEnv:COMBINED_VAR1}-${localEnv:COMBINED_VAR2}",
             },
             workspaceMount = "source=${localWorkspaceFolder},"
@@ -446,6 +445,10 @@ describe("devcontainer.config_file.parse:", function()
         assert.are.same("test_var_value", data.containerEnv.TEST_VAR)
         assert.are.same("var1_value-var2_value", data.containerEnv.COMBINED_VARS)
       end)
+
+      test_it("should use defaults for missing variables", function(data, _)
+        assert.are.same("someDefault", data.containerEnv.MISSING_VAR)
+      end)
     end)
   end)
 
@@ -489,6 +492,7 @@ describe("devcontainer.config_file.parse:", function()
         it(name, function()
           local remoteEnv = {
             TEST_VAR = "${containerEnv:TEST_VAR}",
+            MISSING_VAR = "${containerEnv:MISSING_VAR:someOtherDefault}",
             COMBINED_VARS = "${containerEnv:COMBINED_VAR1}-${containerEnv:COMBINED_VAR2}",
           }
           local env_map = {
@@ -506,6 +510,10 @@ describe("devcontainer.config_file.parse:", function()
       test_it("should update remoteEnv with replaced variables", function(data, _)
         assert.are.same("test_var_value", data.TEST_VAR)
         assert.are.same("var1_value-var2_value", data.COMBINED_VARS)
+      end)
+
+      test_it("should use defaults for missing variables", function(data, _)
+        assert.are.same("someOtherDefault", data.MISSING_VAR)
       end)
     end)
   end)

@@ -1,3 +1,7 @@
 {
-    "workspace.checkThirdParty": false
+    "workspace.checkThirdParty": false,
+    "diagnostics.globals": [
+        "describe",
+        "it"
+    ]
 }
