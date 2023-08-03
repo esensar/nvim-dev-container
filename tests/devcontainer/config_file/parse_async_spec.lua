@@ -34,6 +34,7 @@ local function mock_file_read(uv_mock, result, opts)
       return true
     end
   end)
+  uv_mock.hrtime.returns(0)
 end
 
 local function missing_file_func(_, _, _, callback)
