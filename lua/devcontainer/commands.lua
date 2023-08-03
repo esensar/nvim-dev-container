@@ -648,7 +648,7 @@ function M.attach_auto(callback)
     end
 
     if data.image then
-      vim.notify("Found image definition. Attaaching to the container...")
+      vim.notify("Found image definition. Attaching to the container...")
       local container = status.find_container({ source_dockerfile = data.build.dockerfile })
       attach_to_container(data, container.container_id, function()
         on_success(data)
