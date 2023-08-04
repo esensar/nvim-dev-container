@@ -1,6 +1,6 @@
----@mod devcontainer.docker-compose Docker-compose module
+---@mod devcontainer.compose Compose module
 ---@brief [[
----Provides functions related to docker-compose control
+---Provides functions related to compose control
 ---@brief ]]
 local v = require("devcontainer.internal.validation")
 local log = require("devcontainer.internal.log")
@@ -16,7 +16,7 @@ local M = {}
 ---Run docker-compose up with passed file
 ---@param compose_file string|table path to docker-compose.yml file or files
 ---@param opts ComposeUpOpts Additional options including callbacks
----@usage `require("devcontainer.docker-compose").up("docker-compose.yml")`
+---@usage `require("devcontainer.compose").up("docker-compose.yml")`
 function M.up(compose_file, opts)
   vim.validate({
     compose_file = { compose_file, { "string", "table" } },
@@ -42,7 +42,7 @@ end
 ---Run docker-compose down with passed file
 ---@param compose_file string|table path to docker-compose.yml file or files
 ---@param opts ComposeDownOpts Additional options including callbacks
----@usage `require("devcontainer.docker-compose").down("docker-compose.yml")`
+---@usage `require("devcontainer.compose").down("docker-compose.yml")`
 function M.down(compose_file, opts)
   vim.validate({
     compose_file = { compose_file, { "string", "table" } },
@@ -69,7 +69,12 @@ end
 ---@param compose_file string|table path to docker-compose.yml file or files
 ---@param service string service name
 ---@param opts ComposeGetContainerIdOpts Additional options including callbacks
----@usage `docker_compose.get_container_id("docker-compose.yml", { on_success = function(container_id) end })`
+---@usage [[
+---require("devcontainer.compose").get_container_id(
+---  "docker-compose.yml",
+---  { on_success = function(container_id) end }
+---)
+---@usage ]]
 function M.get_container_id(compose_file, service, opts)
   vim.validate({
     compose_file = { compose_file, { "string", "table" } },

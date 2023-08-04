@@ -52,7 +52,6 @@ end
 ---Run docker-compose up with passed file
 ---@param compose_file string|table path to docker-compose.yml file or files
 ---@param opts ComposeUpOpts Additional options including callbacks
----@usage `require("devcontainer.docker-compose").up("docker-compose.yml")`
 function M.up(compose_file, opts)
   local command = get_compose_files_command(compose_file)
   vim.list_extend(command, { "up", "-d" })
@@ -69,7 +68,6 @@ end
 ---Run docker-compose down with passed file
 ---@param compose_file string|table path to docker-compose.yml file or files
 ---@param opts ComposeDownOpts Additional options including callbacks
----@usage `require("devcontainer.docker-compose").down("docker-compose.yml")`
 function M.down(compose_file, opts)
   local command = get_compose_files_command(compose_file)
   vim.list_extend(command, { "down" })
@@ -86,7 +84,6 @@ end
 ---@param compose_file string|table path to docker-compose.yml file or files
 ---@param service string service name
 ---@param opts ComposeGetContainerIdOpts Additional options including callbacks
----@usage `docker_compose.get_container_id("docker-compose.yml", { on_success = function(container_id) end })`
 function M.get_container_id(compose_file, service, opts)
   local command = get_compose_files_command(compose_file)
   vim.list_extend(command, { "ps", "-q", service })

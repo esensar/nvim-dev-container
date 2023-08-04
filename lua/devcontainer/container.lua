@@ -1,6 +1,6 @@
----@mod devcontainer.docker Docker module
+---@mod devcontainer.container Container module
 ---@brief [[
----Provides functions related to docker control:
+---Provides functions related to container control:
 --- - building
 --- - attaching
 --- - running
@@ -28,7 +28,7 @@ end
 ---Pull passed image using docker pull
 ---@param image string Docker image to pull
 ---@param opts ContainerPullOpts Additional options including callbacks
----@usage `require("devcontainer.docker").pull("alpine", { on_success = function() end, on_fail = function() end})`
+---@usage `require("devcontainer.container").pull("alpine", { on_success = function() end, on_fail = function() end})`
 function M.pull(image, opts)
   vim.validate({
     image = { image, "string" },
@@ -59,7 +59,12 @@ end
 ---@param file string Path to Dockerfile to build
 ---@param path? string Path to the workspace, vim.lsp.buf.list_workspace_folders()[1] by default
 ---@param opts ContainerBuildOpts Additional options including callbacks and tag
----@usage `docker.build("Dockerfile", { on_success = function(image_id) end, on_fail = function() end })`
+---@usage [[
+---require("devcontainer.container").build(
+---  "Dockerfile",
+---  { on_success = function(image_id) end, on_fail = function() end }
+---)
+---@usage ]]
 function M.build(file, path, opts)
   vim.validate({
     file = { file, "string" },
@@ -112,7 +117,7 @@ end
 ---NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
 ---@param image string Docker image to run
 ---@param opts ContainerRunOpts Additional options including callbacks
----@usage `docker.run("alpine", { on_success = function(id) end, on_fail = function() end })`
+---@usage `require("devcontainer.container").run("alpine", { on_success = function(id) end, on_fail = function() end })`
 function M.run(image, opts)
   vim.validate({
     image = { image, "string" },
@@ -151,7 +156,12 @@ end
 ---NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
 ---@param container_id string Docker container to exec on
 ---@param opts ContainerExecOpts Additional options including callbacks
----@usage `docker.exec("some_id", { command = "nvim", on_success = function() end, on_fail = function() end })`
+---@usage[[
+---require("devcontainer.container").exec(
+---  "some_id",
+---  { command = "nvim", on_success = function() end, on_fail = function() end }
+---)
+---@usage]]
 function M.exec(container_id, opts)
   vim.validate({
     container_id = { container_id, "string" },
@@ -189,7 +199,12 @@ end
 ---Stop passed containers
 ---@param containers table[string] ids of containers to stop
 ---@param opts ContainerStopOpts Additional options including callbacks
----@usage `docker.container_stop({ "some_id" }, { on_success = function() end, on_fail = function() end })`
+---@usage [[
+---require("devcontainer.container").container_stop(
+---  { "some_id" },
+---  { on_success = function() end, on_fail = function() end }
+---)
+---@usage ]]
 function M.container_stop(containers, opts)
   vim.validate({
     containers = { containers, "table" },
@@ -214,7 +229,12 @@ end
 ---Removes passed images
 ---@param images table[string] ids of images to remove
 ---@param opts ImageRmOpts Additional options including callbacks
----@usage `docker.image_rm({ "some_id" }, { on_success = function() end, on_fail = function() end })`
+---@usage[[
+---require("devcontainer.container").image_rm(
+---  { "some_id" },
+---  { on_success = function() end, on_fail = function() end }
+---)
+---@usage]]
 function M.image_rm(images, opts)
   vim.validate({
     images = { images, "table" },
@@ -239,7 +259,12 @@ end
 ---Removes passed containers
 ---@param containers table[string] ids of containers to remove
 ---@param opts ContainerRmOpts Additional options including callbacks
----@usage `docker.container_rm({ "some_id" }, { on_success = function() end, on_fail = function() end })`
+---@usage[[
+---require("devcontainer.container").container_rm(
+---  { "some_id" },
+---  { on_success = function() end, on_fail = function() end }
+---)
+---@usage]]
 function M.container_rm(containers, opts)
   vim.validate({
     containers = { containers, "table" },

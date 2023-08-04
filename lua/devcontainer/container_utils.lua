@@ -1,21 +1,21 @@
----@mod devcontainer.docker-utils High level docker utility functions
+---@mod devcontainer.container-utils High level container utility functions
 ---@brief [[
----Provides functions for interacting with docker containers
+---Provides functions for interacting with containers
 ---High-level functions
 ---@brief ]]
-local docker = require("devcontainer.docker")
+local container_runtime = require("devcontainer.container")
 local v = require("devcontainer.internal.validation")
 
 local M = {}
 
----@class DockerUtilsGetContainerEnvOpts
+---@class ContainerUtilsGetContainerEnvOpts
 ---@field on_success function(table) success callback with env map parameter
 ---@field on_fail function() failure callback
 
 ---Returns env variables from passed container in success callback
 ---Env variables are retrieved using printenv
 ---@param container_id string
----@param opts? DockerUtilsGetContainerEnvOpts
+---@param opts? ContainerUtilsGetContainerEnvOpts
 function M.get_container_env(container_id, opts)
   vim.validate({
     container_id = { container_id, "string" },
@@ -26,7 +26,7 @@ function M.get_container_env(container_id, opts)
   local on_success = opts.on_success or function(_) end
   local on_fail = opts.on_fail or function() end
 
-  docker.exec(container_id, {
+  container_runtime.exec(container_id, {
     capture_output = true,
     command = "printenv",
     on_success = function(output)

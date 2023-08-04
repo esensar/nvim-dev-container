@@ -79,7 +79,6 @@ end
 ---Pull passed image using docker pull
 ---@param image string Docker image to pull
 ---@param opts ContainerPullOpts Additional options including callbacks
----@usage `require("devcontainer.docker").pull("alpine", { on_success = function() end, on_fail = function() end})`
 function M.pull(image, opts)
   run_docker({ "pull", image }, nil, function(code, _)
     if code == 0 then
@@ -94,7 +93,6 @@ end
 ---@param file string Path to Dockerfile to build
 ---@param path string Path to the workspace
 ---@param opts ContainerBuildOpts Additional options including callbacks and tag
----@usage `docker.build("Dockerfile", { on_success = function(image_id) end, on_fail = function() end })`
 function M.build(file, path, opts)
   local command = { "build", "-f", file, path }
   local temptag = nil
@@ -181,7 +179,6 @@ end
 ---NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
 ---@param image string Docker image to run
 ---@param opts ContainerRunOpts Additional options including callbacks
----@usage `docker.run("alpine", { on_success = function(id) end, on_fail = function() end })`
 function M.run(image, opts)
   local command = { "run", "-i", "-d" }
   if opts.autoremove ~= false then
@@ -226,7 +223,6 @@ end
 ---NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
 ---@param container_id string Docker container to exec on
 ---@param opts ContainerExecOpts Additional options including callbacks
----@usage `docker.exec("some_id", { command = "nvim", on_success = function() end, on_fail = function() end })`
 function M.exec(container_id, opts)
   local command = { "exec", "-i" }
   if opts.tty then
@@ -276,7 +272,6 @@ end
 ---Stop passed containers
 ---@param containers table[string] ids of containers to stop
 ---@param opts ContainerStopOpts Additional options including callbacks
----@usage `docker.container_stop({ "some_id" }, { on_success = function() end, on_fail = function() end })`
 function M.container_stop(containers, opts)
   local command = { "container", "stop" }
 
@@ -296,7 +291,6 @@ end
 ---Removes passed images
 ---@param images table[string] ids of images to remove
 ---@param opts ImageRmOpts Additional options including callbacks
----@usage `docker.image_rm({ "some_id" }, { on_success = function() end, on_fail = function() end })`
 function M.image_rm(images, opts)
   local command = { "image", "rm" }
 
@@ -320,7 +314,6 @@ end
 ---Removes passed containers
 ---@param containers table[string] ids of containers to remove
 ---@param opts ContainerRmOpts Additional options including callbacks
----@usage `docker.container_rm({ "some_id" }, { on_success = function() end, on_fail = function() end })`
 function M.container_rm(containers, opts)
   local command = { "container", "rm" }
 

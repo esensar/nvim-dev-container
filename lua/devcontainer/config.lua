@@ -14,7 +14,7 @@ local function default_terminal_handler(command)
   local bufnr = vim.api.nvim_get_current_buf()
   vim.o.laststatus = 0
   vim.o.cmdheight = 0
-  local au_id = vim.api.nvim_create_augroup("devcontainer.docker.terminal", {})
+  local au_id = vim.api.nvim_create_augroup("devcontainer.container.terminal", {})
   vim.api.nvim_create_autocmd("BufEnter", {
     buffer = bufnr,
     group = au_id,
