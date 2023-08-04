@@ -45,5 +45,5 @@ Running tests requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) 
 
 Tests can then be run with:
 ```
-nvim --headless --noplugin -u tests/minimal.vim -c "PlenaryBustedDirectory tests/ {minimal_init = 'tests/minimal.vim'}"
+nvim --headless --noplugin -u tests/init.vim -c "PlenaryBustedDirectory tests/ {minimal_init = 'tests/init.vim'}"
 ```
