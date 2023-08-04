@@ -355,7 +355,7 @@ function M.find_nearest_devcontainer_config(callback)
     callback = { callback, { "function", "nil" } },
   })
   if callback then
-    find_nearest_devcontainer_file_async()
+    find_nearest_devcontainer_file_async(callback)
     return nil
   else
     return find_nearest_devcontainer_file()
