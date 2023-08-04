@@ -363,6 +363,75 @@ M.edit_devcontainer_config()
 
 
 ==============================================================================
+Compose module                                            *devcontainer.compose*
+
+Provides functions related to compose control
+
+ComposeUpOpts                               *devcontainer.compose.ComposeUpOpts*
+
+    Fields: ~
+        {args?}       (table)     list of additional arguments to up command
+        {on_success}  (function)
+
+
+M.up({compose_file}, {opts})                           *devcontainer.compose.up*
+    Run docker-compose up with passed file
+
+    Parameters: ~
+        {compose_file}  (string|table)   path to docker-compose.yml file or files
+        {opts}          (ComposeUpOpts)  Additional options including callbacks
+
+    Usage: ~
+>lua
+        require("devcontainer.compose").up("docker-compose.yml")
+<
+
+
+ComposeDownOpts                           *devcontainer.compose.ComposeDownOpts*
+
+    Fields: ~
+        {on_success}  (function)
+
+
+M.down({compose_file}, {opts})                       *devcontainer.compose.down*
+    Run docker-compose down with passed file
+
+    Parameters: ~
+        {compose_file}  (string|table)     path to docker-compose.yml file or files
+        {opts}          (ComposeDownOpts)  Additional options including callbacks
+
+    Usage: ~
+>lua
+        require("devcontainer.compose").down("docker-compose.yml")
+<
+
+
+                                *devcontainer.compose.ComposeGetContainerIdOpts*
+ComposeGetContainerIdOpts
+
+    Fields: ~
+        {on_success?}  (function)
+
+
+                                         *devcontainer.compose.get_container_id*
+M.get_container_id({compose_file}, {service}, {opts})
+    Run docker-compose ps with passed file and service to get its container_id
+
+    Parameters: ~
+        {compose_file}  (string|table)               path to docker-compose.yml file or files
+        {service}       (string)                     service name
+        {opts}          (ComposeGetContainerIdOpts)  Additional options including callbacks
+
+    Usage: ~
+>lua
+        require("devcontainer.compose").get_container_id(
+          "docker-compose.yml",
+          { on_success = function(container_id) end }
+        )
+<
+
+
+==============================================================================
 Jsonc parsing module                            *devcontainer.config_file.jsonc*
 
 Vim supports Json parsing by default, but devcontainer config files are Jsonc.
@@ -587,101 +656,34 @@ M.log_level                                      *devcontainer.config.log_level*
 
 
 ==============================================================================
-Docker-compose module                              *devcontainer.docker-compose*
+Container module                                        *devcontainer.container*
 
-Provides functions related to docker-compose control
-
-                               *devcontainer.docker-compose.DockerComposeUpOpts*
-DockerComposeUpOpts
-
-    Fields: ~
-        {args?}       (table)     list of additional arguments to up command
-        {on_success}  (function)
-
-
-M.up({compose_file}, {opts})                    *devcontainer.docker-compose.up*
-    Run docker-compose up with passed file
-
-    Parameters: ~
-        {compose_file}  (string|table)         path to docker-compose.yml file or files
-        {opts}          (DockerComposeUpOpts)  Additional options including callbacks
-
-    Usage: ~
->lua
-        require("devcontainer.docker-compose").up("docker-compose.yml")
-<
-
-
-                             *devcontainer.docker-compose.DockerComposeDownOpts*
-DockerComposeDownOpts
-
-    Fields: ~
-        {on_success}  (function)
-
-
-M.down({compose_file}, {opts})                *devcontainer.docker-compose.down*
-    Run docker-compose down with passed file
-
-    Parameters: ~
-        {compose_file}  (string|table)           path to docker-compose.yml file or files
-        {opts}          (DockerComposeDownOpts)  Additional options including callbacks
-
-    Usage: ~
->lua
-        require("devcontainer.docker-compose").down("docker-compose.yml")
-<
-
-
-                   *devcontainer.docker-compose.DockerComposeGetContainerIdOpts*
-DockerComposeGetContainerIdOpts
-
-    Fields: ~
-        {on_success?}  (function)
-
-
-                                  *devcontainer.docker-compose.get_container_id*
-M.get_container_id({compose_file}, {service}, {opts})
-    Run docker-compose ps with passed file and service to get its container_id
-
-    Parameters: ~
-        {compose_file}  (string|table)                     path to docker-compose.yml file or files
-        {service}       (string)                           service name
-        {opts}          (DockerComposeGetContainerIdOpts)  Additional options including callbacks
-
-    Usage: ~
->lua
-        docker_compose.get_container_id("docker-compose.yml", { on_success = function(container_id) end })
-<
-
-
-==============================================================================
-Docker module                                              *devcontainer.docker*
-
-Provides functions related to docker control:
+Provides functions related to container control:
  - building
  - attaching
  - running
 
-DockerPullOpts                              *devcontainer.docker.DockerPullOpts*
+ContainerPullOpts                     *devcontainer.container.ContainerPullOpts*
 
     Fields: ~
         {on_success}  (function)
 
 
-M.pull({image}, {opts})                               *devcontainer.docker.pull*
+M.pull({image}, {opts})                            *devcontainer.container.pull*
     Pull passed image using docker pull
 
     Parameters: ~
-        {image}  (string)          Docker image to pull
-        {opts}   (DockerPullOpts)  Additional options including callbacks
+        {image}  (string)             Docker image to pull
+        {opts}   (ContainerPullOpts)  Additional options including callbacks
 
     Usage: ~
 >lua
-        require("devcontainer.docker").pull("alpine", { on_success = function() end, on_fail = function() end})
+        require("devcontainer.container").pull("alpine", { on_success = function() end, on_fail = function() end})
 <
 
 
-DockerBuildOpts                            *devcontainer.docker.DockerBuildOpts*
+                                     *devcontainer.container.ContainerBuildOpts*
+ContainerBuildOpts
 
     Fields: ~
         {tag?}         (string)    tag for the image built
@@ -690,21 +692,24 @@ DockerBuildOpts                            *devcontainer.docker.DockerBuildOpts*
         {on_success}   (function)
 
 
-M.build({file}, {path?}, {opts})                     *devcontainer.docker.build*
+M.build({file}, {path?}, {opts})                  *devcontainer.container.build*
     Build image from passed dockerfile using docker build
 
     Parameters: ~
-        {file}   (string)           Path to Dockerfile to build
-        {path?}  (string)           Path to the workspace, vim.lsp.buf.list_workspace_folders()[1] by default
-        {opts}   (DockerBuildOpts)  Additional options including callbacks and tag
+        {file}   (string)              Path to Dockerfile to build
+        {path?}  (string)              Path to the workspace, vim.lsp.buf.list_workspace_folders()[1] by default
+        {opts}   (ContainerBuildOpts)  Additional options including callbacks and tag
 
     Usage: ~
 >lua
-        docker.build("Dockerfile", { on_success = function(image_id) end, on_fail = function() end })
+        require("devcontainer.container").build(
+          "Dockerfile",
+          { on_success = function(image_id) end, on_fail = function() end }
+        )
 <
 
 
-DockerRunOpts                                *devcontainer.docker.DockerRunOpts*
+ContainerRunOpts                       *devcontainer.container.ContainerRunOpts*
 
     Fields: ~
         {autoremove?}  (boolean)           automatically remove container after stopping - true by default
@@ -713,21 +718,21 @@ DockerRunOpts                                *devcontainer.docker.DockerRunOpts*
         {on_success}   (function)
 
 
-M.run({image}, {opts})                                 *devcontainer.docker.run*
+M.run({image}, {opts})                              *devcontainer.container.run*
     Run passed image using docker run
     NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
 
     Parameters: ~
-        {image}  (string)         Docker image to run
-        {opts}   (DockerRunOpts)  Additional options including callbacks
+        {image}  (string)            Docker image to run
+        {opts}   (ContainerRunOpts)  Additional options including callbacks
 
     Usage: ~
 >lua
-        docker.run("alpine", { on_success = function(id) end, on_fail = function() end })
+        require("devcontainer.container").run("alpine", { on_success = function(id) end, on_fail = function() end })
 <
 
 
-DockerExecOpts                              *devcontainer.docker.DockerExecOpts*
+ContainerExecOpts                     *devcontainer.container.ContainerExecOpts*
 
     Fields: ~
         {tty?}               (boolean)           attach to container TTY and display it in terminal buffer, using configured terminal handler
@@ -738,97 +743,101 @@ DockerExecOpts                              *devcontainer.docker.DockerExecOpts*
         {on_success?}        (function)
 
 
-M.exec({container_id}, {opts})                        *devcontainer.docker.exec*
+M.exec({container_id}, {opts})                     *devcontainer.container.exec*
     Run command on a container using docker exec
     Useful for attaching to neovim
     NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
 
     Parameters: ~
-        {container_id}  (string)          Docker container to exec on
-        {opts}          (DockerExecOpts)  Additional options including callbacks
+        {container_id}  (string)             Docker container to exec on
+        {opts}          (ContainerExecOpts)  Additional options including callbacks
+                                             @usage[[
+                                             require("devcontainer.container").exec(
+                                               "some_id",
+                                               { command = "nvim", on_success = function() end, on_fail = function() end }
+                                             )
+                                             @usage]]
 
-    Usage: ~
->lua
-        docker.exec("some_id", { command = "nvim", on_success = function() end, on_fail = function() end })
-<
 
-
-                                   *devcontainer.docker.DockerContainerStopOpts*
-DockerContainerStopOpts
+ContainerStopOpts                     *devcontainer.container.ContainerStopOpts*
 
     Fields: ~
         {on_success}  (function)
 
 
-M.container_stop({opts})                    *devcontainer.docker.container_stop*
+M.container_stop({opts})                 *devcontainer.container.container_stop*
 
     Parameters: ~
-        {opts}  (DockerContainerStopOpts)  Additional options including callbacks
+        {opts}  (ContainerStopOpts)  Additional options including callbacks
 
     Usage: ~
 >lua
-        docker.container_stop({ "some_id" }, { on_success = function() end, on_fail = function() end })
+        require("devcontainer.container").container_stop(
+          { "some_id" },
+          { on_success = function() end, on_fail = function() end }
+        )
 <
 
 
-DockerImageRmOpts                        *devcontainer.docker.DockerImageRmOpts*
-
-    Fields: ~
-        {force?}      (boolean)   force deletion
-        {on_success}  (function)
-
-
-M.image_rm({opts})                                *devcontainer.docker.image_rm*
-
-    Parameters: ~
-        {opts}  (DockerImageRmOpts)  Additional options including callbacks
-
-    Usage: ~
->lua
-        docker.image_rm({ "some_id" }, { on_success = function() end, on_fail = function() end })
-<
-
-
-                                     *devcontainer.docker.DockerContainerRmOpts*
-DockerContainerRmOpts
+ImageRmOpts                                 *devcontainer.container.ImageRmOpts*
 
     Fields: ~
         {force?}      (boolean)   force deletion
         {on_success}  (function)
 
 
-M.container_rm({opts})                        *devcontainer.docker.container_rm*
+M.image_rm({opts})                             *devcontainer.container.image_rm*
 
     Parameters: ~
-        {opts}  (DockerContainerRmOpts)  Additional options including callbacks
+        {opts}  (ImageRmOpts)  Additional options including callbacks
+                               @usage[[
+                               require("devcontainer.container").image_rm(
+                                 { "some_id" },
+                                 { on_success = function() end, on_fail = function() end }
+                               )
+                               @usage]]
 
-    Usage: ~
->lua
-        docker.container_rm({ "some_id" }, { on_success = function() end, on_fail = function() end })
-<
+
+ContainerRmOpts                         *devcontainer.container.ContainerRmOpts*
+
+    Fields: ~
+        {force?}      (boolean)   force deletion
+        {on_success}  (function)
+
+
+M.container_rm({opts})                     *devcontainer.container.container_rm*
+
+    Parameters: ~
+        {opts}  (ContainerRmOpts)  Additional options including callbacks
+                                   @usage[[
+                                   require("devcontainer.container").container_rm(
+                                     { "some_id" },
+                                     { on_success = function() end, on_fail = function() end }
+                                   )
+                                   @usage]]
 
 
 ==============================================================================
-High level docker utility functions                  *devcontainer.docker-utils*
+High level container utility functions            *devcontainer.container-utils*
 
-Provides functions for interacting with docker containers
+Provides functions for interacting with containers
 High-level functions
 
-                      *devcontainer.docker-utils.DockerUtilsGetContainerEnvOpts*
-DockerUtilsGetContainerEnvOpts
+                *devcontainer.container-utils.ContainerUtilsGetContainerEnvOpts*
+ContainerUtilsGetContainerEnvOpts
 
     Fields: ~
         {on_success}  (function)
 
 
-                                   *devcontainer.docker-utils.get_container_env*
+                                *devcontainer.container-utils.get_container_env*
 M.get_container_env({container_id}, {opts?})
     Returns env variables from passed container in success callback
     Env variables are retrieved using printenv
 
     Parameters: ~
         {container_id}  (string)
-        {opts?}         (DockerUtilsGetContainerEnvOpts)
+        {opts?}         (ContainerUtilsGetContainerEnvOpts)
 
 
 ==============================================================================
