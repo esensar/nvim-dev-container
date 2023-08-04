@@ -37,7 +37,7 @@ local function run_docker(args, opts, onexit)
   )
 end
 
----Runs docker command with passed arguments
+---Builds image with neovim added
 ---@param image string base image tag
 ---@param path string docker build path / context
 ---@param opts? ContainerBuildOpts
@@ -77,7 +77,7 @@ local function build_with_neovim(original_dockerfile, image, path, opts)
 end
 
 ---Pull passed image using docker pull
----@param image string Docker image to pull
+---@param image string image to pull
 ---@param opts ContainerPullOpts Additional options including callbacks
 function M.pull(image, opts)
   run_docker({ "pull", image }, nil, function(code, _)
@@ -176,8 +176,7 @@ function M.build(file, path, opts)
 end
 
 ---Run passed image using docker run
----NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
----@param image string Docker image to run
+---@param image string image to run
 ---@param opts ContainerRunOpts Additional options including callbacks
 function M.run(image, opts)
   local command = { "run", "-i", "-d" }
@@ -219,9 +218,7 @@ function M.run(image, opts)
 end
 
 ---Run command on a container using docker exec
----Useful for attaching to neovim
----NOTE: If terminal_handler is passed, then it needs to start the process too - default termopen does just that
----@param container_id string Docker container to exec on
+---@param container_id string container to exec on
 ---@param opts ContainerExecOpts Additional options including callbacks
 function M.exec(container_id, opts)
   local command = { "exec", "-i" }

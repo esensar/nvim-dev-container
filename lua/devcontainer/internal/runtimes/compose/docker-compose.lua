@@ -8,7 +8,7 @@ local config = require("devcontainer.config")
 
 local M = {}
 
----Runs docker command with passed arguments
+---Runs docker compose command with passed arguments
 ---@param args string[]
 ---@param opts? RunCommandOpts
 ---@param onexit function(code, signal)
