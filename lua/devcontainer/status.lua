@@ -246,6 +246,13 @@ function M.find_container(opts)
   return vim.deepcopy(get_container(opts))
 end
 
+---Returns latest container
+---Read-only
+---@return DevcontainerContainerStatus
+function M.get_latest_container()
+  return vim.deepcopy(current_status.running_containers[#current_status.running_containers])
+end
+
 ---Finds image with requested opts
 ---Read-only
 ---@param opts DevcontainerImageQuery required opts
