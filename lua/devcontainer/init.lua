@@ -143,73 +143,24 @@ function M.setup(opts)
   end
 
   if opts.generate_commands ~= false then
-    -- Docker
-    vim.api.nvim_create_user_command("DevcontainerBuild", function(_)
-      commands.docker_build()
-    end, {
-      nargs = 0,
-      desc = "Build image from .devcontainer.json",
-    })
-    vim.api.nvim_create_user_command("DevcontainerImageRun", function(_)
-      commands.docker_image_run()
-    end, {
-      nargs = 0,
-      desc = "Run image from .devcontainer.json",
-    })
-    vim.api.nvim_create_user_command("DevcontainerBuildAndRun", function(_)
-      commands.docker_build_and_run()
-    end, {
-      nargs = 0,
-      desc = "Build image from .devcontainer.json and then run it",
-    })
-    vim.api.nvim_create_user_command("DevcontainerBuildRunAttach", function(_)
-      commands.docker_build_run_and_attach()
-    end, {
-      nargs = 0,
-      desc = "Build image from .devcontainer.json and then run it and attach to neovim in it",
-    })
-
-    -- Compose
-    vim.api.nvim_create_user_command("DevcontainerComposeUp", function(_)
-      commands.compose_up()
-    end, {
-      nargs = 0,
-      desc = "Run docker-compose up based on .devcontainer.json",
-    })
-    vim.api.nvim_create_user_command("DevcontainerComposeDown", function(_)
-      commands.compose_up()
-    end, {
-      nargs = 0,
-      desc = "Run docker-compose down based on .devcontainer.json",
-    })
-    vim.api.nvim_create_user_command("DevcontainerComposeRm", function(_)
-      commands.compose_rm()
-    end, {
-      nargs = 0,
-      desc = "Run docker-compose rm based on .devcontainer.json",
-    })
-
     -- Automatic
-    vim.api.nvim_create_user_command("DevcontainerStartAuto", function(_)
+    vim.api.nvim_create_user_command("DevcontainerStart", function(_)
       commands.start_auto()
     end, {
       nargs = 0,
       desc = "Start either compose, dockerfile or image from .devcontainer.json",
     })
-    vim.api.nvim_create_user_command("DevcontainerStartAutoAndAttach", function(_)
-      commands.start_auto(nil, true)
-    end, {
-      nargs = 0,
-      desc = "Start and attach to either compose, dockerfile or image from .devcontainer.json",
-    })
-    vim.api.nvim_create_user_command("DevcontainerAttachAuto", function(args)
+    vim.api.nvim_create_user_command("DevcontainerAttach", function(args)
       local command = args.fargs[1] or "nvim"
       commands.attach_auto(command)
     end, {
       nargs = "?",
       desc = "Attach to either compose, dockerfile or image from .devcontainer.json",
+      complete = function()
+        return { "nvim", "sh" }
+      end,
     })
-    vim.api.nvim_create_user_command("DevcontainerStopAuto", function(_)
+    vim.api.nvim_create_user_command("DevcontainerStop", function(_)
       commands.stop_auto()
     end, {
       nargs = 0,
@@ -236,12 +187,6 @@ function M.setup(opts)
     end, {
       nargs = 0,
       desc = "Open devcontainer plugin logs in a new buffer",
-    })
-    vim.api.nvim_create_user_command("DevcontainerOpenNearestConfig", function(_)
-      commands.open_nearest_devcontainer_config()
-    end, {
-      nargs = 0,
-      desc = "Open nearest devcontainer.json file in a new buffer",
     })
     vim.api.nvim_create_user_command("DevcontainerEditNearestConfig", function(_)
       commands.edit_devcontainer_config()
