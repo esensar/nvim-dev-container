@@ -414,11 +414,11 @@ function M.docker_image_run(callback)
   end)
 end
 
-local function attach_to_container(data, container_id, on_success)
+local function attach_to_container(data, container_id, command, on_success)
   generate_exec_command_args(container_id, data, function(args)
     container_runtime.exec(container_id, {
       tty = true,
-      command = "nvim",
+      command = command,
       args = args,
       on_success = on_success,
       on_fail = function()
@@ -428,7 +428,7 @@ local function attach_to_container(data, container_id, on_success)
   end)
 end
 
-local function attach_to_compose_service(data, on_success)
+local function attach_to_compose_service(data, command, on_success)
   if not data.service then
     vim.notify(
       "service must be defined in " .. data.metadata.file_path .. " to attach to docker compose",
@@ -439,7 +439,7 @@ local function attach_to_compose_service(data, on_success)
   vim.notify("Found docker compose file definition. Attaching to service: " .. data.service)
   compose_runtime.get_container_id(data.dockerComposeFile, data.service, {
     on_success = function(container_id)
-      attach_to_container(data, container_id, function()
+      attach_to_container(data, container_id, command, function()
         on_success(data)
       end)
     end,
@@ -491,7 +491,7 @@ local function spawn_docker_build_and_run(data, on_success, add_neovim, attach)
         on_success = function(container_id)
           run_docker_lifecycle_scripts(data, container_id)
           if attach then
-            attach_to_container(data, container_id, function()
+            attach_to_container(data, container_id, "nvim", function()
               on_success(data, image_id, container_id)
             end)
           else
@@ -621,8 +621,9 @@ end
 ---And last it looks for image
 ---@param callback? function called on success - devcontainer config is passed to the callback
 ---@usage `require("devcontainer.commands").attach_auto()`
-function M.attach_auto(callback)
+function M.attach_auto(command, callback)
   vim.validate({
+    command = { command, "string" },
     callback = { callback, { "function", "nil" } },
   })
 
@@ -633,7 +634,7 @@ function M.attach_auto(callback)
 
   get_nearest_devcontainer_config(function(data)
     if data.dockerComposeFile then
-      attach_to_compose_service(data, on_success)
+      attach_to_compose_service(data, command, on_success)
       return
     end
 
@@ -641,7 +642,7 @@ function M.attach_auto(callback)
       vim.notify("Found dockerfile definition. Attaching to the container...")
       local image = status.find_image({ source_dockerfile = data.build.dockerfile })
       local container = status.find_container({ image_id = image.image_id })
-      attach_to_container(data, container.container_id, function()
+      attach_to_container(data, container.container_id, command, function()
         on_success(data)
       end)
       return
@@ -649,8 +650,8 @@ function M.attach_auto(callback)
 
     if data.image then
       vim.notify("Found image definition. Attaching to the container...")
-      local container = status.find_container({ source_dockerfile = data.build.dockerfile })
-      attach_to_container(data, container.container_id, function()
+      local container = status.find_container({ image_id = data.image })
+      attach_to_container(data, container.container_id, command, function()
         on_success(data)
       end)
       return

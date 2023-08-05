@@ -202,10 +202,11 @@ function M.setup(opts)
       nargs = 0,
       desc = "Start and attach to either compose, dockerfile or image from .devcontainer.json",
     })
-    vim.api.nvim_create_user_command("DevcontainerAttachAuto", function(_)
-      commands.attach_auto()
+    vim.api.nvim_create_user_command("DevcontainerAttachAuto", function(args)
+      local command = args.fargs[1] or "nvim"
+      commands.attach_auto(command)
     end, {
-      nargs = 0,
+      nargs = "?",
       desc = "Attach to either compose, dockerfile or image from .devcontainer.json",
     })
     vim.api.nvim_create_user_command("DevcontainerStopAuto", function(_)
