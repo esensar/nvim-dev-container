@@ -22,7 +22,6 @@ local configured = false
 ---@field config_search_start? function provides starting point for .devcontainer.json search
 ---@field workspace_folder_provider? function provides current workspace folder
 ---@field terminal_handler? function handles terminal command requests, useful for floating terminals and similar
----@field nvim_dockerfile_template? function provides dockerfile template based on passed base_image - returns string
 ---@field devcontainer_json_template? function provides template for new .devcontainer.json files - returns table
 ---@field generate_commands? boolean can be set to false to prevent plugin from creating commands (true by default)
 ---@field autocommands? DevcontainerAutocommandOpts can be set to enable autocommands, disabled by default
@@ -51,7 +50,6 @@ function M.setup(opts)
     config_search_start = "function",
     workspace_folder_provider = "function",
     terminal_handler = "function",
-    nvim_dockerfile_template = "function",
     devcontainer_json_template = "function",
     generate_commands = "boolean",
     autocommands = "table",
@@ -106,7 +104,6 @@ function M.setup(opts)
   configured = true
 
   config.terminal_hander = opts.terminal_handler or config.terminal_handler
-  config.nvim_dockerfile_template = opts.nvim_dockerfile_template or config.nvim_dockerfile_template
   config.devcontainer_json_template = opts.devcontainer_json_template or config.devcontainer_json_template
   config.workspace_folder_provider = opts.workspace_folder_provider or config.workspace_folder_provider
   config.config_search_start = opts.config_search_start or config.config_search_start

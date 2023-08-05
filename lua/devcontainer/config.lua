@@ -43,46 +43,6 @@ local function default_terminal_handler(command)
   vim.fn.termopen(command)
 end
 
-local function default_nvim_dockerfile_template(base_image)
-  -- Use current version by default
-  local nver = vim.version()
-  local version_string = "v" .. nver.major .. "." .. nver.minor .. "." .. nver.patch
-  local lines = {
-    "FROM " .. base_image,
-    "RUN apt-get update && apt-get -y install " .. table.concat({
-      "curl",
-      "fzf",
-      "ripgrep",
-      "tree",
-      "git",
-      "xclip",
-      "python3",
-      "python3-pip",
-      "nodejs",
-      "npm",
-      "tzdata",
-      "ninja-build",
-      "gettext",
-      "libtool",
-      "libtool-bin",
-      "autoconf",
-      "automake",
-      "cmake",
-      "g++",
-      "pkg-config",
-      "zip",
-      "unzip",
-    }, " "),
-    "RUN pip3 install pynvim",
-    "RUN npm i -g neovim",
-    "RUN mkdir -p /root/TMP",
-    "RUN cd /root/TMP && git clone https://github.com/neovim/neovim",
-    "RUN cd /root/TMP/neovim && (git checkout " .. version_string .. " || true) && make -j4 && make install",
-    "RUN rm -rf /root/TMP",
-  }
-  return table.concat(lines, "\n")
-end
-
 local function workspace_folder_provider()
   return vim.lsp.buf.list_workspace_folders()[1] or vim.loop.cwd()
 end
@@ -121,11 +81,6 @@ end
 ---By default it uses terminal command
 ---@type function
 M.terminal_handler = default_terminal_handler
-
----Handles terminal requests (mainly used for attaching to container)
----By default it uses a template which installs neovim from source
----@type function
-M.nvim_dockerfile_template = default_nvim_dockerfile_template
 
 ---Provides docker build path
 ---By default uses first LSP workplace folder or vim.loop.cwd()
