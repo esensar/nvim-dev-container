@@ -199,7 +199,7 @@ Otherwise, feel free to create a new issue or pull request.
 
 VERSION                                          *devcontainer-version*
 
-Version 0.1.0
+Version 0.3.0-dev
 
 LICENSE                                          *devcontainer-license*
 
