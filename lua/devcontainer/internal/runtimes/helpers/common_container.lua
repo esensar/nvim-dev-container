@@ -108,7 +108,6 @@ function M.build(file, path, opts)
       status.add_image({
         image_id = image_id,
         source_dockerfile = file,
-        neovim_added = false,
       })
       opts.on_success(image_id)
     else

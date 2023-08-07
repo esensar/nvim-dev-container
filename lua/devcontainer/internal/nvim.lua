@@ -10,9 +10,9 @@ local v = require("devcontainer.internal.validation")
 local container_executor = require("devcontainer.internal.container_executor")
 
 ---@class AddNeovimOpts
----@field on_success function() success callback
----@field on_step function(step) step success callback
----@field on_fail function() failure callback
+---@field on_success? function() success callback
+---@field on_step? function(step) step success callback
+---@field on_fail? function() failure callback
 ---@field version? string version of neovim to use - current version by default
 
 ---Adds neovim to passed container using exec

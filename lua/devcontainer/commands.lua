@@ -4,6 +4,7 @@
 ---@brief ]]
 local compose_runtime = require("devcontainer.compose")
 local container_runtime = require("devcontainer.container")
+local nvim = require("devcontainer.internal.nvim")
 local container_utils = require("devcontainer.container_utils")
 local config_file = require("devcontainer.config_file.parse")
 local log = require("devcontainer.internal.log")
@@ -482,7 +483,6 @@ end
 local function spawn_docker_build_and_run(data, on_success, add_neovim, attach)
   container_runtime.build(data.build.dockerfile, data.build.context, {
     args = generate_build_command_args(data),
-    add_neovim = add_neovim,
     on_success = function(image_id)
       container_runtime.run(image_id, {
         args = generate_run_command_args(data, add_neovim),
@@ -494,12 +494,21 @@ local function spawn_docker_build_and_run(data, on_success, add_neovim, attach)
         -- -- })
         on_success = function(container_id)
           run_docker_lifecycle_scripts(data, container_id)
-          if attach then
-            attach_to_container(data, container_id, "nvim", function()
+          local attach_and_notify = function()
+            if attach then
+              attach_to_container(data, container_id, "nvim", function()
+                on_success(data, image_id, container_id)
+              end)
+            else
               on_success(data, image_id, container_id)
-            end)
+            end
+          end
+          if add_neovim then
+            nvim.add_neovim(container_id, {
+              on_success = attach_and_notify,
+            })
           else
-            on_success(data, image_id, container_id)
+            attach_and_notify()
           end
         end,
         on_fail = function()

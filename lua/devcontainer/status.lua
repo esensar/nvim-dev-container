@@ -10,14 +10,11 @@ local M = {}
 ---@class DevcontainerImageStatus
 ---@field image_id string id of the image
 ---@field source_dockerfile string path to the file used to build the image
----@field neovim_added boolean true if add_neovim flag was used to add neovim to the image
 ---@field tmp_dockerfile? string path to temporary dockerfile if add neovim was used
 --
 ---@class DevcontainerImageQuery
 ---@field image_id? string id of the image
 ---@field source_dockerfile? string path to the file used to build the image
----@field neovim_added? boolean true if add_neovim flag was used to add neovim to the image
----@field tmp_dockerfile? string path to temporary dockerfile if add neovim was used
 
 ---@class DevcontainerContainerStatus
 ---@field container_id string id of the container
@@ -92,9 +89,6 @@ local function get_image(opts)
     if opts.source_dockerfile and v.source_dockerfile == opts.source_dockerfile then
       return v
     end
-    if opts.neovim_added and opts.tmp_dockerfile and v.tmp_dockerfile == opts.tmp_dockerfile then
-      return v
-    end
   end
   return nil
 end
@@ -126,7 +120,6 @@ end
 function M.add_image(image_status)
   local existing = get_image({ image_id = image_status.image_id })
   if existing then
-    existing.neovim_added = image_status.neovim_added
     existing.source_dockerfile = image_status.source_dockerfile
     existing.tmp_dockerfile = image_status.tmp_dockerfile
   else

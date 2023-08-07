@@ -49,7 +49,6 @@ end
 
 ---@class ContainerBuildOpts
 ---@field tag? string tag for the image built
----@field add_neovim? boolean install neovim in the image (useful only for attaching to image)
 ---@field args? table list of additional arguments to build command
 ---@field on_success function(image_id) success callback taking the image_id of the built image
 ---@field on_progress? function(DevcontainerBuildStatus) callback taking build status object
@@ -75,7 +74,6 @@ function M.build(file, path, opts)
   opts = opts or {}
   v.validate_opts_with_callbacks(opts, {
     tag = "string",
-    add_neovim = "boolean",
     args = function(x)
       return x == nil or vim.tbl_islist(x)
     end,
