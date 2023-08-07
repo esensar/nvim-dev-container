@@ -97,5 +97,11 @@ function M.run_command(command, opts, onexit)
   end
 end
 
+---@param command string|table command to run
+---@return integer status,string output status code (0 = success) and stdout of the command
+function M.run_command_sync(command)
+  return vim.v.shell_error, vim.fn.system(command)
+end
+
 log.wrap(M)
 return M

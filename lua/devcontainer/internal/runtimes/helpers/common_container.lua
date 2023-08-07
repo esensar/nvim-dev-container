@@ -273,5 +273,45 @@ function M.container_rm(containers, opts)
   end)
 end
 
+---Lists containers
+---@param opts ContainerLsOpts Additional options including callbacks
+function M.container_ls(opts)
+  local command = { "container", "ls", "--format", "{{.ID}}" }
+
+  if opts.all then
+    table.insert(command, "-a")
+  end
+
+  local containers = {}
+  if opts.async ~= false then
+    run_with_current_runtime(command, {
+      stdout = function(_, data)
+        if data then
+          local new_containers = vim.split(data, "\n")
+          for _, v in ipairs(new_containers) do
+            if v then
+              table.insert(containers, v)
+            end
+          end
+        end
+      end,
+    }, function(code, _)
+      if code == 0 then
+        opts.on_success(containers)
+      else
+        opts.on_fail()
+      end
+    end)
+  else
+    table.insert(command, 1, config.container_runtime)
+    local code, result = exe.run_command_sync(command)
+    if code == 0 then
+      return result
+    else
+      error("Code: " .. code .. ". Message: " .. result)
+    end
+  end
+end
+
 log.wrap(M)
 return M

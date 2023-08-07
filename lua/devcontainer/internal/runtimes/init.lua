@@ -30,7 +30,7 @@ M.container = {}
 ---@param image string Image to pull
 ---@param opts ContainerPullOpts Additional options including callbacks
 function M.container.pull(image, opts)
-  get_current_container_runtime().pull(image, opts)
+  return get_current_container_runtime().pull(image, opts)
 end
 
 ---Build image from passed dockerfile using current container runtime
@@ -38,7 +38,7 @@ end
 ---@param path string Path to the workspace, vim.lsp.buf.list_workspace_folders()[1] by default
 ---@param opts ContainerBuildOpts Additional options including callbacks and tag
 function M.container.build(file, path, opts)
-  get_current_container_runtime().build(file, path, opts)
+  return get_current_container_runtime().build(file, path, opts)
 end
 
 ---Run passed image using current container runtime
@@ -46,7 +46,7 @@ end
 ---@param image string Image to run
 ---@param opts ContainerRunOpts Additional options including callbacks
 function M.container.run(image, opts)
-  get_current_container_runtime().run(image, opts)
+  return get_current_container_runtime().run(image, opts)
 end
 
 ---Run command on a container using current container runtime
@@ -55,28 +55,34 @@ end
 ---@param container_id string Container to exec on
 ---@param opts ContainerExecOpts Additional options including callbacks
 function M.container.exec(container_id, opts)
-  get_current_container_runtime().exec(container_id, opts)
+  return get_current_container_runtime().exec(container_id, opts)
 end
 
 ---Stop passed containers
 ---@param containers table[string] ids of containers to stop
 ---@param opts ContainerStopOpts Additional options including callbacks
 function M.container.container_stop(containers, opts)
-  get_current_container_runtime().container_stop(containers, opts)
+  return get_current_container_runtime().container_stop(containers, opts)
 end
 
 ---Removes passed images
 ---@param images table[string] ids of images to remove
 ---@param opts ImageRmOpts Additional options including callbacks
 function M.container.image_rm(images, opts)
-  get_current_container_runtime().image_rm(images, opts)
+  return get_current_container_runtime().image_rm(images, opts)
 end
 
 ---Removes passed containers
 ---@param containers table[string] ids of containers to remove
 ---@param opts ContainerRmOpts Additional options including callbacks
 function M.container.container_rm(containers, opts)
-  get_current_container_runtime().container_rm(containers, opts)
+  return get_current_container_runtime().container_rm(containers, opts)
+end
+
+---Lists containers
+---@param opts ContainerLsOpts Additional options including callbacks
+function M.container.container_ls(opts)
+  return get_current_container_runtime().container_ls(opts)
 end
 
 M.compose = {}
@@ -85,14 +91,14 @@ M.compose = {}
 ---@param compose_file string|table path to docker-compose.yml file or files
 ---@param opts ComposeUpOpts Additional options including callbacks
 function M.compose.up(compose_file, opts)
-  get_current_compose_runtime().up(compose_file, opts)
+  return get_current_compose_runtime().up(compose_file, opts)
 end
 
 ---Run compose down with passed file
 ---@param compose_file string|table path to docker-compose.yml file or files
 ---@param opts ComposeDownOpts Additional options including callbacks
 function M.compose.down(compose_file, opts)
-  get_current_compose_runtime().down(compose_file, opts)
+  return get_current_compose_runtime().down(compose_file, opts)
 end
 
 ---Run compose ps with passed file and service to get its container_id
@@ -100,7 +106,7 @@ end
 ---@param service string service name
 ---@param opts ComposeGetContainerIdOpts Additional options including callbacks
 function M.compose.get_container_id(compose_file, service, opts)
-  get_current_compose_runtime().get_container_id(compose_file, service, opts)
+  return get_current_compose_runtime().get_container_id(compose_file, service, opts)
 end
 
 return M

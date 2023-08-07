@@ -281,5 +281,33 @@ function M.container_rm(containers, opts)
   runtimes.container.container_rm(containers, opts)
 end
 
+---@class ContainerLsOpts
+---@field all? boolean show all containers, not only running
+---@field async? boolean run async - true by default
+---@field on_success function(containers_list) success callback
+---@field on_fail function() failure callback
+
+---Lists containers
+---@param opts ContainerLsOpts Additional options including callbacks
+---@usage[[
+---require("devcontainer.container").container_ls(
+---  { on_success = function(containers) end, on_fail = function() end }
+---)
+---@usage]]
+function M.container_ls(opts)
+  opts = opts or {}
+  v.validate_callbacks(opts)
+  v.validate_opts(opts, { all = { "boolean", "nil" } })
+  opts.on_success = opts.on_success
+    or function(containers)
+      vim.notify("Containers: " .. table.concat(containers, ", "))
+    end
+  opts.on_fail = opts.on_fail or function()
+    vim.notify("Loading containers failed!", vim.log.levels.ERROR)
+  end
+
+  return runtimes.container.container_ls(opts)
+end
+
 log.wrap(M)
 return M
