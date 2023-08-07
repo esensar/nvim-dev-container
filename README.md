@@ -149,6 +149,7 @@ If not disabled by using `generate_commands = false` in setup, this plugin provi
 
 - `DevcontainerStart` - start whatever is defined in devcontainer.json
 - `DevcontainerAttach` - attach to whatever is defined in devcontainer.json
+- `DevcontainerExec` - execute a single command on container defined in devcontainer.json
 - `DevcontainerStop` - stop whatever was started based on devcontainer.json
 - `DevcontainerStopAll` - stop everything started with this plugin (in current session)
 - `DevcontainerRemoveAll` - remove everything started with this plugin (in current session)

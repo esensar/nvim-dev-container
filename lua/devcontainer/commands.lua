@@ -428,6 +428,12 @@ local function attach_to_container(data, container_id, command, on_success)
   end)
 end
 
+local function get_compose_service_container_id(data, on_success)
+  compose_runtime.get_container_id(data.dockerComposeFile, data.service, {
+    on_success = on_success,
+  })
+end
+
 local function attach_to_compose_service(data, command, on_success)
   if not data.service then
     vim.notify(
@@ -437,13 +443,11 @@ local function attach_to_compose_service(data, command, on_success)
     return
   end
   vim.notify("Found docker compose file definition. Attaching to service: " .. data.service)
-  compose_runtime.get_container_id(data.dockerComposeFile, data.service, {
-    on_success = function(container_id)
-      attach_to_container(data, container_id, command, function()
-        on_success(data)
-      end)
-    end,
-  })
+  get_compose_service_container_id(data, function(container_id)
+    attach_to_container(data, container_id, command, function()
+      on_success(data)
+    end)
+  end)
 end
 
 local function run_docker_lifecycle_script(script, data, container_id)
@@ -656,6 +660,76 @@ function M.attach_auto(command, callback)
       end)
       return
     end
+  end)
+end
+
+---Parses devcontainer.json and stops whatever is defined there
+---Looks for dockerComposeFile first
+---Then it looks for dockerfile
+---And last it looks for image
+---@param target string container id, or latest or devcontainer
+---@param command string|table command to run on container
+---@param callback? function called on success - devcontainer config is passed to the callback
+---@usage `require("devcontainer.commands").exec("devcontainer", "ls", { on_success = function(result) end })`
+function M.exec(target, command, callback)
+  vim.validate({
+    target = { target, "string" },
+    command = { command, "string" },
+    callback = { callback, { "function", "nil" } },
+  })
+
+  local on_success = callback
+    or function(result)
+      vim.notify(
+        "Successfully executed command " .. command .. " on container (" .. target .. ")! Result: \n" .. result
+      )
+    end
+
+  get_nearest_devcontainer_config(function(data)
+    local original_target = target
+
+    local execution_func = function(final_target)
+      generate_exec_command_args(final_target, data, function(args)
+        container_runtime.exec(final_target, {
+          command = command,
+          args = args,
+          capture_output = true,
+          on_success = on_success,
+          on_fail = function()
+            vim.notify(
+              "Executing command " .. command .. " on container (" .. original_target .. ") failed!",
+              vim.log.levels.ERROR
+            )
+          end,
+        })
+      end)
+    end
+
+    if target == "devcontainer" then
+      if data.dockerComposeFile then
+        get_compose_service_container_id(data, function(container_id)
+          execution_func(container_id)
+        end)
+        return
+      end
+
+      if data.build.dockerfile then
+        local image = status.find_image({ source_dockerfile = data.build.dockerfile })
+        local container = status.find_container({ image_id = image.image_id })
+        execution_func(container.container_id)
+        return
+      end
+
+      if data.image then
+        local container = status.find_container({ image_id = data.image })
+        execution_func(container.container_id)
+        return
+      end
+    elseif target == "latest" then
+      target = "-l"
+    end
+
+    execution_func(target)
   end)
 end
 

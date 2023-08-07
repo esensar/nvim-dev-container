@@ -157,6 +157,13 @@ function M.setup(opts)
         return { "nvim", "sh" }
       end,
     })
+    vim.api.nvim_create_user_command("DevcontainerExec", function(args)
+      local command = args.fargs[1]
+      commands.exec("devcontainer", command)
+    end, {
+      nargs = "?",
+      desc = "Execute a command on running container",
+    })
     vim.api.nvim_create_user_command("DevcontainerStop", function(_)
       commands.stop_auto()
     end, {

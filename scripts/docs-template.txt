@@ -148,21 +148,13 @@ COMMANDS                                         *devcontainer-commands*
 
 If not disabled by using {generate_commands = false} in setup, this plugin provides the following commands:
 
-*:DevcontainerBuild* - builds image from nearest devcontainer.json
-*:DevcontainerImageRun* - runs image from nearest devcontainer.json
-*:DevcontainerBuildAndRun* - builds image from nearest devcontainer.json and then runs it
-*:DevcontainerBuildRunAndAttach* - builds image from nearest devcontainer.json (with neovim added), runs it and attaches to neovim in it - currently using `terminal_handler`, but in the future with Neovim 0.8.0 maybe directly (https://codeberg.org/esensar/nvim-dev-container/issues/30)
-*:DevcontainerComposeUp* - run docker-compose up based on devcontainer.json
-*:DevcontainerComposeDown* - run docker-compose down based on devcontainer.json
-*:DevcontainerComposeRm* - run docker-compose rm based on devcontainer.json
-*:DevcontainerStartAuto* - start whatever is defined in devcontainer.json
-*:DevcontainerStartAutoAndAttach* - start and attach to whatever is defined in devcontainer.json
-*:DevcontainerAttachAuto* - attach to whatever is defined in devcontainer.json
-*:DevcontainerStopAuto* - stop whatever was started based on devcontainer.json
+*:DevcontainerStart* - start whatever is defined in devcontainer.json
+*:DevcontainerAttach* - attach to whatever is defined in devcontainer.json
+*:DevcontainerExec* - execute a single command on container defined in devcontainer.json
+*:DevcontainerStop* - stop whatever was started based on devcontainer.json
 *:DevcontainerStopAll* - stop everything started with this plugin (in current session)
 *:DevcontainerRemoveAll* - remove everything started with this plugin (in current session)
 *:DevcontainerLogs* - open plugin log file
-*:DevcontainerOpenNearestConfig* - opens nearest devcontainer.json file if it exists
 *:DevcontainerEditNearestConfig* - opens nearest devcontainer.json file if it exists, or creates a new one if it does not
 
 FUNCTIONS                                        *devcontainer-functions*

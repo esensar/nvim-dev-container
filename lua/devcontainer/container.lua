@@ -189,7 +189,7 @@ function M.exec(container_id, opts)
       )
     end
 
-  runtimes.container.exec(container_id, opts)
+  return runtimes.container.exec(container_id, opts)
 end
 
 ---@class ContainerStopOpts
