@@ -683,7 +683,7 @@ end
 function M.exec(target, command, callback)
   vim.validate({
     target = { target, "string" },
-    command = { command, "string" },
+    command = { command, { "string", "table" } },
     callback = { callback, { "function", "nil" } },
   })
 
