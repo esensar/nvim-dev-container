@@ -690,7 +690,12 @@ function M.exec(target, command, callback)
   local on_success = callback
     or function(result)
       vim.notify(
-        "Successfully executed command " .. command .. " on container (" .. target .. ")! Result: \n" .. result
+        "Successfully executed command "
+          .. command
+          .. " on container ("
+          .. target
+          .. ")! Result: \n"
+          .. (result or "nil")
       )
     end
 
