@@ -2,7 +2,7 @@
 
 [![Dotfyle](https://dotfyle.com/plugins/esensar/nvim-dev-container/shield)](https://dotfyle.com/plugins/esensar/nvim-dev-container)
 [![License](https://img.shields.io/badge/license-MIT-brightgreen)](/LICENSE)
-[![status-badge](https://ci.codeberg.org/api/badges/8585/status.svg)](https://ci.codeberg.org/8585)
+[![status-badge](https://ci.codeberg.org/api/badges/8585/status.svg)](https://ci.codeberg.org/repos/8585)
 [![Donate](https://img.shields.io/liberapay/patrons/esensar?logo=liberapay&label=Donate)](https://liberapay.com/esensar/donate)
 
 Goal of this plugin is to provide functionality similar to VSCode's [remote container development](https://code.visualstudio.com/docs/remote/containers) plugin and other functionality that enables development in docker container. This plugin is inspired by [jamestthompson3/nvim-remote-containers](https://github.com/jamestthompson3/nvim-remote-containers), but aims to enable having neovim embedded in docker container.
