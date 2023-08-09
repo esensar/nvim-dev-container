@@ -691,7 +691,7 @@ function M.exec(target, command, callback)
     or function(result)
       vim.notify(
         "Successfully executed command "
-          .. command
+          .. vim.inspect(command)
           .. " on container ("
           .. target
           .. ")! Result: \n"
