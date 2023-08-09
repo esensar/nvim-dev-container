@@ -150,6 +150,7 @@ If not disabled by using {generate_commands = false} in setup, this plugin provi
 
 *:DevcontainerStart* - start whatever is defined in devcontainer.json
 *:DevcontainerAttach* - attach to whatever is defined in devcontainer.json
+*:DevcontainerExec* - execute a single command on container defined in devcontainer.json
 *:DevcontainerStop* - stop whatever was started based on devcontainer.json
 *:DevcontainerStopAll* - stop everything started with this plugin (in current session)
 *:DevcontainerRemoveAll* - remove everything started with this plugin (in current session)
@@ -282,6 +283,23 @@ M.attach_auto({callback?})                   *devcontainer.commands.attach_auto*
     Usage: ~
 >lua
         require("devcontainer.commands").attach_auto()
+<
+
+
+M.exec({target}, {command}, {callback?})            *devcontainer.commands.exec*
+    Parses devcontainer.json and stops whatever is defined there
+    Looks for dockerComposeFile first
+    Then it looks for dockerfile
+    And last it looks for image
+
+    Parameters: ~
+        {target}     (string)        container id, or latest or devcontainer
+        {command}    (string|table)  command to run on container
+        {callback?}  (function)      called on success - devcontainer config is passed to the callback
+
+    Usage: ~
+>lua
+        require("devcontainer.commands").exec("devcontainer", "ls", { on_success = function(result) end })
 <
 
 
@@ -554,15 +572,6 @@ M.terminal_handler                        *devcontainer.config.terminal_handler*
         (function)
 
 
-                                  *devcontainer.config.nvim_dockerfile_template*
-M.nvim_dockerfile_template
-    Handles terminal requests (mainly used for attaching to container)
-    By default it uses a template which installs neovim from source
-
-    Type: ~
-        (function)
-
-
                                  *devcontainer.config.workspace_folder_provider*
 M.workspace_folder_provider
     Provides docker build path
@@ -677,10 +686,9 @@ M.pull({image}, {opts})                            *devcontainer.container.pull*
 ContainerBuildOpts
 
     Fields: ~
-        {tag?}         (string)    tag for the image built
-        {add_neovim?}  (boolean)   install neovim in the image (useful only for attaching to image)
-        {args?}        (table)     list of additional arguments to build command
-        {on_success}   (function)
+        {tag?}        (string)    tag for the image built
+        {args?}       (table)     list of additional arguments to build command
+        {on_success}  (function)
 
 
 M.build({file}, {path?}, {opts})                  *devcontainer.container.build*
@@ -808,6 +816,26 @@ M.container_rm({opts})                     *devcontainer.container.container_rm*
                                    @usage]]
 
 
+ContainerLsOpts                         *devcontainer.container.ContainerLsOpts*
+
+    Fields: ~
+        {all?}        (boolean)   show all containers, not only running
+        {async?}      (boolean)   run async - true by default
+        {on_success}  (function)
+
+
+M.container_ls({opts})                     *devcontainer.container.container_ls*
+    Lists containers
+
+    Parameters: ~
+        {opts}  (ContainerLsOpts)  Additional options including callbacks
+                                   @usage[[
+                                   require("devcontainer.container").container_ls(
+                                     { on_success = function(containers) end, on_fail = function() end }
+                                   )
+                                   @usage]]
+
+
 ==============================================================================
 High level container utility functions            *devcontainer.container-utils*
 
@@ -850,7 +878,6 @@ DevcontainerSetupOpts                       *devcontainer.DevcontainerSetupOpts*
         {config_search_start?}              (function)                     provides starting point for .devcontainer.json search
         {workspace_folder_provider?}        (function)                     provides current workspace folder
         {terminal_handler?}                 (function)                     handles terminal command requests, useful for floating terminals and similar
-        {nvim_dockerfile_template?}         (function)                     provides dockerfile template based on passed base_image - returns string
         {devcontainer_json_template?}       (function)                     provides template for new .devcontainer.json files - returns table
         {generate_commands?}                (boolean)                      can be set to false to prevent plugin from creating commands (true by default)
         {autocommands?}                     (DevcontainerAutocommandOpts)  can be set to enable autocommands, disabled by default
@@ -880,20 +907,17 @@ Can be used for read-only access
 DevcontainerImageStatus
 
     Fields: ~
-        {image_id}           (string)   id of the image
-        {source_dockerfile}  (string)   path to the file used to build the image
-        {neovim_added}       (boolean)  true if add_neovim flag was used to add neovim to the image
-        {tmp_dockerfile?}    (string)   path to temporary dockerfile if add neovim was used
+        {image_id}           (string)  id of the image
+        {source_dockerfile}  (string)  path to the file used to build the image
+        {tmp_dockerfile?}    (string)  path to temporary dockerfile if add neovim was used
 
 
                                     *devcontainer.status.DevcontainerImageQuery*
 DevcontainerImageQuery
 
     Fields: ~
-        {image_id?}           (string)   id of the image
-        {source_dockerfile?}  (string)   path to the file used to build the image
-        {neovim_added?}       (boolean)  true if add_neovim flag was used to add neovim to the image
-        {tmp_dockerfile?}     (string)   path to temporary dockerfile if add neovim was used
+        {image_id?}           (string)  id of the image
+        {source_dockerfile?}  (string)  path to the file used to build the image
 
 
                                *devcontainer.status.DevcontainerContainerStatus*
@@ -958,6 +982,14 @@ M.find_container({opts})                    *devcontainer.status.find_container*
         (DevcontainerContainerStatus)
 
 
+M.get_latest_container()              *devcontainer.status.get_latest_container*
+    Returns latest container
+    Read-only
+
+    Returns: ~
+        (DevcontainerContainerStatus)
+
+
 M.find_image({opts})                            *devcontainer.status.find_image*
     Finds image with requested opts
     Read-only
@@ -1007,7 +1039,7 @@ Otherwise, feel free to create a new issue or pull request.
 
 VERSION                                          *devcontainer-version*
 
-Version 0.1.0
+Version 0.3.0-dev
 
 LICENSE                                          *devcontainer-license*
 
