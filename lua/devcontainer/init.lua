@@ -159,7 +159,7 @@ function M.setup(opts)
     })
     vim.api.nvim_create_user_command("DevcontainerExec", function(args)
       local command = args.fargs[1]
-      commands.exec("devcontainer", command)
+      commands.exec("devcontainer", vim.split(command, " "))
     end, {
       nargs = "?",
       desc = "Execute a command on running container",
