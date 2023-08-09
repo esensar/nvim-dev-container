@@ -89,6 +89,14 @@ function M.build(file, path, opts)
       end
       vim.notify(message)
     end
+  local user_on_success = opts.on_success
+  opts.on_success = function(image_id)
+    vim.api.nvim_exec_autocmds(
+      "User",
+      { pattern = "DevcontainerImageBuilt", modeline = false, data = { image_id = image_id } }
+    )
+    user_on_success(image_id)
+  end
   opts.on_fail = opts.on_fail
     or function()
       vim.notify("Building image from file " .. file .. " failed!", vim.log.levels.ERROR)
@@ -129,8 +137,16 @@ function M.run(image, opts)
       return vim.tbl_islist(x)
     end,
   })
-  opts.on_success = opts.on_success or function()
+  opts.on_success = opts.on_success or function(_)
     vim.notify("Successfully started image " .. image)
+  end
+  local user_on_success = opts.on_success
+  opts.on_success = function(container_id)
+    vim.api.nvim_exec_autocmds(
+      "User",
+      { pattern = "DevcontainerContainerStarted", modeline = false, data = { container_id = container_id } }
+    )
+    user_on_success(container_id)
   end
   opts.on_fail = opts.on_fail
     or function()
@@ -212,6 +228,16 @@ function M.container_stop(containers, opts)
   opts.on_success = opts.on_success or function()
     vim.notify("Successfully stopped containers!")
   end
+  local user_on_success = opts.on_success
+  opts.on_success = function()
+    for _, container_id in ipairs(containers) do
+      vim.api.nvim_exec_autocmds(
+        "User",
+        { pattern = "DevcontainerContainerStopped", modeline = false, data = { container_id = container_id } }
+      )
+    end
+    user_on_success()
+  end
   opts.on_fail = opts.on_fail or function()
     vim.notify("Stopping containers failed!", vim.log.levels.ERROR)
   end
@@ -242,6 +268,16 @@ function M.image_rm(images, opts)
   opts.on_success = opts.on_success or function()
     vim.notify("Successfully removed images!")
   end
+  local user_on_success = opts.on_success
+  opts.on_success = function()
+    for _, image_id in ipairs(images) do
+      vim.api.nvim_exec_autocmds(
+        "User",
+        { pattern = "DevcontainerImageRemoved", modeline = false, data = { image_id = image_id } }
+      )
+    end
+    user_on_success()
+  end
   opts.on_fail = opts.on_fail or function()
     vim.notify("Removing images failed!", vim.log.levels.ERROR)
   end
@@ -271,6 +307,16 @@ function M.container_rm(containers, opts)
   v.validate_callbacks(opts)
   opts.on_success = opts.on_success or function()
     vim.notify("Successfully removed containers!")
+  end
+  local user_on_success = opts.on_success
+  opts.on_success = function()
+    for _, container_id in ipairs(containers) do
+      vim.api.nvim_exec_autocmds(
+        "User",
+        { pattern = "DevcontainerContainerRemoved", modeline = false, data = { container_id = container_id } }
+      )
+    end
+    user_on_success()
   end
   opts.on_fail = opts.on_fail or function()
     vim.notify("Removing containers failed!", vim.log.levels.ERROR)

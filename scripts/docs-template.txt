@@ -173,6 +173,26 @@ This plugin also provides autocmd events:
   Emitted when build status changes. Useful for statusline updates.
   See |devcontainer.status.find_build|.
 
+*DevcontainerImageBuilt*
+  Emitted when an image is built with this plugin. Passes a table in `data`
+  with `image_id`.
+
+*DevcontainerImageRemoved*
+  Emitted when an image is removed with this plugin. Passes a table in `data`
+  with `image_id`.
+
+*DevcontainerContainerStarted*
+  Emitted when a container is started with this plugin. Passes a table in `data`
+  with `container_id`.
+
+*DevcontainerContainerStopped*
+  Emitted when a container is stopped with this plugin. Passes a table in `data`
+  with `container_id`.
+
+*DevcontainerContainerRemoved*
+  Emitted when a container is removed with this plugin. Passes a table in `data`
+  with `container_id`.
+
 Example:
   autocmd User DevcontainerBuildProgress redrawstatus
 
