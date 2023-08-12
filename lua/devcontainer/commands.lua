@@ -452,13 +452,6 @@ local function attach_to_compose_service(data, command, on_success)
 end
 
 local function run_docker_lifecycle_script(script, data, container_id)
-  if type(script) == "string" then
-    script = {
-      "/bin/sh",
-      "-c",
-      script,
-    }
-  end
   generate_exec_command_args(container_id, data, function(args)
     container_runtime.exec(container_id, {
       tty = false,
