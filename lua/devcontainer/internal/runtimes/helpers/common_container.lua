@@ -282,17 +282,20 @@ function M.container_ls(opts)
   end
 
   local containers = {}
+  local parse_and_store_containers = function(data)
+    if data then
+      local new_containers = vim.split(data, "\n")
+      for _, v in ipairs(new_containers) do
+        if v then
+          table.insert(containers, v)
+        end
+      end
+    end
+  end
   if opts.async ~= false then
     run_with_current_runtime(command, {
       stdout = function(_, data)
-        if data then
-          local new_containers = vim.split(data, "\n")
-          for _, v in ipairs(new_containers) do
-            if v then
-              table.insert(containers, v)
-            end
-          end
-        end
+        parse_and_store_containers(data)
       end,
     }, function(code, _)
       if code == 0 then
@@ -305,7 +308,8 @@ function M.container_ls(opts)
     table.insert(command, 1, config.container_runtime)
     local code, result = exe.run_command_sync(command)
     if code == 0 then
-      return result
+      parse_and_store_containers(result)
+      return containers
     else
       error("Code: " .. code .. ". Message: " .. result)
     end

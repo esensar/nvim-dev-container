@@ -632,11 +632,14 @@ end
 ---Looks for dockerComposeFile first
 ---Then it looks for dockerfile
 ---And last it looks for image
+---@param target string container id, or latest or devcontainer
+---@param command string|table command to run on container
 ---@param callback? function called on success - devcontainer config is passed to the callback
 ---@usage `require("devcontainer.commands").attach_auto()`
-function M.attach_auto(command, callback)
+function M.attach_auto(target, command, callback)
   vim.validate({
-    command = { command, "string" },
+    target = { target, "string" },
+    command = { command, { "string", "table" } },
     callback = { callback, { "function", "nil" } },
   })
 
@@ -646,6 +649,17 @@ function M.attach_auto(command, callback)
     end
 
   get_nearest_devcontainer_config(function(data)
+    if target ~= "devcontainer" then
+      if target == "latest" then
+        target = "-l"
+      end
+
+      attach_to_container(data, target, command, function()
+        on_success(data)
+      end)
+      return
+    end
+
     if data.dockerComposeFile then
       attach_to_compose_service(data, command, on_success)
       return
@@ -711,7 +725,7 @@ function M.exec(target, command, callback)
           on_success = on_success,
           on_fail = function()
             vim.notify(
-              "Executing command " .. command .. " on container (" .. original_target .. ") failed!",
+              "Executing command " .. vim.inspect(command) .. " on container (" .. original_target .. ") failed!",
               vim.log.levels.ERROR
             )
           end,

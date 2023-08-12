@@ -328,8 +328,8 @@ end
 ---@class ContainerLsOpts
 ---@field all? boolean show all containers, not only running
 ---@field async? boolean run async - true by default
----@field on_success function(containers_list) success callback
----@field on_fail function() failure callback
+---@field on_success? function(containers_list) success callback
+---@field on_fail? function() failure callback
 
 ---Lists containers
 ---@param opts ContainerLsOpts Additional options including callbacks

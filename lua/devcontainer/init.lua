@@ -10,6 +10,8 @@ local log = require("devcontainer.internal.log")
 local parse = require("devcontainer.config_file.parse")
 local v = require("devcontainer.internal.validation")
 local executor = require("devcontainer.internal.executor")
+local runtime = require("devcontainer.internal.runtimes")
+local cmdline = require("devcontainer.internal.cmdline")
 
 local configured = false
 
@@ -140,6 +142,24 @@ function M.setup(opts)
   end
 
   if opts.generate_commands ~= false then
+    local container_command_complete = cmdline.complete_parse(function(cmdline_status)
+      local command_suggestions = { "nvim", "sh" }
+      -- Filling second arg
+      if cmdline_status.current_arg == 2 then
+        return command_suggestions
+      elseif cmdline_status.current_arg == 1 then
+        local options = { "devcontainer", "latest" }
+        local containers = runtime.container.container_ls({ async = false })
+        vim.list_extend(options, containers)
+
+        if cmdline_status.arg_count == 1 then
+          vim.list_extend(options, command_suggestions)
+        end
+        return options
+      end
+      return {}
+    end)
+
     -- Automatic
     vim.api.nvim_create_user_command("DevcontainerStart", function(_)
       commands.start_auto()
@@ -148,21 +168,36 @@ function M.setup(opts)
       desc = "Start either compose, dockerfile or image from .devcontainer.json",
     })
     vim.api.nvim_create_user_command("DevcontainerAttach", function(args)
-      local command = args.fargs[1] or "nvim"
-      commands.attach_auto(command)
+      local target = "devcontainer"
+      local command = "nvim"
+      if #args.fargs == 1 then
+        command = args.fargs[1]
+      elseif #args.fargs > 1 then
+        target = args.fargs[1]
+        command = args.fargs
+        table.remove(command, 1)
+      end
+      commands.attach_auto(target, command)
     end, {
-      nargs = "?",
+      nargs = "*",
       desc = "Attach to either compose, dockerfile or image from .devcontainer.json",
-      complete = function()
-        return { "nvim", "sh" }
-      end,
+      complete = container_command_complete,
     })
     vim.api.nvim_create_user_command("DevcontainerExec", function(args)
-      local command = args.fargs[1]
-      commands.exec("devcontainer", vim.split(command, " "))
+      local target = "devcontainer"
+      local command = "nvim"
+      if #args.fargs == 1 then
+        command = args.fargs[1]
+      elseif #args.fargs > 1 then
+        target = args.fargs[1]
+        command = args.fargs
+        table.remove(command, 1)
+      end
+      commands.exec(target, command)
     end, {
-      nargs = "?",
+      nargs = "*",
       desc = "Execute a command on running container",
+      complete = container_command_complete,
     })
     vim.api.nvim_create_user_command("DevcontainerStop", function(_)
       commands.stop_auto()
