@@ -11,6 +11,7 @@ local log = require("devcontainer.internal.log")
 local status = require("devcontainer.status")
 local plugin_config = require("devcontainer.config")
 local u = require("devcontainer.internal.utils")
+local executor = require("devcontainer.internal.executor")
 
 local M = {}
 
@@ -452,6 +453,19 @@ local function attach_to_compose_service(data, command, on_success)
 end
 
 local function run_docker_lifecycle_script(script, data, container_id)
+  if type(script) == "string" then
+    script = {
+      "/bin/sh",
+      "-c",
+      script,
+    }
+  end
+  if not vim.tbl_islist(script) and type(script) == "table" then
+    for _, v in ipairs(script) do
+      run_docker_lifecycle_script(v, data, container_id)
+    end
+    return
+  end
   generate_exec_command_args(container_id, data, function(args)
     container_runtime.exec(container_id, {
       tty = false,
@@ -470,6 +484,34 @@ local function run_docker_lifecycle_scripts(data, container_id)
   end
   if data.postCreateCommand then
     run_docker_lifecycle_script(data.postCreateCommand, data, container_id)
+  end
+end
+
+local function run_lifecycle_host_command(host_command)
+  if host_command then
+    local args = {}
+    local command = host_command
+    if vim.tbl_islist(command) then
+      command = command[1]
+      args = { table.unpack(host_command, 2) }
+    elseif type(command) == "table" then
+      -- Dealing with object type
+      for _, v in ipairs(command) do
+        run_lifecycle_host_command(v)
+      end
+      return
+    elseif type(command) == "string" then
+      command = "/bin/sh"
+      args = { "-c", host_command }
+    end
+    executor.run_command(command, {
+      args = args,
+      stderr = vim.schedule_wrap(function(_, output)
+        if output then
+          log.fmt_error("%s command (%s): %s", command, args, output)
+        end
+      end),
+    })
   end
 end
 
@@ -586,6 +628,7 @@ function M.start_auto(callback, attach)
       compose_runtime.up(data.dockerComposeFile, {
         args = generate_compose_up_command_args(data),
         on_success = function()
+          run_lifecycle_host_command(data.postStartCommand)
           if attach then
             attach_to_compose_service(data, on_success)
           else
@@ -601,7 +644,10 @@ function M.start_auto(callback, attach)
 
     if data.build.dockerfile then
       vim.notify("Found dockerfile definition. Running docker build and run...")
-      spawn_docker_build_and_run(data, on_success, attach, attach)
+      spawn_docker_build_and_run(data, function()
+        run_lifecycle_host_command(data.postStartCommand)
+        on_success(data)
+      end, attach, attach)
       return
     end
 
@@ -610,6 +656,7 @@ function M.start_auto(callback, attach)
       container_runtime.run(data.image, {
         args = generate_run_command_args(data, attach),
         on_success = function(_)
+          run_lifecycle_host_command(data.postStartCommand)
           on_success(data)
         end,
         on_fail = function()
@@ -654,7 +701,10 @@ function M.attach_auto(target, command, callback)
     end
 
     if data.dockerComposeFile then
-      attach_to_compose_service(data, command, on_success)
+      attach_to_compose_service(data, command, function()
+        on_success(data)
+      end)
+      run_lifecycle_host_command(data.postAttachCommand)
       return
     end
 
@@ -665,6 +715,7 @@ function M.attach_auto(target, command, callback)
       attach_to_container(data, container.container_id, command, function()
         on_success(data)
       end)
+      run_lifecycle_host_command(data.postAttachCommand)
       return
     end
 
@@ -674,6 +725,7 @@ function M.attach_auto(target, command, callback)
       attach_to_container(data, container.container_id, command, function()
         on_success(data)
       end)
+      run_lifecycle_host_command(data.postAttachCommand)
       return
     end
   end)
