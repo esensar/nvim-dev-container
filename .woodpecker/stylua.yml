@@ -1,4 +1,4 @@
-pipeline:
+steps:
   stylua:
     image: fnichol/stylua
     commands:
