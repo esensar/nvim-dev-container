@@ -4,4 +4,5 @@ pipeline:
     commands:
       - stylua --check .
 
-branches: main
+when:
+  branch: main

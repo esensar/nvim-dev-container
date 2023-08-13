@@ -5,4 +5,5 @@ pipeline:
       - apk add neovim
       - nvim --headless --noplugin -V1 -es -c "helptags doc"
 
-branches: main
+when:
+  branch: main

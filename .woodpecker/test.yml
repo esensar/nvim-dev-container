@@ -8,4 +8,5 @@ pipeline:
       - ln -s "$(pwd)" ~/.local/share/nvim/site/pack/vendor/start
       - scripts/test
 
-branches: main
+when:
+  branch: main

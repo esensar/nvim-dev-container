@@ -4,4 +4,5 @@ pipeline:
     commands:
       - luacheck .
 
-branches: main
+when:
+  branch: main
