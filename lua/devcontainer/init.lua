@@ -77,9 +77,6 @@ function M.setup(opts)
       neovim_config = "table",
       neovim_data = "table",
       neovim_state = "table",
-      custom_mounts = function(t)
-        return t == nil or vim.tbl_islist(t)
-      end,
     })
 
     local mount_opts_mapping = {

@@ -126,10 +126,6 @@ It is possible to override some of the functionality of the plugin with options 
         -- no options by default
         options = {}
       },
-      -- This takes a list of mounts (strings) that should always be added whenever attaching to containers
-      -- This is passed directly as --mount option to docker command
-      -- Or multiple --mount options if there are multiple vaues
-      custom_mounts = {}
     },
     -- This takes a list of mounts (strings) that should always be added to every run container
     -- This is passed directly as --mount option to docker command

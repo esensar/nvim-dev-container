@@ -156,12 +156,6 @@ local function generate_run_command_args(data)
       table.insert(run_args, "--mount")
       table.insert(run_args, build_mount("state", am.neovim_state.options, home_path .. ".local/state/nvim"))
     end
-    if am.custom_mounts then
-      for _, v in ipairs(am.custom_mounts) do
-        table.insert(run_args, "--mount")
-        table.insert(run_args, v)
-      end
-    end
   end
   if data.runArgs then
     run_args = run_args or {}

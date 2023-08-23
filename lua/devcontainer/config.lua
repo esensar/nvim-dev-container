@@ -122,7 +122,6 @@ M.compose_command = nil
 ---@field neovim_config? MountOpts if true attaches neovim local config to /root/.config/nvim in container
 ---@field neovim_data? MountOpts if true attaches neovim data to /root/.local/share/nvim in container
 ---@field neovim_state? MountOpts if true attaches neovim state to /root/.local/state/nvim in container
----@field custom_mounts table[string] list of custom mounts to add when attaching
 
 ---Configuration for mounts when using attach command
 ---NOTE: when attaching in a separate command, it is useful to set
@@ -143,7 +142,6 @@ M.attach_mounts = {
     enabled = false,
     options = {},
   },
-  custom_mounts = {},
 }
 
 ---List of mounts to always add to all containers
