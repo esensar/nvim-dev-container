@@ -298,9 +298,10 @@ function M.fill_defaults(config_file)
     elseif type(config_file.dockerComposeFile) == "string" then
       config_file.dockerComposeFile = to_absolute(config_file.dockerComposeFile)
     end
-    config_file.workspaceFolder = config_file.workspaceFolder or "/"
     config_file.overrideCommand = config_file.overrideCommand or false
   end
+
+  config_file.workspaceFolder = config_file.workspaceFolder or "/workspace"
 
   config_file.forwardPorts = config_file.forwardPorts or {}
   config_file.remoteEnv = config_file.remoteEnv or {}

@@ -91,7 +91,7 @@ local function generate_run_command_args(data, attaching)
       table.insert(run_args, k .. "=" .. v)
     end
   end
-  if data.workspaceFolder or data.workspaceMount then
+  if data.workspaceFolder and data.workspaceMount then
     -- if data.workspaceMount == nil or data.workspaceFolder == nil then
     -- 	vim.notify("workspaceFolder and workspaceMount have to both be defined to be used!", vim.log.levels.WARN)
     -- else
@@ -99,6 +99,10 @@ local function generate_run_command_args(data, attaching)
     table.insert(run_args, "--mount")
     table.insert(run_args, data.workspaceMount)
     -- end
+  else
+    run_args = run_args or {}
+    table.insert(run_args, "--mount")
+    table.insert(run_args, "source=" .. plugin_config.workspace_folder_provider() .. ",target=/workspace,type=bind")
   end
   if data.mounts then
     run_args = run_args or {}

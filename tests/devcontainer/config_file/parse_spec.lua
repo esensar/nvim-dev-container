@@ -323,7 +323,7 @@ describe("devcontainer.config_file.parse:", function()
       end)
 
       test_it("should set workspaceFolder to default", function(data, _)
-        assert.are.same("/", data.workspaceFolder)
+        assert.are.same("/workspace", data.workspaceFolder)
       end)
 
       test_it("should set overrideCommand to false", function(data, _)
