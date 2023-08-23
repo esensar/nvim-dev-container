@@ -74,7 +74,6 @@ function M.setup(opts)
   local am = opts.attach_mounts
   if am then
     v.validate_deep(am, "opts.attach_mounts", {
-      always = "boolean",
       neovim_config = "table",
       neovim_data = "table",
       neovim_state = "table",

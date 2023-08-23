@@ -100,10 +100,6 @@ require("devcontainer").setup {
   -- This can be useful to mount local configuration
   -- And any other mounts when attaching to containers with this plugin
   attach_mounts = {
-    -- Can be set to true to always mount items defined below
-    -- And not only when directly attaching
-    -- This can be useful if executing attach command separately
-    always = false,
     neovim_config = {
       -- enables mounting local config to /root/.config/nvim in container
       enabled = false,

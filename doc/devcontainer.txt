@@ -107,10 +107,6 @@ It is possible to override some of the functionality of the plugin with options 
     -- This can be useful to mount local configuration
     -- And any other mounts when attaching to containers with this plugin
     attach_mounts = {
-      -- Can be set to true to always mount items defined below
-      -- And not only when directly attaching
-      -- This can be useful if executing attach command separately
-      always = false,
       neovim_config = {
         -- enables mounting local config to /root/.config/nvim in container
         enabled = false,
@@ -271,14 +267,17 @@ M.start_auto({callback?}, {attach?})          *devcontainer.commands.start_auto*
 <
 
 
-M.attach_auto({callback?})                   *devcontainer.commands.attach_auto*
+                                             *devcontainer.commands.attach_auto*
+M.attach_auto({target}, {command}, {callback?})
     Parses devcontainer.json and attaches to whatever is defined there
     Looks for dockerComposeFile first
     Then it looks for dockerfile
     And last it looks for image
 
     Parameters: ~
-        {callback?}  (function)  called on success - devcontainer config is passed to the callback
+        {target}     (string)        container id, or latest or devcontainer
+        {command}    (string|table)  command to run on container
+        {callback?}  (function)      called on success - devcontainer config is passed to the callback
 
     Usage: ~
 >lua
@@ -619,7 +618,6 @@ MountOpts                                        *devcontainer.config.MountOpts*
 AttachMountsOpts                          *devcontainer.config.AttachMountsOpts*
 
     Fields: ~
-        {always?}         (boolean)    if true these mounts are used on every run, to be available when attaching later
         {neovim_config?}  (MountOpts)  if true attaches neovim local config to /root/.config/nvim in container
         {neovim_data?}    (MountOpts)  if true attaches neovim data to /root/.local/share/nvim in container
         {neovim_state?}   (MountOpts)  if true attaches neovim state to /root/.local/state/nvim in container
@@ -819,9 +817,9 @@ M.container_rm({opts})                     *devcontainer.container.container_rm*
 ContainerLsOpts                         *devcontainer.container.ContainerLsOpts*
 
     Fields: ~
-        {all?}        (boolean)   show all containers, not only running
-        {async?}      (boolean)   run async - true by default
-        {on_success}  (function)
+        {all?}         (boolean)   show all containers, not only running
+        {async?}       (boolean)   run async - true by default
+        {on_success?}  (function)
 
 
 M.container_ls({opts})                     *devcontainer.container.container_ls*

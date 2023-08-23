@@ -119,7 +119,6 @@ M.compose_command = nil
 ---@field options table[string]|nil additional bind options, useful to define { "readonly" }
 
 ---@class AttachMountsOpts
----@field always? boolean if true these mounts are used on every run, to be available when attaching later
 ---@field neovim_config? MountOpts if true attaches neovim local config to /root/.config/nvim in container
 ---@field neovim_data? MountOpts if true attaches neovim data to /root/.local/share/nvim in container
 ---@field neovim_state? MountOpts if true attaches neovim state to /root/.local/state/nvim in container
@@ -132,7 +131,6 @@ M.compose_command = nil
 ---Applicable only to `devcontainer.commands` functions!
 ---@type AttachMountsOpts
 M.attach_mounts = {
-  always = false,
   neovim_config = {
     enabled = false,
     options = { "readonly" },

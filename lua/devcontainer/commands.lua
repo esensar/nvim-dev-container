@@ -67,7 +67,7 @@ local function generate_common_run_command_args(data)
   return run_args
 end
 
-local function generate_run_command_args(data, attaching)
+local function generate_run_command_args(data)
   local run_args = generate_common_run_command_args(data)
   if data.containerUser then
     run_args = run_args or {}
@@ -118,7 +118,7 @@ local function generate_run_command_args(data, attaching)
       table.insert(run_args, v)
     end
   end
-  if plugin_config.attach_mounts and (attaching or plugin_config.attach_mounts.always) then
+  if plugin_config.attach_mounts then
     run_args = run_args or {}
     local am = plugin_config.attach_mounts
 
@@ -409,7 +409,7 @@ function M.docker_image_run(callback)
       return
     end
     container_runtime.run(data.image, {
-      args = generate_run_command_args(data, false),
+      args = generate_run_command_args(data),
       on_success = function(container_id)
         on_success(data, container_id)
       end,
@@ -524,7 +524,7 @@ local function spawn_docker_build_and_run(data, on_success, add_neovim, attach)
     args = generate_build_command_args(data),
     on_success = function(image_id)
       container_runtime.run(image_id, {
-        args = generate_run_command_args(data, add_neovim),
+        args = generate_run_command_args(data),
         -- -- TODO: Potentially add in the future for better compatibility
         -- -- or (data.overrideCommand and {
         -- -- "/bin/sh",
@@ -658,7 +658,7 @@ function M.start_auto(callback, attach)
     if data.image then
       vim.notify("Found image definition. Running docker run...")
       container_runtime.run(data.image, {
-        args = generate_run_command_args(data, attach),
+        args = generate_run_command_args(data),
         on_success = function(_)
           run_lifecycle_host_command(data.postStartCommand)
           on_success(data)
