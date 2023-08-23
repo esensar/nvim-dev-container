@@ -238,9 +238,36 @@ describe("devcontainer.config_file.parse:", function()
       assert.are.same({}, data.build.args)
     end)
 
-    test_it("should fill out build.mounts", function(data, _)
-      assert.are.same({}, data.build.mounts)
+    test_it("should fill out runArgs", function(data, _)
+      assert.are.same({}, data.runArgs)
     end)
+
+    test_it("should set overrideCommand to true", function(data, _)
+      assert.are.same(true, data.overrideCommand)
+    end)
+
+    test_it("should fill out forwardPorts", function(data, _)
+      assert.are.same({}, data.forwardPorts)
+    end)
+
+    test_it("should fill out remoteEnv", function(data, _)
+      assert.are.same({}, data.remoteEnv)
+    end)
+  end
+
+  local function test_image_updates(given_config_provider, workspace_dir)
+    local test_it = function(name, block)
+      it(name, function()
+        local config_mock = mock(require("devcontainer.config"), true)
+        config_mock.workspace_folder_provider.returns(workspace_dir)
+
+        local data = subject.fill_defaults(given_config_provider())
+
+        block(data, config_mock)
+
+        mock.revert(config_mock)
+      end)
+    end
 
     test_it("should fill out runArgs", function(data, _)
       assert.are.same({}, data.runArgs)
@@ -291,6 +318,23 @@ describe("devcontainer.config_file.parse:", function()
       end
       local workspace_dir = "/home/test/projects/devcontainer"
       test_dockerfile_updates(given_config, workspace_dir)
+    end)
+  end)
+
+  describe("given devcontainer config with image", function()
+    describe("fill_defaults", function()
+      local given_config = function()
+        return {
+          image = "test",
+          build = {},
+          hostRequirements = {},
+          metadata = {
+            file_path = "/home/test/projects/devcontainer/.devcontainer/devcontainer.json",
+          },
+        }
+      end
+      local workspace_dir = "/home/test/projects/devcontainer"
+      test_image_updates(given_config, workspace_dir)
     end)
   end)
 

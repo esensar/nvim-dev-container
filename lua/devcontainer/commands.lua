@@ -182,6 +182,18 @@ local function generate_run_command_args(data)
   return run_args
 end
 
+local function generate_image_run_command(data)
+  if data.overrideCommand then
+    local command = {}
+    table.insert(command, "/bin/sh")
+    table.insert(command, "-c")
+    table.insert(command, "while sleep 1000; do :; done")
+    return command
+  else
+    return nil
+  end
+end
+
 local function generate_exec_command_args(container_id, data, continuation)
   local exec_args = nil
   if data.remoteUser then
@@ -410,6 +422,7 @@ function M.docker_image_run(callback)
     end
     container_runtime.run(data.image, {
       args = generate_run_command_args(data),
+      command = generate_image_run_command(data),
       on_success = function(container_id)
         on_success(data, container_id)
       end,
@@ -525,12 +538,7 @@ local function spawn_docker_build_and_run(data, on_success, add_neovim, attach)
     on_success = function(image_id)
       container_runtime.run(image_id, {
         args = generate_run_command_args(data),
-        -- -- TODO: Potentially add in the future for better compatibility
-        -- -- or (data.overrideCommand and {
-        -- -- "/bin/sh",
-        -- -- "-c",
-        -- -- "'while sleep 1000; do :; done'",
-        -- -- })
+        command = generate_image_run_command(data),
         on_success = function(container_id)
           run_docker_lifecycle_scripts(data, container_id)
           local attach_and_notify = function()
@@ -659,6 +667,7 @@ function M.start_auto(callback, attach)
       vim.notify("Found image definition. Running docker run...")
       container_runtime.run(data.image, {
         args = generate_run_command_args(data),
+        command = generate_image_run_command(data),
         on_success = function(_)
           run_lifecycle_host_command(data.postStartCommand)
           on_success(data)

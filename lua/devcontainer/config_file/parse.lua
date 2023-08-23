@@ -283,11 +283,15 @@ function M.fill_defaults(config_file)
     config_file.build.context = to_absolute(config_file.build.context)
 
     config_file.build.args = config_file.build.args or {}
-    config_file.build.mounts = config_file.build.mounts or {}
     config_file.runArgs = config_file.runArgs or {}
     if config_file.overrideCommand == nil then
       config_file.overrideCommand = true
     end
+  end
+
+  if config_file.image ~= nil and config_file.overrideCommand == nil then
+    config_file.overrideCommand = true
+    config_file.runArgs = config_file.runArgs or {}
   end
 
   if config_file.dockerComposeFile then
