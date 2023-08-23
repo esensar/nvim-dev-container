@@ -11,6 +11,8 @@ local config = require("devcontainer.config")
 local function get_current_container_runtime()
   if config.container_runtime == "docker" then
     return require("devcontainer.internal.runtimes.container.docker")
+  elseif config.container_runtime == "podman" then
+    return require("devcontainer.internal.runtimes.container.podman")
   end
   -- Default
   return require("devcontainer.internal.runtimes.container.docker")
