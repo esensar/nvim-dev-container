@@ -127,7 +127,7 @@ It is possible to override some of the functionality of the plugin with options 
         options = {}
       },
     },
-    -- This takes a list of mounts (strings) that should always be added to every run container
+    -- This takes a list of mounts (strings or tables) that should always be added to every run container
     -- This is passed directly as --mount option to docker command
     -- Or multiple --mount options if there are multiple vaues
     always_mount = {}

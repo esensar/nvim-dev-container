@@ -32,7 +32,7 @@ local configured = false
 ---@field remote_env? table can be used to override remoteEnv when attaching to containers
 ---@field disable_recursive_config_search? boolean can be used to disable recursive .devcontainer search
 ---@field attach_mounts? AttachMountsOpts can be used to configure mounts when adding neovim to containers
----@field always_mount? table[string] list of mounts to add to every container
+---@field always_mount? table[table|string] list of mounts to add to every container
 ---@field container_runtime? string container runtime to use ("docker", "podman")
 ---@field compose_command? string command to use for compose
 

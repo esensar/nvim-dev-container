@@ -67,6 +67,18 @@ local function generate_common_run_command_args(data)
   return run_args
 end
 
+local function mount_to_string(mount)
+  if type(mount) == "table" then
+    local items = {}
+    for k, v in pairs(mount) do
+      table.insert(items, k .. "=" .. v)
+    end
+    return vim.fn.join(items, ",")
+  else
+    return mount
+  end
+end
+
 local function generate_run_command_args(data)
   local run_args = generate_common_run_command_args(data)
   if data.containerUser then
@@ -97,7 +109,7 @@ local function generate_run_command_args(data)
     -- else
     run_args = run_args or {}
     table.insert(run_args, "--mount")
-    table.insert(run_args, data.workspaceMount)
+    table.insert(run_args, mount_to_string(data.workspaceMount))
     -- end
   else
     run_args = run_args or {}
@@ -108,14 +120,14 @@ local function generate_run_command_args(data)
     run_args = run_args or {}
     for _, v in ipairs(data.mounts) do
       table.insert(run_args, "--mount")
-      table.insert(run_args, v)
+      table.insert(run_args, mount_to_string(v))
     end
   end
   if plugin_config.always_mount then
     run_args = run_args or {}
     for _, v in ipairs(plugin_config.always_mount) do
       table.insert(run_args, "--mount")
-      table.insert(run_args, v)
+      table.insert(run_args, mount_to_string(v))
     end
   end
   if plugin_config.attach_mounts then
