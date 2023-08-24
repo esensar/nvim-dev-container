@@ -40,7 +40,7 @@ end
 ---@param _ string Path to Dockerfile to build
 ---@param path string Path to the workspace
 ---@param opts ContainerBuildOpts Additional options including callbacks and tag
-function M.build(_, path, opts)
+function M:build(_, path, opts)
   local command = { "--workspace-folder", path, "build" }
   run_with_current_runtime(command, {}, function(code, _)
     if code == 0 then
@@ -54,7 +54,7 @@ end
 ---Run passed image using devcontainer CLI
 ---@param _ string image to run - ignored - using workspace folder
 ---@param opts ContainerRunOpts Additional options including callbacks
-function M.run(_, opts)
+function M:run(_, opts)
   local command = { "--workspace-folder", config.workspace_folder_provider(), "up" }
   run_with_current_runtime(command, {}, function(code, _)
     if code == 0 then
@@ -68,7 +68,7 @@ end
 ---Run command on a container using devcontainer cli
 ---@param _ string container to exec on - ignored - using workspace folder
 ---@param opts ContainerExecOpts Additional options including callbacks
-function M.exec(_, opts)
+function M:exec(_, opts)
   local command = { "--workspace-folder", config.workspace_folder_provider(), "exec" }
   vim.list_extend(command, opts.args or {})
   local run_opts = nil

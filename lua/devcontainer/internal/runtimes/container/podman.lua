@@ -13,7 +13,7 @@ local M = common.new({ runtime = "podman" })
 ---Run passed image using podman run
 ---@param image string image to run
 ---@param opts ContainerRunOpts Additional options including callbacks
-function M.run(image, opts)
+function M:run(image, opts)
   local args = opts.args
   if args then
     local next = false
@@ -31,7 +31,7 @@ function M.run(image, opts)
       end
     end
   end
-  return common.run(M, image, opts)
+  return common.run(self, image, opts)
 end
 
 log.wrap(M)
