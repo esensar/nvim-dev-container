@@ -131,6 +131,14 @@ It is possible to override some of the functionality of the plugin with options 
     -- This is passed directly as --mount option to docker command
     -- Or multiple --mount options if there are multiple vaues
     always_mount = {}
+    -- This takes a string (usually either "podman" or "docker") representing container runtime - "devcontainer-cli" is also partially supported
+    -- That is the command that will be invoked for container operations
+    -- If it is nil, plugin will use whatever is available (trying "podman" first)
+    container_runtime = nil,
+    -- This takes a string (usually either "podman-compose" or "docker-compose") representing compose command - "devcontainer-cli" is also partially supported
+    -- That is the command that will be invoked for compose operations
+    -- If it is nil, plugin will use whatever is available (trying "podman-compose" first)
+    compose_command = nil,
   }
 <
 
