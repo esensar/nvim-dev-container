@@ -128,10 +128,14 @@ require("devcontainer").setup {
   -- That is the command that will be invoked for container operations
   -- If it is nil, plugin will use whatever is available (trying "podman" first)
   container_runtime = nil,
+  -- Similar to container runtime, but will be used if main runtime does not support an action - useful for "devcontainer-cli"
+  backup_runtime = nil,
   -- This takes a string (usually either "podman-compose" or "docker-compose") representing compose command - "devcontainer-cli" is also partially supported
   -- That is the command that will be invoked for compose operations
   -- If it is nil, plugin will use whatever is available (trying "podman-compose" first)
   compose_command = nil,
+  -- Similar to compose command, but will be used if main command does not support an action - useful for "devcontainer-cli"
+  backup_compose_command = nil,
 }
 ```
 

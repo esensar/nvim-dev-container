@@ -8,7 +8,7 @@
 local log = require("devcontainer.internal.log")
 local common = require("devcontainer.internal.runtimes.helpers.common_container")
 
-local M = common.new()
+local M = common.new({ runtime = "podman" })
 
 ---Run passed image using podman run
 ---@param image string image to run
@@ -31,7 +31,7 @@ function M.run(image, opts)
       end
     end
   end
-  return common.run(image, opts)
+  return common.run(M, image, opts)
 end
 
 log.wrap(M)

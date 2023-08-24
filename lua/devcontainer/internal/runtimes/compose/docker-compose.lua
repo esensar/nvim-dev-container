@@ -5,7 +5,7 @@
 local log = require("devcontainer.internal.log")
 local common = require("devcontainer.internal.runtimes.helpers.common_compose")
 
-local M = common.new()
+local M = common.new({ runtime = "docker-compose" })
 
 log.wrap(M)
 return M

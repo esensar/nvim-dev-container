@@ -36,13 +36,6 @@ local function run_with_current_runtime(args, opts, onexit)
   )
 end
 
----Pull image - Not supported with devcontainer CLI
----@param opts ContainerPullOpts Additional options including callbacks
-function M.pull(_, opts)
-  vim.notify("Pulling images with devcontainer CLI is not supported")
-  opts.on_fail()
-end
-
 ---Build image for passed workspace
 ---@param _ string Path to Dockerfile to build
 ---@param path string Path to the workspace
@@ -100,37 +93,6 @@ function M.exec(_, opts)
       opts.on_fail()
     end
   end)
-end
-
----Stop passed containers - not supported with devcontainer
----@param _ table[string] ids of containers to stop
----@param opts ContainerStopOpts Additional options including callbacks
-function M.container_stop(_, opts)
-  vim.notify("Stopping containers with devcontainer CLI is not supported")
-  opts.on_fail()
-end
-
----Removes passed images - not supported with devcontainer
----@param _ table[string] ids of images to remove
----@param opts ImageRmOpts Additional options including callbacks
-function M.image_rm(_, opts)
-  vim.notify("Removing images with devcontainer CLI is not supported")
-  opts.on_fail()
-end
-
----Removes passed containers - not supported with devcontainer
----@param _ table[string] ids of containers to remove
----@param opts ContainerRmOpts Additional options including callbacks
-function M.container_rm(_, opts)
-  vim.notify("Removing containers with devcontainer CLI is not supported")
-  opts.on_fail()
-end
-
----Lists containers - not supported with devcontainer
----@param opts ContainerLsOpts Additional options including callbacks
-function M.container_ls(opts)
-  vim.notify("Listing containers with devcontainer CLI is not supported")
-  opts.on_fail()
 end
 
 log.wrap(M)

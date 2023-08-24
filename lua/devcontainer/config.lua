@@ -109,10 +109,20 @@ M.devcontainer_json_template = default_devcontainer_json_template
 ---@type string?
 M.container_runtime = nil
 
+---Used to set backup runtime when main runtime does not support a command
+---By default plugin will try to use "docker" or "podman"
+---@type string?
+M.backup_runtime = nil
+
 ---Used to set current compose command
 ---By default plugin will try to use "docker-compose" or "podman-compose"
 ---@type string?
 M.compose_command = nil
+
+---Used to set backup command when main command does not support a command
+---By default plugin will try to use "docker-compose" or "podman-compose"
+---@type string?
+M.backup_compose_command = nil
 
 ---@class MountOpts
 ---@field enabled boolean if true this mount is enabled

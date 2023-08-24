@@ -17,17 +17,18 @@ local M = {}
 ---@param args string[]
 ---@param opts? RunCommandOpts
 ---@param onexit function(code, signal)
-local function run_with_current_runtime(args, opts, onexit)
-  exe.ensure_executable(config.container_runtime)
+local function run_with_current_runtime(self, args, opts, onexit)
+  local runtime = tostring(self.runtime) or config.container_runtime
+  exe.ensure_executable(runtime)
 
   opts = opts or {}
   exe.run_command(
-    config.container_runtime,
+    runtime,
     vim.tbl_extend("force", opts, {
       args = args,
       stderr = vim.schedule_wrap(function(err, data)
         if data then
-          log.fmt_error("%s command (%s): %s", config.container_runtime, args, data)
+          log.fmt_error("%s command (%s): %s", runtime, args, data)
         end
         if opts.stderr then
           opts.stderr(err, data)
@@ -41,8 +42,8 @@ end
 ---Pull passed image using
 ---@param image string image to pull
 ---@param opts ContainerPullOpts Additional options including callbacks
-function M.pull(image, opts)
-  run_with_current_runtime({ "pull", image }, nil, function(code, _)
+function M:pull(image, opts)
+  run_with_current_runtime(self, { "pull", image }, nil, function(code, _)
     if code == 0 then
       opts.on_success()
     else
@@ -55,7 +56,7 @@ end
 ---@param file string Path to Dockerfile to build
 ---@param path string Path to the workspace
 ---@param opts ContainerBuildOpts Additional options including callbacks and tag
-function M.build(file, path, opts)
+function M:build(file, path, opts)
   local command = { "build", "-f", file, path }
   if opts.tag then
     table.insert(command, "-t")
@@ -81,7 +82,7 @@ function M.build(file, path, opts)
   status.add_build(build_status)
 
   local image_id = nil
-  run_with_current_runtime(command, {
+  run_with_current_runtime(self, command, {
     stdout = vim.schedule_wrap(function(_, data)
       if data then
         local lines = vim.split(data, "\n")
@@ -120,7 +121,7 @@ end
 ---Run passed image using
 ---@param image string image to run
 ---@param opts ContainerRunOpts Additional options including callbacks
-function M.run(image, opts)
+function M:run(image, opts)
   local command = { "run", "-i", "-d" }
   if opts.autoremove ~= false then
     table.insert(command, "--rm")
@@ -139,7 +140,7 @@ function M.run(image, opts)
   end
 
   local container_id = nil
-  run_with_current_runtime(command, {
+  run_with_current_runtime(self, command, {
     stdout = function(_, data)
       if data then
         container_id = vim.split(data, "\n")[1]
@@ -162,7 +163,7 @@ end
 ---Run command on a container using
 ---@param container_id string container to exec on
 ---@param opts ContainerExecOpts Additional options including callbacks
-function M.exec(container_id, opts)
+function M:exec(container_id, opts)
   local command = { "exec", "-i" }
   if opts.tty then
     table.insert(command, "-t")
@@ -194,7 +195,7 @@ function M.exec(container_id, opts)
         end,
       }
     end
-    run_with_current_runtime(command, run_opts, function(code, _)
+    run_with_current_runtime(self, command, run_opts, function(code, _)
       if code == 0 then
         if opts.capture_output then
           opts.on_success(captured)
@@ -211,11 +212,11 @@ end
 ---Stop passed containers
 ---@param containers table[string] ids of containers to stop
 ---@param opts ContainerStopOpts Additional options including callbacks
-function M.container_stop(containers, opts)
+function M:container_stop(containers, opts)
   local command = { "container", "stop" }
 
   vim.list_extend(command, containers)
-  run_with_current_runtime(command, nil, function(code, _)
+  run_with_current_runtime(self, command, nil, function(code, _)
     if code == 0 then
       for _, container in ipairs(containers) do
         status.move_container_to_stopped(container)
@@ -230,7 +231,7 @@ end
 ---Removes passed images
 ---@param images table[string] ids of images to remove
 ---@param opts ImageRmOpts Additional options including callbacks
-function M.image_rm(images, opts)
+function M:image_rm(images, opts)
   local command = { "image", "rm" }
 
   if opts.force then
@@ -238,7 +239,7 @@ function M.image_rm(images, opts)
   end
 
   vim.list_extend(command, images)
-  run_with_current_runtime(command, nil, function(code, _)
+  run_with_current_runtime(self, command, nil, function(code, _)
     if code == 0 then
       for _, image in ipairs(images) do
         status.remove_image(image)
@@ -253,7 +254,7 @@ end
 ---Removes passed containers
 ---@param containers table[string] ids of containers to remove
 ---@param opts ContainerRmOpts Additional options including callbacks
-function M.container_rm(containers, opts)
+function M:container_rm(containers, opts)
   local command = { "container", "rm" }
 
   if opts.force then
@@ -261,7 +262,7 @@ function M.container_rm(containers, opts)
   end
 
   vim.list_extend(command, containers)
-  run_with_current_runtime(command, nil, function(code, _)
+  run_with_current_runtime(self, command, nil, function(code, _)
     if code == 0 then
       for _, container in ipairs(containers) do
         status.remove_container(container)
@@ -275,7 +276,7 @@ end
 
 ---Lists containers
 ---@param opts ContainerLsOpts Additional options including callbacks
-function M.container_ls(opts)
+function M:container_ls(opts)
   local command = { "container", "ls", "--format", "{{.Names}}" }
 
   if opts.all then
@@ -294,7 +295,7 @@ function M.container_ls(opts)
     end
   end
   if opts.async ~= false then
-    run_with_current_runtime(command, {
+    run_with_current_runtime(self, command, {
       stdout = function(_, data)
         parse_and_store_containers(data)
       end,

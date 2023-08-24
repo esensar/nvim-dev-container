@@ -33,8 +33,10 @@ local configured = false
 ---@field disable_recursive_config_search? boolean can be used to disable recursive .devcontainer search
 ---@field attach_mounts? AttachMountsOpts can be used to configure mounts when adding neovim to containers
 ---@field always_mount? table[table|string] list of mounts to add to every container
----@field container_runtime? string container runtime to use ("docker", "podman")
+---@field container_runtime? string container runtime to use ("docker", "podman", "devcontainer-cli")
+---@field backup_runtime? string container runtime to use when main does not support an action ("docker", "podman")
 ---@field compose_command? string command to use for compose
+---@field backup_compose_command? string command to use for compose when main does not support an action
 
 ---Starts the plugin and sets it up with provided options
 ---@param opts? DevcontainerSetupOpts
@@ -117,7 +119,9 @@ function M.setup(opts)
   config.container_env = opts.container_env or config.container_env
   config.remote_env = opts.remote_env or config.remote_env
   config.container_runtime = opts.container_runtime or config.container_runtime
+  config.backup_runtime = opts.backup_runtime or config.backup_runtime
   config.compose_command = opts.compose_command or config.compose_command
+  config.backup_compose_command = opts.backup_compose_command or config.backup_compose_command
 
   if config.compose_command == nil then
     if executor.is_executable("podman-compose") then
@@ -129,11 +133,29 @@ function M.setup(opts)
     end
   end
 
+  if config.backup_compose_command == nil then
+    if executor.is_executable("podman-compose") then
+      config.backup_compose_command = "podman-compose"
+    elseif executor.is_executable("docker-compose") then
+      config.backup_compose_command = "docker-compose"
+    elseif executor.is_executable("docker compose") then
+      config.backup_compose_command = "docker compose"
+    end
+  end
+
   if config.container_runtime == nil then
     if executor.is_executable("podman") then
       config.container_runtime = "podman"
     elseif executor.is_executable("docker") then
       config.container_runtime = "docker"
+    end
+  end
+
+  if config.backup_runtime == nil then
+    if executor.is_executable("podman") then
+      config.backup_runtime = "podman"
+    elseif executor.is_executable("docker") then
+      config.backup_runtime = "docker"
     end
   end
 
