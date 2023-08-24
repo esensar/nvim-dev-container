@@ -5,8 +5,7 @@
 local log = require("devcontainer.internal.log")
 local common = require("devcontainer.internal.runtimes.helpers.common_compose")
 
-local M = {}
-setmetatable(M, { __index = common })
+local M = common.new()
 
 log.wrap(M)
 return M

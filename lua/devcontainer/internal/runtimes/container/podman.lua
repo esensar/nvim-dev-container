@@ -8,8 +8,7 @@
 local log = require("devcontainer.internal.log")
 local common = require("devcontainer.internal.runtimes.helpers.common_container")
 
-local M = {}
-setmetatable(M, { __index = common })
+local M = common.new()
 
 ---Run passed image using podman run
 ---@param image string image to run

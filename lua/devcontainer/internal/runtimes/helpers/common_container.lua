@@ -9,6 +9,7 @@ local exe = require("devcontainer.internal.executor")
 local config = require("devcontainer.config")
 local status = require("devcontainer.status")
 local log = require("devcontainer.internal.log")
+local utils = require("devcontainer.internal.utils")
 
 local M = {}
 
@@ -316,5 +317,6 @@ function M.container_ls(opts)
   end
 end
 
+M = utils.add_constructor(M)
 log.wrap(M)
 return M

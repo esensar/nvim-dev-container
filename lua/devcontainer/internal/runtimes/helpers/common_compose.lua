@@ -5,6 +5,7 @@
 local exe = require("devcontainer.internal.executor")
 local log = require("devcontainer.internal.log")
 local config = require("devcontainer.config")
+local utils = require("devcontainer.internal.utils")
 
 local M = {}
 
@@ -103,5 +104,6 @@ function M.get_container_id(compose_file, service, opts)
   end)
 end
 
+M = utils.add_constructor(M)
 log.wrap(M)
 return M
