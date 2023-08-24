@@ -276,7 +276,7 @@ end
 ---Lists containers
 ---@param opts ContainerLsOpts Additional options including callbacks
 function M.container_ls(opts)
-  local command = { "container", "ls", "--format", "{{.ID}}" }
+  local command = { "container", "ls", "--format", "{{.Names}}" }
 
   if opts.all then
     table.insert(command, "-a")
