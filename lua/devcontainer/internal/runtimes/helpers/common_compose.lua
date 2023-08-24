@@ -17,6 +17,13 @@ local function run_current_compose_command(self, args, opts, onexit)
   local runtime = tostring(self.runtime) or config.compose_command
   exe.ensure_executable(runtime)
 
+  if string.match(runtime, " ") then
+    local parts = vim.split(runtime, " ")
+    runtime = parts[1]
+    table.remove(parts, 1)
+    vim.list_extend(args, parts)
+  end
+
   opts = opts or {}
   exe.run_command(
     runtime,
