@@ -13,6 +13,8 @@ local function get_current_container_runtime()
     return require("devcontainer.internal.runtimes.container.docker")
   elseif config.container_runtime == "podman" then
     return require("devcontainer.internal.runtimes.container.podman")
+  elseif config.container_runtime == "devcontainer-cli" then
+    return require("devcontainer.internal.runtimes.container.devcontainer")
   end
   -- Default
   return require("devcontainer.internal.runtimes.container.docker")
@@ -21,6 +23,8 @@ end
 local function get_current_compose_runtime()
   if config.compose_command == "docker-compose" then
     return require("devcontainer.internal.runtimes.compose.docker-compose")
+  elseif config.compose_command == "devcontainer-cli" then
+    return require("devcontainer.internal.runtimes.compose.devcontainer")
   end
   -- Default
   return require("devcontainer.internal.runtimes.compose.docker-compose")
