@@ -70,6 +70,7 @@ function M:build(file, path, opts)
   vim.list_extend(command, opts.args or {})
 
   local build_status = {
+    build_title = "Dockerfile: " .. file,
     progress = 0,
     step_count = 0,
     current_step = 0,

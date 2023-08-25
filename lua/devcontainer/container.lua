@@ -341,7 +341,7 @@ end
 function M.container_ls(opts)
   opts = opts or {}
   v.validate_callbacks(opts)
-  v.validate_opts(opts, { all = { "boolean", "nil" } })
+  v.validate_opts(opts, { all = { "boolean", "nil" }, async = { "boolean", "nil" } })
   opts.on_success = opts.on_success
     or function(containers)
       vim.notify("Containers: " .. table.concat(containers, ", "))

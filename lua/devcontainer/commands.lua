@@ -440,17 +440,55 @@ function M.docker_image_run(callback)
 end
 
 local function attach_to_container(data, container_id, command, on_success)
-  generate_exec_command_args(container_id, data, function(args)
+  local function attach()
+    generate_exec_command_args(container_id, data, function(args)
+      container_runtime.exec(container_id, {
+        tty = true,
+        command = command,
+        args = args,
+        on_success = on_success,
+        on_fail = function()
+          vim.notify("Attaching to container (" .. container_id .. ") failed!", vim.log.levels.ERROR)
+        end,
+      })
+    end)
+  end
+  if command == "nvim" then
     container_runtime.exec(container_id, {
-      tty = true,
-      command = command,
-      args = args,
-      on_success = on_success,
+      command = { "nvim", "--version" },
+      on_success = function()
+        attach()
+      end,
       on_fail = function()
-        vim.notify("Attaching to container (" .. container_id .. ") failed!", vim.log.levels.ERROR)
+        vim.notify("Neovim is not installed in the container. Installing it now.")
+        vim.ui.select({ "Yes", "No" }, {
+          prompt = "Neovim is not installed in the container. Would you like to install it now?",
+          format_item = function(item)
+            return item
+          end,
+        }, function(install_choice)
+          if install_choice == "Yes" then
+            nvim.add_neovim(container_id, {
+              on_success = function()
+                vim.ui.select({ "now", "later" }, {
+                  prompt = "Installing Neovim in the container done. Do you wish to attach now?",
+                  format_item = function(item)
+                    return "Attach " .. item
+                  end,
+                }, function(choice)
+                  if choice == "now" then
+                    attach()
+                  end
+                end)
+              end,
+            })
+          end
+        end)
       end,
     })
-  end)
+  else
+    attach()
+  end
 end
 
 local function get_compose_service_container_id(data, on_success)

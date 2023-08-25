@@ -68,7 +68,7 @@ function M.run_command(command, opts, onexit)
       handle_close(stderr)
       handle_close(handle)
 
-      if code > 0 then
+      if code > 0 and onexit == nil then
         vim.notify(
           "Process (pid: "
             .. pid

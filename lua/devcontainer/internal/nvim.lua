@@ -7,6 +7,7 @@ local M = {}
 
 local log = require("devcontainer.internal.log")
 local v = require("devcontainer.internal.validation")
+local status = require("devcontainer.status")
 local container_executor = require("devcontainer.internal.container_executor")
 
 ---@class AddNeovimOpts
@@ -35,10 +36,7 @@ function M.add_neovim(container_id, opts)
     end
   opts.on_step = opts.on_step
     or function(step)
-      vim.notify(
-        "Executed " .. table.concat(step, " ") .. " on container (" .. container_id .. ")!",
-        vim.log.levels.ERROR
-      )
+      vim.notify("Executed " .. table.concat(step, " ") .. " on container (" .. container_id .. ")!")
     end
 
   local version_string = opts.version
@@ -90,11 +88,35 @@ function M.add_neovim(container_id, opts)
     { "rm", "-rf", "/root/TMP" },
   }
 
-  container_executor.run_all_seq(
-    container_id,
-    commands,
-    { on_success = opts.on_success, on_step = opts.on_step, on_fail = opts.on_fail }
-  )
+  local build_status = {
+    build_title = "Adding neovim to: " .. container_id,
+    progress = 0,
+    step_count = #commands,
+    current_step = 0,
+    image_id = nil,
+    source_dockerfile = nil,
+    build_command = "nvim.add_neovim",
+    commands_run = {},
+    running = true,
+  }
+  local current_step = 0
+  status.add_build(build_status)
+
+  container_executor.run_all_seq(container_id, commands, {
+    on_success = function()
+      build_status.running = false
+      vim.api.nvim_exec_autocmds("User", { pattern = "DevcontainerBuildProgress", modeline = false })
+      opts.on_success()
+    end,
+    on_step = function(step)
+      current_step = current_step + 1
+      build_status.current_step = current_step
+      build_status.progress = math.floor((build_status.current_step / build_status.step_count) * 100)
+      vim.api.nvim_exec_autocmds("User", { pattern = "DevcontainerBuildProgress", modeline = false })
+      opts.on_step(step)
+    end,
+    on_fail = opts.on_fail,
+  })
 end
 
 log.wrap(M)

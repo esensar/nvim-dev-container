@@ -20,7 +20,7 @@ local M = {}
 ---@field container_id string id of the container
 ---@field image_id string id of the used image
 ---@field autoremove boolean true if this container was started with autoremove flag
---
+
 ---@class DevcontainerContainerQuery
 ---@field container_id? string id of the container
 ---@field image_id? string id of the used image
@@ -29,11 +29,12 @@ local M = {}
 ---@field file string path to compose file
 
 ---@class DevcontainerBuildStatus
+---@field build_title string description of the build
 ---@field progress number 0-100 percentage
 ---@field step_count number number of steps to build
 ---@field current_step number current step
 ---@field image_id? string id of the built image
----@field source_dockerfile string path to the file used to build the image
+---@field source_dockerfile? string path to the file used to build the image
 ---@field build_command string command used to build the image
 ---@field commands_run string list of commands run by build (layers)
 ---@field running boolean true if still running
