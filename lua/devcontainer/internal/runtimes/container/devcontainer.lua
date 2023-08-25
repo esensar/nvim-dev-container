@@ -41,6 +41,7 @@ end
 ---@param path string Path to the workspace
 ---@param opts ContainerBuildOpts Additional options including callbacks and tag
 function M:build(_, path, opts)
+  local _ = self
   local command = { "--workspace-folder", path, "build" }
   run_with_current_runtime(command, {}, function(code, _)
     if code == 0 then
@@ -55,6 +56,7 @@ end
 ---@param _ string image to run - ignored - using workspace folder
 ---@param opts ContainerRunOpts Additional options including callbacks
 function M:run(_, opts)
+  local _ = self
   local command = { "--workspace-folder", config.workspace_folder_provider(), "up" }
   run_with_current_runtime(command, {}, function(code, _)
     if code == 0 then
@@ -69,6 +71,7 @@ end
 ---@param _ string container to exec on - ignored - using workspace folder
 ---@param opts ContainerExecOpts Additional options including callbacks
 function M:exec(_, opts)
+  local _ = self
   local command = { "--workspace-folder", config.workspace_folder_provider(), "exec" }
   vim.list_extend(command, opts.args or {})
   local run_opts = nil
