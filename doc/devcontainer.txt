@@ -43,7 +43,7 @@ Then install via `:PlugInstall`
 
 Clone this repository and copy the files in plugin/, lua/, and doc/
 to their respective directories in your vimfiles, or copy the text from
-the github repository into new files in those directories. Make sure to
+the repository into new files in those directories. Make sure to
 run `:helptags`.
 
 USAGE                                            *devcontainer-usage*
