@@ -24,18 +24,18 @@ REQUIREMENTS                                     *devcontainer-requirements*
 
 INSTALLATION                                     *devcontainer-installation*
 
-1. Packer.nvim <https://github.com/wbthomason/packer.nvim>
+1. lazy.nvim <https://github.com/folke/lazy.nvim>
 
-Add the following to your packer setup: >
+Add the following to your lazy setup: >
 
-  use { 'esensar/nvim-dev-container' }
+  'https://codeberg.org/esensar/nvim-dev-container'
 <
 
 2. Plug <https://github.com/junegunn/vim-plug>
 
 Add the following to your vimrc, or something sourced therein: >
 
-  Plug 'esensar/nvim-dev-container'
+  Plug 'https://codeberg.org/esensar/nvim-dev-container'
 <
 Then install via `:PlugInstall`
 
@@ -953,14 +953,15 @@ DevcontainerComposeStatus
 DevcontainerBuildStatus
 
     Fields: ~
-        {progress}           (number)   0-100 percentage
-        {step_count}         (number)   number of steps to build
-        {current_step}       (number)   current step
-        {image_id?}          (string)   id of the built image
-        {source_dockerfile}  (string)   path to the file used to build the image
-        {build_command}      (string)   command used to build the image
-        {commands_run}       (string)   list of commands run by build (layers)
-        {running}            (boolean)  true if still running
+        {build_title}         (string)   description of the build
+        {progress}            (number)   0-100 percentage
+        {step_count}          (number)   number of steps to build
+        {current_step}        (number)   current step
+        {image_id?}           (string)   id of the built image
+        {source_dockerfile?}  (string)   path to the file used to build the image
+        {build_command}       (string)   command used to build the image
+        {commands_run}        (string)   list of commands run by build (layers)
+        {running}             (boolean)  true if still running
 
 
 DevcontainerStatus                      *devcontainer.status.DevcontainerStatus*

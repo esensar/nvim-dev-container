@@ -22,19 +22,19 @@ Goal of this plugin is to provide functionality similar to VSCode's [remote cont
 
 Install using favourite plugin manager.
 
-e.g. Using [Packer.nvim](https://github.com/wbthomason/packer.nvim)
+e.g. Using [lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua
-use {
+{
   'https://codeberg.org/esensar/nvim-dev-container',
-  requires = { 'nvim-treesitter/nvim-treesitter' }
+  dependencies = 'nvim-treesitter/nvim-treesitter'
 }
 ```
 
 or assuming `nvim-treesitter` is already available:
 
 ```lua
-use { 'https://codeberg.org/esensar/nvim-dev-container' }
+{ 'https://codeberg.org/esensar/nvim-dev-container' }
 ```
 
 ## Usage
