@@ -147,6 +147,7 @@ function M.add_container(container_status)
   local existing = get_container({ container_id = container_status.container_id })
   if existing then
     existing.autoremove = container_status.autoremove
+    existing.image_id = container_status.image_id
     M.move_container_to_running(container_status.container_id)
   else
     table.insert(current_status.running_containers, container_status)

@@ -102,6 +102,9 @@ It is possible to override some of the functionality of the plugin with options 
     -- in that case only .devcontainer.json and .devcontainer/devcontainer.json files will be checked relative
     -- to the directory provided by config_search_start
     disable_recursive_config_search = false,
+    -- can be set to false to disable image caching when adding neovim
+    -- by default it is set to true to make attaching to containers faster after first time
+    cache_images = true,
     -- By default all mounts are added (config, data and state)
     -- This can be changed to disable mounts or change their options
     -- This can be useful to mount local configuration
@@ -607,6 +610,14 @@ M.disable_recursive_config_search
         (boolean)
 
 
+M.cache_images                                *devcontainer.config.cache_images*
+    Flag to enable image caching after adding neovim - to make further attaching faster
+    True by default
+
+    Type: ~
+        (boolean)
+
+
                                 *devcontainer.config.devcontainer_json_template*
 M.devcontainer_json_template
     Provides template for creating new .devcontainer.json files
@@ -783,6 +794,54 @@ M.container_stop({opts})                 *devcontainer.container.container_stop*
 <
 
 
+                                    *devcontainer.container.ContainerCommitOpts*
+ContainerCommitOpts
+
+    Fields: ~
+        {tag}  (string)
+
+
+M.container_commit({container}, {opts})*devcontainer.container.container_commit*
+    Commits passed container
+
+    Parameters: ~
+        {container}  (string)               id of containers to commit
+        {opts}       (ContainerCommitOpts)  Additional options including callbacks
+
+    Usage: ~
+>lua
+        require("devcontainer.container").container_commit(
+          "some_id",
+          { tag = "my_image", on_success = function() end, on_fail = function() end }
+        )
+<
+
+
+ImageContainsOpts                     *devcontainer.container.ImageContainsOpts*
+
+    Fields: ~
+        {on_success?}  (function)
+
+
+                                         *devcontainer.container.image_contains*
+M.image_contains({parent_image}, {child_image}, {opts})
+    Checks if image contains another image
+
+    Parameters: ~
+        {parent_image}  (string)             id of image that should contain other image
+        {child_image}   (string)             id of image that should be contained in the parent image
+        {opts}          (ImageContainsOpts)  Additional options including callbacks
+
+    Usage: ~
+>lua
+        require("devcontainer.container").image_contains(
+          "some_id",
+          "some_other_id",
+          { on_success = function() end, on_fail = function() end }
+        )
+<
+
+
 ImageRmOpts                                 *devcontainer.container.ImageRmOpts*
 
     Fields: ~
@@ -890,6 +949,7 @@ DevcontainerSetupOpts                       *devcontainer.DevcontainerSetupOpts*
         {container_env?}                    (table)                        can be used to override containerEnv for all started containers
         {remote_env?}                       (table)                        can be used to override remoteEnv when attaching to containers
         {disable_recursive_config_search?}  (boolean)                      can be used to disable recursive .devcontainer search
+        {cache_images?}                     (boolean)                      can be used to cache images after adding neovim - true by default
         {attach_mounts?}                    (AttachMountsOpts)             can be used to configure mounts when adding neovim to containers
         {always_mount?}                     (table)
 
@@ -1042,6 +1102,10 @@ This plugin also provides autocmd events:
 *DevcontainerContainerStopped*
   Emitted when a container is stopped with this plugin. Passes a table in `data`
   with `container_id`.
+
+*DevcontainerContainerCommitted*
+  Emitted when a container is committed with this plugin. Passes a table in `data`
+  with `container_id` and `tag`.
 
 *DevcontainerContainerRemoved*
   Emitted when a container is removed with this plugin. Passes a table in `data`

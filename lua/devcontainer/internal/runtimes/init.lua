@@ -157,6 +157,25 @@ function M.container.container_stop(containers, opts)
   end)
 end
 
+---Commit passed container
+---@param container string id of container to commit
+---@param opts ContainerCommitOpts Additional options including callbacks
+function M.container.container_commit(container, opts)
+  return run_with_container("container_commit", function(instance, func)
+    func(instance, container, opts)
+  end)
+end
+
+---Checks if image contains another image
+---@param parent_image string id of image that should contain other image
+---@param child_image string id of image that should be contained in the parent image
+---@param opts ImageContainsOpts Additional options including callbacks
+function M.container.image_contains(parent_image, child_image, opts)
+  return run_with_container("image_contains", function(instance, func)
+    func(instance, parent_image, child_image, opts)
+  end)
+end
+
 ---Removes passed images
 ---@param images table[string] ids of images to remove
 ---@param opts ImageRmOpts Additional options including callbacks

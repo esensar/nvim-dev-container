@@ -576,36 +576,60 @@ local function run_lifecycle_host_command(host_command)
   end
 end
 
+local function run_image_with_cache(data, image_id, attach, add_neovim, on_success)
+  local function run_and_attach(image)
+    container_runtime.run(image, {
+      args = generate_run_command_args(data),
+      command = generate_image_run_command(data),
+      on_success = function(container_id)
+        -- Update image_id to original ID for later retrieval
+        local container = status.find_container({ image_id = image })
+        container.image_id = image_id
+        status.add_container(container)
+        run_docker_lifecycle_scripts(data, container_id)
+        local attach_and_notify = function()
+          run_lifecycle_host_command(data.postStartCommand)
+          if attach then
+            attach_to_container(data, container_id, "nvim", function()
+              on_success(data, image, container_id)
+            end)
+          else
+            on_success(data, image, container_id)
+          end
+        end
+        if add_neovim then
+          nvim.add_neovim(container_id, {
+            on_success = attach_and_notify,
+          })
+        else
+          attach_and_notify()
+        end
+      end,
+      on_fail = function()
+        vim.notify("Running built image (" .. image_id .. ") failed!", vim.log.levels.ERROR)
+      end,
+    })
+  end
+  local tag = u.get_image_cache_tag()
+  container_runtime.image_contains(image_id, tag, {
+    on_success = function(contains)
+      if contains then
+        run_and_attach(tag)
+      else
+        run_and_attach(image_id)
+      end
+    end,
+    on_fail = function()
+      run_and_attach(image_id)
+    end,
+  })
+end
+
 local function spawn_docker_build_and_run(data, on_success, add_neovim, attach)
   container_runtime.build(data.build.dockerfile, data.build.context, {
     args = generate_build_command_args(data),
     on_success = function(image_id)
-      container_runtime.run(image_id, {
-        args = generate_run_command_args(data),
-        command = generate_image_run_command(data),
-        on_success = function(container_id)
-          run_docker_lifecycle_scripts(data, container_id)
-          local attach_and_notify = function()
-            if attach then
-              attach_to_container(data, container_id, "nvim", function()
-                on_success(data, image_id, container_id)
-              end)
-            else
-              on_success(data, image_id, container_id)
-            end
-          end
-          if add_neovim then
-            nvim.add_neovim(container_id, {
-              on_success = attach_and_notify,
-            })
-          else
-            attach_and_notify()
-          end
-        end,
-        on_fail = function()
-          vim.notify("Running built image (" .. image_id .. ") failed!", vim.log.levels.ERROR)
-        end,
-      })
+      run_image_with_cache(data, image_id, attach, add_neovim, on_success)
     end,
     on_fail = function()
       vim.notify("Building image from (" .. data.build.dockerfile .. ") failed!", vim.log.levels.ERROR)
@@ -700,26 +724,13 @@ function M.start_auto(callback, attach)
 
     if data.build.dockerfile then
       vim.notify("Found dockerfile definition. Running docker build and run...")
-      spawn_docker_build_and_run(data, function()
-        run_lifecycle_host_command(data.postStartCommand)
-        on_success(data)
-      end, attach, attach)
+      spawn_docker_build_and_run(data, on_success, attach, attach)
       return
     end
 
     if data.image then
       vim.notify("Found image definition. Running docker run...")
-      container_runtime.run(data.image, {
-        args = generate_run_command_args(data),
-        command = generate_image_run_command(data),
-        on_success = function(_)
-          run_lifecycle_host_command(data.postStartCommand)
-          on_success(data)
-        end,
-        on_fail = function()
-          vim.notify("Running image " .. data.image .. " failed!", vim.log.levels.ERROR)
-        end,
-      })
+      run_image_with_cache(data, data.image, attach, attach, on_success)
       return
     end
   end)

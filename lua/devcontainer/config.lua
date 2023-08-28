@@ -99,6 +99,11 @@ M.config_search_start = default_config_search_start
 ---@type boolean
 M.disable_recursive_config_search = false
 
+---Flag to enable image caching after adding neovim - to make further attaching faster
+---True by default
+---@type boolean
+M.cache_images = true
+
 ---Provides template for creating new .devcontainer.json files
 ---This function should return a table listing lines of the file
 ---@type function

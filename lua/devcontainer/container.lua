@@ -225,10 +225,9 @@ function M.container_stop(containers, opts)
   })
   opts = opts or {}
   v.validate_callbacks(opts)
-  opts.on_success = opts.on_success or function()
+  local user_on_success = opts.on_success or function()
     vim.notify("Successfully stopped containers!")
   end
-  local user_on_success = opts.on_success
   opts.on_success = function()
     for _, container_id in ipairs(containers) do
       vim.api.nvim_exec_autocmds(
@@ -243,6 +242,84 @@ function M.container_stop(containers, opts)
   end
 
   runtimes.container.container_stop(containers, opts)
+end
+
+---@class ContainerCommitOpts
+---@field tag string? image tag to use for commit
+---@field on_success? function() success callback
+---@field on_fail? function() failure callback
+
+---Commits passed container
+---@param container string id of containers to commit
+---@param opts ContainerCommitOpts Additional options including callbacks
+---@usage [[
+---require("devcontainer.container").container_commit(
+---  "some_id",
+---  { tag = "my_image", on_success = function() end, on_fail = function() end }
+---)
+---@usage ]]
+function M.container_commit(container, opts)
+  vim.validate({
+    container = { container, "string" },
+  })
+  opts = opts or {}
+  v.validate_callbacks(opts)
+  v.validate_opts(opts, { tag = { "string", "nil" } })
+  local user_on_success = opts.on_success
+    or function()
+      vim.notify("Successfully committed container " .. container .. " to tag " .. opts.tag .. "!")
+    end
+  opts.on_success = function()
+    vim.api.nvim_exec_autocmds("User", {
+      pattern = "DevcontainerContainerCommitted",
+      modeline = false,
+      data = { container_id = container, tag = opts.tag },
+    })
+    user_on_success()
+  end
+  opts.on_fail = opts.on_fail
+    or function()
+      vim.notify("Committing container " .. container .. " failed!", vim.log.levels.ERROR)
+    end
+
+  runtimes.container.container_commit(container, opts)
+end
+
+---@class ImageContainsOpts
+---@field on_success? function() success callback
+---@field on_fail? function() failure callback
+
+---Checks if image contains another image
+---@param parent_image string id of image that should contain other image
+---@param child_image string id of image that should be contained in the parent image
+---@param opts ImageContainsOpts Additional options including callbacks
+---@usage [[
+---require("devcontainer.container").image_contains(
+---  "some_id",
+---  "some_other_id",
+---  { on_success = function() end, on_fail = function() end }
+---)
+---@usage ]]
+function M.image_contains(parent_image, child_image, opts)
+  vim.validate({
+    parent_image = { parent_image, "string" },
+    child_image = { child_image, "string" },
+  })
+  opts = opts or {}
+  v.validate_callbacks(opts)
+  opts.on_success = opts.on_success
+    or function(contains)
+      vim.notify("Result of image_contains(" .. parent_image .. ", " .. child_image .. ") is " .. contains .. "!")
+    end
+  opts.on_fail = opts.on_fail
+    or function()
+      vim.notify(
+        "Checking if image " .. parent_image .. " conains image " .. child_image .. " has failed!",
+        vim.log.levels.ERROR
+      )
+    end
+
+  runtimes.container.image_contains(parent_image, child_image, opts)
 end
 
 ---@class ImageRmOpts

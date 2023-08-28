@@ -1,3 +1,5 @@
+local plugin_config = require("devcontainer.config")
+
 local M = {}
 
 M.path_sep = package.config:sub(1, 1)
@@ -14,6 +16,12 @@ function M.add_constructor(table)
     return new_instance
   end
   return table
+end
+
+function M.get_image_cache_tag()
+  local tag = plugin_config.workspace_folder_provider()
+  tag = string.gsub(tag, "[%/%s%-]", "")
+  return "nvim_dev_container_" .. string.lower(tag)
 end
 
 return M

@@ -7,8 +7,11 @@ local M = {}
 
 local log = require("devcontainer.internal.log")
 local v = require("devcontainer.internal.validation")
+local u = require("devcontainer.internal.utils")
 local status = require("devcontainer.status")
+local config = require("devcontainer.config")
 local container_executor = require("devcontainer.internal.container_executor")
+local container_runtime = require("devcontainer.container")
 
 ---@class AddNeovimOpts
 ---@field on_success? function() success callback
@@ -106,6 +109,12 @@ function M.add_neovim(container_id, opts)
     on_success = function()
       build_status.running = false
       vim.api.nvim_exec_autocmds("User", { pattern = "DevcontainerBuildProgress", modeline = false })
+      if config.cache_images then
+        local tag = u.get_image_cache_tag()
+        container_runtime.container_commit(container_id, {
+          tag = tag,
+        })
+      end
       opts.on_success()
     end,
     on_step = function(step)

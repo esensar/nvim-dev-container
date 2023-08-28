@@ -31,6 +31,7 @@ local configured = false
 ---@field container_env? table can be used to override containerEnv for all started containers
 ---@field remote_env? table can be used to override remoteEnv when attaching to containers
 ---@field disable_recursive_config_search? boolean can be used to disable recursive .devcontainer search
+---@field cache_images? boolean can be used to cache images after adding neovim - true by default
 ---@field attach_mounts? AttachMountsOpts can be used to configure mounts when adding neovim to containers
 ---@field always_mount? table[table|string] list of mounts to add to every container
 ---@field container_runtime? string container runtime to use ("docker", "podman", "devcontainer-cli")
@@ -61,6 +62,7 @@ function M.setup(opts)
     container_env = "table",
     remote_env = "table",
     disable_recursive_config_search = "boolean",
+    cache_images = "boolean",
     attach_mounts = "table",
     always_mount = function(t)
       return t == nil or vim.tbl_islist(t)
@@ -111,6 +113,9 @@ function M.setup(opts)
   config.attach_mounts = opts.attach_mounts or config.attach_mounts
   config.disable_recursive_config_search = opts.disable_recursive_config_search
     or config.disable_recursive_config_search
+  if opts.cache_images ~= nil then
+    config.cache_images = opts.cache_images
+  end
   if vim.env.NVIM_DEVCONTAINER_DEBUG then
     config.log_level = "trace"
   else

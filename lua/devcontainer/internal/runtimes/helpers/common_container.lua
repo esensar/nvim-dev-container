@@ -229,6 +229,21 @@ function M:container_stop(containers, opts)
   end)
 end
 
+---Commit container into an image
+---@param container string id of container to commit
+---@param opts ContainerCommitOpts Additional options including callbacks
+function M:container_commit(container, opts)
+  local command = { "commit", container, opts.tag }
+
+  run_with_current_runtime(self, command, nil, function(code, _)
+    if code == 0 then
+      opts.on_success()
+    else
+      opts.on_fail()
+    end
+  end)
+end
+
 ---Removes passed images
 ---@param images table[string] ids of images to remove
 ---@param opts ImageRmOpts Additional options including callbacks
@@ -248,6 +263,82 @@ function M:image_rm(images, opts)
       opts.on_success()
     else
       opts.on_fail()
+    end
+  end)
+end
+
+---Checks if image contains another image
+---@param parent_image string id of image that should contain other image
+---@param child_image string id of image that should be contained in the parent image
+---@param opts ImageContainsOpts Additional options including callbacks
+function M:image_contains(parent_image, child_image, opts)
+  local parent_command = { "image", "inspect", parent_image, "--format", "{{.RootFS.Layers}}" }
+  local child_command = { "image", "inspect", child_image, "--format", "{{.RootFS.Layers}}" }
+  local notified_error = false
+  local notified_success = false
+  local parent_done = false
+  local parent_layers = {}
+  local child_done = false
+  local child_layers = {}
+
+  local function parse_layers(data)
+    if data then
+      local cleaned = string.gsub(data, "[%[%]]", "")
+      return vim.split(cleaned, " ")
+    else
+      return {}
+    end
+  end
+
+  local function notify_error()
+    if not notified_error then
+      notified_error = true
+      opts.on_fail()
+    end
+  end
+
+  local function notify_success()
+    if parent_done and child_done and not notified_success then
+      notified_success = true
+      for _, v in ipairs(child_layers) do
+        local contains = false
+        for _, pv in ipairs(parent_layers) do
+          if v == pv then
+            contains = true
+            break
+          end
+        end
+        if not contains then
+          opts.on_success(false)
+          return
+        end
+      end
+      opts.on_success(true)
+    end
+  end
+
+  run_with_current_runtime(self, parent_command, {
+    stdout = function(_, data)
+      parent_layers = parse_layers(data)
+    end,
+  }, function(code, _)
+    if code == 0 then
+      parent_done = true
+      notify_success()
+    else
+      notify_error()
+    end
+  end)
+  run_with_current_runtime(self, child_command, {
+    stdout = function(_, data)
+      child_layers = parse_layers(data)
+    end,
+  }, function(code, _)
+    if code == 0 then
+      child_done = true
+      notify_success()
+    else
+      notify_error()
     end
   end)
 end

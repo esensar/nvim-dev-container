@@ -95,6 +95,9 @@ require("devcontainer").setup {
   -- in that case only .devcontainer.json and .devcontainer/devcontainer.json files will be checked relative
   -- to the directory provided by config_search_start
   disable_recursive_config_search = false,
+  -- can be set to false to disable image caching when adding neovim
+  -- by default it is set to true to make attaching to containers faster after first time
+  cache_images = true,
   -- By default all mounts are added (config, data and state)
   -- This can be changed to disable mounts or change their options
   -- This can be useful to mount local configuration
