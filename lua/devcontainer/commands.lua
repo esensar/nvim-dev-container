@@ -554,7 +554,7 @@ local function run_lifecycle_host_command(host_command)
     local command = host_command
     if vim.tbl_islist(command) then
       command = command[1]
-      args = { table.unpack(host_command, 2) }
+      args = { unpack(host_command, 2) }
     elseif type(command) == "table" then
       -- Dealing with object type
       for _, v in ipairs(command) do
