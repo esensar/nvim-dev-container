@@ -101,6 +101,7 @@ local function find_nearest_devcontainer_file_async(callback)
   local function recur_dir(err, data)
     if err or data == nil or data.ino == last_ino or config.disable_recursive_config_search then
       callback("No devcontainer files found!", nil)
+      return
     end
     last_ino = data.ino
     local files = { ".devcontainer.json", ".devcontainer" .. u.path_sep .. "devcontainer.json" }
