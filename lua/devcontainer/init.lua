@@ -267,9 +267,9 @@ function M.setup(opts)
       local function auto_start()
         parse.find_nearest_devcontainer_config(function(err, data)
           if err == nil and data ~= nil then
-            if data ~= last_devcontainer_file then
+            if vim.loop.fs_realpath(data) ~= last_devcontainer_file then
               commands.start_auto()
-              last_devcontainer_file = data
+              last_devcontainer_file = vim.loop.fs_realpath(data)
             end
           end
         end)
