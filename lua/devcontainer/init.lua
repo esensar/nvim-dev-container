@@ -16,7 +16,7 @@ local cmdline = require("devcontainer.internal.cmdline")
 local configured = false
 
 ---@class DevcontainerAutocommandOpts
----@field init? boolean set to true to enable automatic devcontainer start
+---@field init? boolean|string set to true (or "ask" to prompt before stating) to enable automatic devcontainer start
 ---@field clean? boolean set to true to enable automatic devcontainer stop and clean
 ---@field update? boolean set to true to enable automatic devcontainer update when config file is changed
 
@@ -70,7 +70,7 @@ function M.setup(opts)
   })
   if opts.autocommands then
     v.validate_deep(opts.autocommands, "opts.autocommands", {
-      init = "boolean",
+      init = { "boolean", "string" },
       clean = "boolean",
       update = "boolean",
     })
@@ -265,14 +265,27 @@ function M.setup(opts)
       local last_devcontainer_file = nil
 
       local function auto_start()
-        parse.find_nearest_devcontainer_config(function(err, data)
+        parse.find_nearest_devcontainer_config(vim.schedule_wrap(function(err, data)
           if err == nil and data ~= nil then
             if vim.loop.fs_realpath(data) ~= last_devcontainer_file then
-              commands.start_auto()
-              last_devcontainer_file = vim.loop.fs_realpath(data)
+              if opts.autocommands.init == "ask" then
+                vim.ui.select(
+                  { "Yes", "No" },
+                  { prompt = "Devcontainer file found! Would you like to start the container?" },
+                  function(choice)
+                    if choice == "Yes" then
+                      commands.start_auto()
+                      last_devcontainer_file = vim.loop.fs_realpath(data)
+                    end
+                  end
+                )
+              else
+                commands.start_auto()
+                last_devcontainer_file = vim.loop.fs_realpath(data)
+              end
             end
           end
-        end)
+        end))
       end
 
       vim.api.nvim_create_autocmd("BufEnter", {

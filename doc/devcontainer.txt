@@ -89,7 +89,7 @@ It is possible to override some of the functionality of the plugin with options 
     -- By default no autocommands are generated
     -- This option can be used to configure automatic starting and cleaning of containers
     autocommands = {
-      -- can be set to true to automatically start containers when devcontainer.json is available
+      -- can be set to true (or "ask") to automatically start containers when devcontainer.json is available - if set to "ask", it will prompt before starting
       init = false,
       -- can be set to true to automatically remove any started containers and any built images when exiting vim
       clean = false,
@@ -931,9 +931,9 @@ Provides setup function
 DevcontainerAutocommandOpts           *devcontainer.DevcontainerAutocommandOpts*
 
     Fields: ~
-        {init?}    (boolean)  set to true to enable automatic devcontainer start
-        {clean?}   (boolean)  set to true to enable automatic devcontainer stop and clean
-        {update?}  (boolean)  set to true to enable automatic devcontainer update when config file is changed
+        {init?}    (boolean|string)  set to true (or "ask") to enable automatic devcontainer start - if set to "ask", it will prompt before starting
+        {clean?}   (boolean)         set to true to enable automatic devcontainer stop and clean
+        {update?}  (boolean)         set to true to enable automatic devcontainer update when config file is changed
 
 
 DevcontainerSetupOpts                       *devcontainer.DevcontainerSetupOpts*
