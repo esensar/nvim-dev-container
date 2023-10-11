@@ -42,89 +42,68 @@ function M.add_neovim(container_id, opts)
       vim.notify("Executed " .. table.concat(step, " ") .. " on container (" .. container_id .. ")!")
     end
 
+  local function run_commands(commands)
+    local build_status = {
+      build_title = "Adding neovim to: " .. container_id,
+      progress = 0,
+      step_count = #commands,
+      current_step = 0,
+      image_id = nil,
+      source_dockerfile = nil,
+      build_command = "nvim.add_neovim",
+      commands_run = {},
+      running = true,
+    }
+    local current_step = 0
+    status.add_build(build_status)
+
+    container_executor.run_all_seq(container_id, commands, {
+      on_success = function()
+        build_status.running = false
+        vim.api.nvim_exec_autocmds("User", { pattern = "DevcontainerBuildProgress", modeline = false })
+        if config.cache_images then
+          local tag = u.get_image_cache_tag()
+          container_runtime.container_commit(container_id, {
+            tag = tag,
+          })
+        end
+        opts.on_success()
+      end,
+      on_step = function(step)
+        current_step = current_step + 1
+        build_status.current_step = current_step
+        build_status.progress = math.floor((build_status.current_step / build_status.step_count) * 100)
+        vim.api.nvim_exec_autocmds("User", { pattern = "DevcontainerBuildProgress", modeline = false })
+        opts.on_step(step)
+      end,
+      on_fail = opts.on_fail,
+    })
+  end
+
   local version_string = opts.version
   if not version_string then
     local version = vim.version()
     version_string = "v" .. version.major .. "." .. version.minor .. "." .. version.patch
   end
-  local commands = {
-    {
-      "apt-get",
-      "update",
-    },
-    {
-      "apt-get",
-      "-y",
-      "install",
-      "curl",
-      "fzf",
-      "ripgrep",
-      "tree",
-      "git",
-      "xclip",
-      "python3",
-      "python3-pip",
-      "python3-pynvim",
-      "nodejs",
-      "npm",
-      "tzdata",
-      "ninja-build",
-      "gettext",
-      "libtool",
-      "libtool-bin",
-      "autoconf",
-      "automake",
-      "cmake",
-      "g++",
-      "pkg-config",
-      "zip",
-      "unzip",
-    },
-    { "npm", "i", "-g", "neovim" },
-    { "mkdir", "-p", "/root/TMP" },
-    { "sh", "-c", "cd /root/TMP && git clone https://github.com/neovim/neovim" },
-    {
-      "sh",
-      "-c",
-      "cd /root/TMP/neovim && (git checkout " .. version_string .. " || true) && make -j4 && make install",
-    },
-    { "rm", "-rf", "/root/TMP" },
-  }
-
-  local build_status = {
-    build_title = "Adding neovim to: " .. container_id,
-    progress = 0,
-    step_count = #commands,
-    current_step = 0,
-    image_id = nil,
-    source_dockerfile = nil,
-    build_command = "nvim.add_neovim",
-    commands_run = {},
-    running = true,
-  }
-  local current_step = 0
-  status.add_build(build_status)
-
-  container_executor.run_all_seq(container_id, commands, {
-    on_success = function()
-      build_status.running = false
-      vim.api.nvim_exec_autocmds("User", { pattern = "DevcontainerBuildProgress", modeline = false })
-      if config.cache_images then
-        local tag = u.get_image_cache_tag()
-        container_runtime.container_commit(container_id, {
-          tag = tag,
-        })
+  container_runtime.exec(container_id, {
+    command = { "compgen", "-c" },
+    on_success = function(result)
+      local available_commands = {}
+      if result then
+        local result_lines = vim.split(result, "\n")
+        for _, line in ipairs(result_lines) do
+          if v then
+            table.insert(available_commands, line)
+          end
+        end
       end
-      opts.on_success()
+      local commands = config.nvim_installation_commands_provider(available_commands, version_string)
+      run_commands(commands)
     end,
-    on_step = function(step)
-      current_step = current_step + 1
-      build_status.current_step = current_step
-      build_status.progress = math.floor((build_status.current_step / build_status.step_count) * 100)
-      vim.api.nvim_exec_autocmds("User", { pattern = "DevcontainerBuildProgress", modeline = false })
-      opts.on_step(step)
+    on_fail = function()
+      local commands = config.nvim_installation_commands_provider({}, version_string)
+      run_commands(commands)
     end,
-    on_fail = opts.on_fail,
   })
 end
 

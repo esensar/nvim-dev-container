@@ -25,6 +25,7 @@ local configured = false
 ---@field workspace_folder_provider? function provides current workspace folder
 ---@field terminal_handler? function handles terminal command requests, useful for floating terminals and similar
 ---@field devcontainer_json_template? function provides template for new .devcontainer.json files - returns table
+---@field nvim_installation_commands_provider? function provides table of commands for installing neovim in container
 ---@field generate_commands? boolean can be set to false to prevent plugin from creating commands (true by default)
 ---@field autocommands? DevcontainerAutocommandOpts can be set to enable autocommands, disabled by default
 ---@field log_level? LogLevel can be used to override library logging level
@@ -56,6 +57,7 @@ function M.setup(opts)
     workspace_folder_provider = "function",
     terminal_handler = "function",
     devcontainer_json_template = "function",
+    nvim_installation_commands_provider = "function",
     generate_commands = "boolean",
     autocommands = "table",
     log_level = "string",
@@ -107,6 +109,8 @@ function M.setup(opts)
 
   config.terminal_hander = opts.terminal_handler or config.terminal_handler
   config.devcontainer_json_template = opts.devcontainer_json_template or config.devcontainer_json_template
+  config.nvim_installation_commands_provider = opts.nvim_installation_commands_provider
+    or config.nvim_installation_commands_provider
   config.workspace_folder_provider = opts.workspace_folder_provider or config.workspace_folder_provider
   config.config_search_start = opts.config_search_start or config.config_search_start
   config.always_mount = opts.always_mount or config.always_mount

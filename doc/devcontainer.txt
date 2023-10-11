@@ -72,11 +72,10 @@ It is possible to override some of the functionality of the plugin with options 
       -- It also removes statusline when that tab is active, to prevent double statusline
       -- It can be overridden to provide custom terminal handling
     end,
-    nvim_dockerfile_template = function(base_image)
-      -- Takes base_image and returns string, which should be used as a Dockerfile
-      -- This is used when adding neovim to existing images
-      -- Check out default implementation in lua/devcontainer/config.lua
-      -- It installs neovim version based on current version
+    nvim_installation_commands_provider = function(path_binaries, version_string)
+      -- Returns table - list of commands to run when adding neovim to container
+      -- Each command can either be a string or a table (list of command parts)
+      -- Takes binaries available in path on current container and version_string passed to the command or current version of neovim
     end,
     devcontainer_json_template = function()
       -- Returns table - list of lines to set when creating new devcontainer.json files
@@ -618,6 +617,17 @@ M.cache_images                                *devcontainer.config.cache_images*
         (boolean)
 
 
+                       *devcontainer.config.nvim_installation_commands_provider*
+M.nvim_installation_commands_provider
+    Provides commands for adding neovim to container
+    This function should return a table listing commands to run - each command should eitehr be a table or a string
+    It takes a list of executables available in the container, to decide
+    which package manager to use and also version string with current neovim version
+
+    Type: ~
+        (function)
+
+
                                 *devcontainer.config.devcontainer_json_template*
 M.devcontainer_json_template
     Provides template for creating new .devcontainer.json files
@@ -931,7 +941,7 @@ Provides setup function
 DevcontainerAutocommandOpts           *devcontainer.DevcontainerAutocommandOpts*
 
     Fields: ~
-        {init?}    (boolean|string)  set to true (or "ask") to enable automatic devcontainer start - if set to "ask", it will prompt before starting
+        {init?}    (boolean|string)  set to true (or "ask" to prompt before stating) to enable automatic devcontainer start
         {clean?}   (boolean)         set to true to enable automatic devcontainer stop and clean
         {update?}  (boolean)         set to true to enable automatic devcontainer update when config file is changed
 
@@ -939,19 +949,20 @@ DevcontainerAutocommandOpts           *devcontainer.DevcontainerAutocommandOpts*
 DevcontainerSetupOpts                       *devcontainer.DevcontainerSetupOpts*
 
     Fields: ~
-        {config_search_start?}              (function)                     provides starting point for .devcontainer.json search
-        {workspace_folder_provider?}        (function)                     provides current workspace folder
-        {terminal_handler?}                 (function)                     handles terminal command requests, useful for floating terminals and similar
-        {devcontainer_json_template?}       (function)                     provides template for new .devcontainer.json files - returns table
-        {generate_commands?}                (boolean)                      can be set to false to prevent plugin from creating commands (true by default)
-        {autocommands?}                     (DevcontainerAutocommandOpts)  can be set to enable autocommands, disabled by default
-        {log_level?}                        (LogLevel)                     can be used to override library logging level
-        {container_env?}                    (table)                        can be used to override containerEnv for all started containers
-        {remote_env?}                       (table)                        can be used to override remoteEnv when attaching to containers
-        {disable_recursive_config_search?}  (boolean)                      can be used to disable recursive .devcontainer search
-        {cache_images?}                     (boolean)                      can be used to cache images after adding neovim - true by default
-        {attach_mounts?}                    (AttachMountsOpts)             can be used to configure mounts when adding neovim to containers
-        {always_mount?}                     (table)
+        {config_search_start?}                  (function)                     provides starting point for .devcontainer.json search
+        {workspace_folder_provider?}            (function)                     provides current workspace folder
+        {terminal_handler?}                     (function)                     handles terminal command requests, useful for floating terminals and similar
+        {devcontainer_json_template?}           (function)                     provides template for new .devcontainer.json files - returns table
+        {nvim_installation_commands_provider?}  (function)                     provides table of commands for installing neovim in container, depending on available binaries in the path and version provided to the command
+        {generate_commands?}                    (boolean)                      can be set to false to prevent plugin from creating commands (true by default)
+        {autocommands?}                         (DevcontainerAutocommandOpts)  can be set to enable autocommands, disabled by default
+        {log_level?}                            (LogLevel)                     can be used to override library logging level
+        {container_env?}                        (table)                        can be used to override containerEnv for all started containers
+        {remote_env?}                           (table)                        can be used to override remoteEnv when attaching to containers
+        {disable_recursive_config_search?}      (boolean)                      can be used to disable recursive .devcontainer search
+        {cache_images?}                         (boolean)                      can be used to cache images after adding neovim - true by default
+        {attach_mounts?}                        (AttachMountsOpts)             can be used to configure mounts when adding neovim to containers
+        {always_mount?}                         (table)
 
 
 M.setup({opts?})                                            *devcontainer.setup*

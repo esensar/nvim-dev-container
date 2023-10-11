@@ -65,11 +65,10 @@ require("devcontainer").setup {
     -- It also removes statusline when that tab is active, to prevent double statusline
     -- It can be overridden to provide custom terminal handling
   end,
-  nvim_dockerfile_template = function(base_image)
-    -- Takes base_image and returns string, which should be used as a Dockerfile
-    -- This is used when adding neovim to existing images
-    -- Check out default implementation in lua/devcontainer/config.lua
-    -- It installs neovim version based on current version
+  nvim_installation_commands_provider = function(path_binaries, version_string)
+    -- Returns table - list of commands to run when adding neovim to container
+    -- Each command can either be a string or a table (list of command parts)
+    -- Takes binaries available in path on current container and version_string passed to the command or current version of neovim
   end,
   devcontainer_json_template = function()
     -- Returns table - list of lines to set when creating new devcontainer.json files

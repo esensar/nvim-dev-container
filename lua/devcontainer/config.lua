@@ -51,6 +51,52 @@ local function default_config_search_start()
   return vim.loop.cwd()
 end
 
+local function default_nvim_installation_commands_provider(_, version_string)
+  return {
+    {
+      "apt-get",
+      "update",
+    },
+    {
+      "apt-get",
+      "-y",
+      "install",
+      "curl",
+      "fzf",
+      "ripgrep",
+      "tree",
+      "git",
+      "xclip",
+      "python3",
+      "python3-pip",
+      "python3-pynvim",
+      "nodejs",
+      "npm",
+      "tzdata",
+      "ninja-build",
+      "gettext",
+      "libtool",
+      "libtool-bin",
+      "autoconf",
+      "automake",
+      "cmake",
+      "g++",
+      "pkg-config",
+      "zip",
+      "unzip",
+    },
+    { "npm", "i", "-g", "neovim" },
+    { "mkdir", "-p", "/root/TMP" },
+    { "sh", "-c", "cd /root/TMP && git clone https://github.com/neovim/neovim" },
+    {
+      "sh",
+      "-c",
+      "cd /root/TMP/neovim && (git checkout " .. version_string .. " || true) && make -j4 && make install",
+    },
+    { "rm", "-rf", "/root/TMP" },
+  }
+end
+
 local function default_devcontainer_json_template()
   return {
     "{",
@@ -103,6 +149,13 @@ M.disable_recursive_config_search = false
 ---True by default
 ---@type boolean
 M.cache_images = true
+
+---Provides commands for adding neovim to container
+---This function should return a table listing commands to run - each command should eitehr be a table or a string
+---It takes a list of executables available in the container, to decide
+---which package manager to use and also version string with current neovim version
+---@type function
+M.nvim_installation_commands_provider = default_nvim_installation_commands_provider
 
 ---Provides template for creating new .devcontainer.json files
 ---This function should return a table listing lines of the file
