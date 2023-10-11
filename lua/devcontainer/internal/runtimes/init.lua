@@ -113,7 +113,7 @@ M.container = {}
 ---@param opts ContainerPullOpts Additional options including callbacks
 function M.container.pull(image, opts)
   return run_with_container("pull", function(instance, func)
-    func(instance, image, opts)
+    return func(instance, image, opts)
   end)
 end
 
@@ -123,7 +123,7 @@ end
 ---@param opts ContainerBuildOpts Additional options including callbacks and tag
 function M.container.build(file, path, opts)
   return run_with_container("build", function(instance, func)
-    func(instance, file, path, opts)
+    return func(instance, file, path, opts)
   end)
 end
 
@@ -133,7 +133,7 @@ end
 ---@param opts ContainerRunOpts Additional options including callbacks
 function M.container.run(image, opts)
   return run_with_container("run", function(instance, func)
-    func(instance, image, opts)
+    return func(instance, image, opts)
   end)
 end
 
@@ -144,7 +144,7 @@ end
 ---@param opts ContainerExecOpts Additional options including callbacks
 function M.container.exec(container_id, opts)
   return run_with_container("exec", function(instance, func)
-    func(instance, container_id, opts)
+    return func(instance, container_id, opts)
   end)
 end
 
@@ -153,7 +153,7 @@ end
 ---@param opts ContainerStopOpts Additional options including callbacks
 function M.container.container_stop(containers, opts)
   return run_with_container("container_stop", function(instance, func)
-    func(instance, containers, opts)
+    return func(instance, containers, opts)
   end)
 end
 
@@ -162,7 +162,7 @@ end
 ---@param opts ContainerCommitOpts Additional options including callbacks
 function M.container.container_commit(container, opts)
   return run_with_container("container_commit", function(instance, func)
-    func(instance, container, opts)
+    return func(instance, container, opts)
   end)
 end
 
@@ -172,7 +172,7 @@ end
 ---@param opts ImageContainsOpts Additional options including callbacks
 function M.container.image_contains(parent_image, child_image, opts)
   return run_with_container("image_contains", function(instance, func)
-    func(instance, parent_image, child_image, opts)
+    return func(instance, parent_image, child_image, opts)
   end)
 end
 
@@ -181,7 +181,7 @@ end
 ---@param opts ImageRmOpts Additional options including callbacks
 function M.container.image_rm(images, opts)
   return run_with_container("image_rm", function(instance, func)
-    func(instance, images, opts)
+    return func(instance, images, opts)
   end)
 end
 
@@ -190,7 +190,7 @@ end
 ---@param opts ContainerRmOpts Additional options including callbacks
 function M.container.container_rm(containers, opts)
   return run_with_container("container_rm", function(instance, func)
-    func(instance, containers, opts)
+    return func(instance, containers, opts)
   end)
 end
 
@@ -198,7 +198,7 @@ end
 ---@param opts ContainerLsOpts Additional options including callbacks
 function M.container.container_ls(opts)
   return run_with_container("container_ls", function(instance, func)
-    func(instance, opts)
+    return func(instance, opts)
   end)
 end
 
@@ -209,7 +209,7 @@ M.compose = {}
 ---@param opts ComposeUpOpts Additional options including callbacks
 function M.compose.up(compose_file, opts)
   return run_with_compose("up", function(instance, func)
-    func(instance, compose_file, opts)
+    return func(instance, compose_file, opts)
   end)
 end
 
@@ -218,7 +218,7 @@ end
 ---@param opts ComposeDownOpts Additional options including callbacks
 function M.compose.down(compose_file, opts)
   return run_with_compose("down", function(instance, func)
-    func(instance, compose_file, opts)
+    return func(instance, compose_file, opts)
   end)
 end
 
@@ -228,7 +228,7 @@ end
 ---@param opts ComposeGetContainerIdOpts Additional options including callbacks
 function M.compose.get_container_id(compose_file, service, opts)
   return run_with_compose("get_container_id", function(instance, func)
-    func(instance, compose_file, service, opts)
+    return func(instance, compose_file, service, opts)
   end)
 end
 
