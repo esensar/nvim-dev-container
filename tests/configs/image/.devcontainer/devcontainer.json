@@ -1,0 +1,20 @@
+{
+  "name": "Your Definition Name Here (Community)",
+  // Update the 'image' property with your Docker image name.
+  "image": "debian",
+  // Or define build if using Dockerfile.
+  // "build": {
+  //     "dockerfile": "Dockerfile",
+  // [Optional] You can use build args to set options. e.g. 'VARIANT' below affects the image in the Dockerfile
+  //     "args": { "VARIANT: "buster" },
+  // }
+  // Or use docker-compose
+  // Update the 'dockerComposeFile' list if you have more compose files or use different names.
+  // "dockerComposeFile": "docker-compose.yml",
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  // "forwardPorts": [],
+  // Define mounts.
+  // "mounts": [ "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename} ,type=bind,consistency=delegated" ],
+  // Uncomment when using a ptrace-based debugger like C++, Go, and Rust
+  // "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
+}
