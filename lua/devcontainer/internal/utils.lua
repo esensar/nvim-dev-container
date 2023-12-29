@@ -20,7 +20,7 @@ end
 
 function M.get_image_cache_tag()
   local tag = plugin_config.workspace_folder_provider()
-  tag = string.gsub(tag, "[%/%s%-]", "")
+  tag = string.gsub(tag, "[%/%s%-%\\%:]", "")
   return "nvim_dev_container_" .. string.lower(tag)
 end
 
