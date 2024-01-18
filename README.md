@@ -12,6 +12,8 @@ Goal of this plugin is to provide functionality similar to VSCode's [remote cont
 
 **WORK IN PROGRESS**
 
+[![asciicast](https://asciinema.org/a/JFwfoaBQwYoR7f5w0GuFPZDj8.svg)](https://asciinema.org/a/JFwfoaBQwYoR7f5w0GuFPZDj8)
+
 ## Requirements
 
 - [NeoVim](https://neovim.io) version 0.9.0+ (previous versions may be supported, but are not tested - commands and autocommands will definitely fail)
