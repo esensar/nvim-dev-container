@@ -124,7 +124,7 @@ end
 ---@param opts ContainerRunOpts Additional options including callbacks
 function M:run(image, opts)
   local command = { "run", "-i", "-d" }
-  if opts.autoremove ~= false then
+  if opts.autoremove == true then
     table.insert(command, "--rm")
   end
 

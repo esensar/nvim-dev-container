@@ -113,7 +113,7 @@ function M.build(file, path, opts)
 end
 
 ---@class ContainerRunOpts
----@field autoremove? boolean automatically remove container after stopping - true by default
+---@field autoremove? boolean automatically remove container after stopping - false by default
 ---@field command string|table|nil command to run in container
 ---@field args? table list of additional arguments to run command
 ---@field on_success function(container_id) success callback taking the id of the started container - not invoked if tty

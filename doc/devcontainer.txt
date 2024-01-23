@@ -737,7 +737,7 @@ M.build({file}, {path?}, {opts})                  *devcontainer.container.build*
 ContainerRunOpts                       *devcontainer.container.ContainerRunOpts*
 
     Fields: ~
-        {autoremove?}  (boolean)           automatically remove container after stopping - true by default
+        {autoremove?}  (boolean)           automatically remove container after stopping - false by default
         {command}      (string|table|nil)  command to run in container
         {args?}        (table)             list of additional arguments to run command
         {on_success}   (function)
@@ -953,7 +953,7 @@ DevcontainerSetupOpts                       *devcontainer.DevcontainerSetupOpts*
         {workspace_folder_provider?}            (function)                     provides current workspace folder
         {terminal_handler?}                     (function)                     handles terminal command requests, useful for floating terminals and similar
         {devcontainer_json_template?}           (function)                     provides template for new .devcontainer.json files - returns table
-        {nvim_installation_commands_provider?}  (function)                     provides table of commands for installing neovim in container, depending on available binaries in the path and version provided to the command
+        {nvim_installation_commands_provider?}  (function)                     provides table of commands for installing neovim in container
         {generate_commands?}                    (boolean)                      can be set to false to prevent plugin from creating commands (true by default)
         {autocommands?}                         (DevcontainerAutocommandOpts)  can be set to enable autocommands, disabled by default
         {log_level?}                            (LogLevel)                     can be used to override library logging level
