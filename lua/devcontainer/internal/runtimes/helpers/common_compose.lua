@@ -21,7 +21,8 @@ local function run_current_compose_command(self, args, opts, onexit)
     local parts = vim.split(runtime, " ")
     runtime = parts[1]
     table.remove(parts, 1)
-    vim.list_extend(args, parts)
+    vim.list_extend(parts, args)
+    args = parts
   end
 
   opts = opts or {}
