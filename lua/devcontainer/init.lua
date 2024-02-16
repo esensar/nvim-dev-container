@@ -107,7 +107,7 @@ function M.setup(opts)
 
   configured = true
 
-  config.terminal_hander = opts.terminal_handler or config.terminal_handler
+  config.terminal_handler = opts.terminal_handler or config.terminal_handler
   config.devcontainer_json_template = opts.devcontainer_json_template or config.devcontainer_json_template
   config.nvim_installation_commands_provider = opts.nvim_installation_commands_provider
     or config.nvim_installation_commands_provider
