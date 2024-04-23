@@ -187,7 +187,7 @@ local function generate_run_command_args(data)
   end
   if data.overrideCommand then
     table.insert(run_args, "--entrypoint")
-    table.insert(run_args, "/bin/sh")
+    table.insert(run_args, "")
   end
   return run_args
 end
