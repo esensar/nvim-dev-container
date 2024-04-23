@@ -185,6 +185,10 @@ local function generate_run_command_args(data)
       table.insert(run_args, data.appPort)
     end
   end
+  if data.overrideCommand then
+    table.insert(run_args, "--entrypoint")
+    table.insert(run_args, "/bin/sh")
+  end
   return run_args
 end
 
