@@ -104,7 +104,7 @@ local function find_nearest_devcontainer_file_async(callback)
       return
     end
     last_ino = data.ino
-    local files = { ".devcontainer.json", ".devcontainer" .. u.path_sep .. "devcontainer.json" }
+    local files = { ".devcontainer.json", ".devcontainer" .. u.path_sep .. "devcontainer.json", "devcontainer.json" }
     local index = 1
     local function file_callback(_, file_data)
       if file_data then
@@ -138,7 +138,7 @@ local function find_nearest_devcontainer_file()
       error("No devcontainer files found!")
     end
     last_ino = data.ino
-    local files = { ".devcontainer.json", ".devcontainer" .. u.path_sep .. "devcontainer.json" }
+    local files = { ".devcontainer.json", ".devcontainer" .. u.path_sep .. "devcontainer.json", "devcontainer.json" }
 
     for _, file in pairs(files) do
       local path = directory .. u.path_sep .. file
