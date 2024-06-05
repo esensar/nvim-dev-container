@@ -285,6 +285,40 @@ function M.container_commit(container, opts)
   runtimes.container.container_commit(container, opts)
 end
 
+---@class ImageInspectOpts
+---@field format? string format passed to image inspect command
+---@field on_success? function() success callback
+---@field on_fail? function() failure callback
+
+---Inspect image status
+---@param image string id of image
+---@param opts ImageInspectOpts Additional options including callbacks
+---@usage [[
+---require("devcontainer.container").image_inspect(
+---  "some_id",
+---  { on_success = function(response) end, on_fail = function() end }
+---)
+---@usage ]]
+function M.image_inspect(image, opts)
+  vim.validate({
+    image = { image, "string" },
+  })
+  opts = opts or {}
+  v.validate_opts_with_callbacks(opts, {
+    format = "string",
+  })
+  opts.on_success = opts.on_success
+    or function(result)
+      vim.notify("Result of image_inspect(" .. image .. ") is " .. result .. "!")
+    end
+  opts.on_fail = opts.on_fail
+    or function()
+      vim.notify("Inspecting image " .. image .. " has failed!", vim.log.levels.ERROR)
+    end
+
+  runtimes.container.image_inspect(image, opts)
+end
+
 ---@class ImageContainsOpts
 ---@field on_success? function() success callback
 ---@field on_fail? function() failure callback

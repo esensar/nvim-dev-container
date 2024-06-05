@@ -166,6 +166,15 @@ function M.container.container_commit(container, opts)
   end)
 end
 
+---Inspect image
+---@param image string id of image
+---@param opts ImageInspectOpts Additional options including callbacks
+function M.container.image_inspect(image, opts)
+  return run_with_container("image_inspect", function(instance, func)
+    return func(instance, image, opts)
+  end)
+end
+
 ---Checks if image contains another image
 ---@param parent_image string id of image that should contain other image
 ---@param child_image string id of image that should be contained in the parent image

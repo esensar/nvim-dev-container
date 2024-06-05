@@ -267,13 +267,40 @@ function M:image_rm(images, opts)
   end)
 end
 
+---Inspect image using image inspect command
+---@param image string id of image
+---@param opts ImageInspectOpts Additional options including callbacks
+function M:image_inspect(image, opts)
+  local command = { "image", "inspect", image }
+  if opts.format ~= nil then
+    vim.list_extend(command, { "--format", opts.format })
+  end
+
+  local response = nil
+  run_with_current_runtime(self, command, {
+    stdout = function(_, data)
+      if data then
+        if opts.format ~= nil then
+          response = data
+        else
+          response = vim.json.decode(data)
+        end
+      end
+    end,
+  }, function(code, _)
+    if code == 0 then
+      opts.on_success(response)
+    else
+      opts.on_fail()
+    end
+  end)
+end
+
 ---Checks if image contains another image
 ---@param parent_image string id of image that should contain other image
 ---@param child_image string id of image that should be contained in the parent image
 ---@param opts ImageContainsOpts Additional options including callbacks
 function M:image_contains(parent_image, child_image, opts)
-  local parent_command = { "image", "inspect", parent_image, "--format", "{{.RootFS.Layers}}" }
-  local child_command = { "image", "inspect", child_image, "--format", "{{.RootFS.Layers}}" }
   local notified_error = false
   local notified_success = false
   local parent_done = false
@@ -317,30 +344,26 @@ function M:image_contains(parent_image, child_image, opts)
     end
   end
 
-  run_with_current_runtime(self, parent_command, {
-    stdout = function(_, data)
-      parent_layers = parse_layers(data)
-    end,
-  }, function(code, _)
-    if code == 0 then
+  local format = "{{.RootFS.Layers}}"
+
+  self:image_inspect(parent_image, {
+    format = format,
+    on_success = function(response)
+      parent_layers = parse_layers(response)
       parent_done = true
       notify_success()
-    else
-      notify_error()
-    end
-  end)
-  run_with_current_runtime(self, child_command, {
-    stdout = function(_, data)
-      child_layers = parse_layers(data)
     end,
-  }, function(code, _)
-    if code == 0 then
+    on_fail = notify_error,
+  })
+  self:image_inspect(child_image, {
+    format = format,
+    on_success = function(response)
+      child_layers = parse_layers(response)
       child_done = true
       notify_success()
-    else
-      notify_error()
-    end
-  end)
+    end,
+    on_fail = notify_error,
+  })
 end
 
 ---Removes passed containers
