@@ -561,4 +561,78 @@ describe("devcontainer.config_file.parse:", function()
       end)
     end)
   end)
+
+  describe("given containerWorkspaceFolder", function()
+    describe("container_workspace_folder_needs_fill", function()
+      it("should return true", function()
+        local config = {
+          containerEnv = {
+            WORKSPACE_DIR = "${containerWorkspaceFolder}",
+          },
+        }
+
+        assert.is_true(subject.container_workspace_folder_needs_fill(config))
+      end)
+    end)
+
+    describe("fill_container_workspace_folder", function()
+      it("should fill in placeholders with passed value", function()
+        local config = {
+          containerEnv = {
+            WORKSPACE_DIR = "${containerWorkspaceFolder}",
+            COMPLEX = "Dir is ${containerWorkspaceFolder}",
+          },
+        }
+
+        local result = subject.fill_container_workspace_folder(config, "/test_workspace")
+
+        assert.are.same("/test_workspace", result.containerEnv.WORKSPACE_DIR)
+        assert.are.same("Dir is /test_workspace", result.containerEnv.COMPLEX)
+      end)
+    end)
+  end)
+
+  describe("given containerWorkspaceFolderBasename", function()
+    describe("container_workspace_folder_needs_fill", function()
+      it("should return true", function()
+        local config = {
+          containerEnv = {
+            WORKSPACE_DIR = "${containerWorkspaceFolderBasename}",
+          },
+        }
+
+        assert.is_true(subject.container_workspace_folder_needs_fill(config))
+      end)
+    end)
+
+    describe("fill_container_workspace_folder", function()
+      it("should fill in placeholders with passed value", function()
+        local config = {
+          containerEnv = {
+            WORKSPACE_DIR = "${containerWorkspaceFolderBasename}",
+            COMPLEX = "Dir is ${containerWorkspaceFolderBasename}",
+          },
+        }
+
+        local result = subject.fill_container_workspace_folder(config, "/test_workspace/base")
+
+        assert.are.same("base", result.containerEnv.WORKSPACE_DIR)
+        assert.are.same("Dir is base", result.containerEnv.COMPLEX)
+      end)
+    end)
+  end)
+
+  describe("given no containerWorkspaceFolder mention", function()
+    describe("container_workspace_folder_needs_fill", function()
+      it("should return false", function()
+        local config = {
+          containerEnv = {
+            WORKSPACE_DIR = "hardcoded",
+          },
+        }
+
+        assert.is_not_true(subject.container_workspace_folder_needs_fill(config))
+      end)
+    end)
+  end)
 end)

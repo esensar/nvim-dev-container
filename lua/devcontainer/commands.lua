@@ -79,117 +79,139 @@ local function mount_to_string(mount)
   end
 end
 
-local function generate_run_command_args(data)
-  local run_args = generate_common_run_command_args(data)
-  if data.containerUser then
-    run_args = run_args or {}
-    table.insert(run_args, "--user")
-    table.insert(run_args, data.containerUser)
-  end
+local function generate_run_command_args(data, image, continuation)
+  local function fill_args_from_config_and_run()
+    local run_args = generate_common_run_command_args(data)
+    if data.containerUser then
+      run_args = run_args or {}
+      table.insert(run_args, "--user")
+      table.insert(run_args, data.containerUser)
+    end
 
-  local env_vars = nil
-  if data.containerEnv then
-    env_vars = env_vars or {}
-    env_vars = vim.tbl_extend("force", env_vars, data.containerEnv)
-  end
-  if plugin_config.container_env then
-    env_vars = env_vars or {}
-    env_vars = vim.tbl_extend("force", env_vars, plugin_config.container_env)
-  end
-  if env_vars then
-    run_args = run_args or {}
-    for k, v in pairs(env_vars) do
-      table.insert(run_args, "--env")
-      table.insert(run_args, k .. "=" .. v)
+    local env_vars = nil
+    if data.containerEnv then
+      env_vars = env_vars or {}
+      env_vars = vim.tbl_extend("force", env_vars, data.containerEnv)
     end
-  end
-  if data.workspaceFolder and data.workspaceMount then
-    -- if data.workspaceMount == nil or data.workspaceFolder == nil then
-    -- 	vim.notify("workspaceFolder and workspaceMount have to both be defined to be used!", vim.log.levels.WARN)
-    -- else
-    run_args = run_args or {}
-    table.insert(run_args, "--mount")
-    table.insert(run_args, mount_to_string(data.workspaceMount))
-    -- end
-  else
-    run_args = run_args or {}
-    table.insert(run_args, "--mount")
-    table.insert(run_args, "source=" .. plugin_config.workspace_folder_provider() .. ",target=/workspace,type=bind")
-  end
-  if data.mounts then
-    run_args = run_args or {}
-    for _, v in ipairs(data.mounts) do
-      table.insert(run_args, "--mount")
-      table.insert(run_args, mount_to_string(v))
+    if plugin_config.container_env then
+      env_vars = env_vars or {}
+      env_vars = vim.tbl_extend("force", env_vars, plugin_config.container_env)
     end
-  end
-  if plugin_config.always_mount then
-    run_args = run_args or {}
-    for _, v in ipairs(plugin_config.always_mount) do
-      table.insert(run_args, "--mount")
-      table.insert(run_args, mount_to_string(v))
-    end
-  end
-  if plugin_config.attach_mounts then
-    run_args = run_args or {}
-    local am = plugin_config.attach_mounts
-
-    local function build_mount(stdpath_location, options, target)
-      local bind_opts = nil
-      if options and #options > 0 then
-        bind_opts = table.concat(options, ",")
+    if env_vars then
+      run_args = run_args or {}
+      for k, v in pairs(env_vars) do
+        table.insert(run_args, "--env")
+        table.insert(run_args, k .. "=" .. v)
       end
-      local mount = {
-        "type=bind",
-        "source=" .. vim.fn.stdpath(stdpath_location),
-        "target=" .. target,
-      }
-      if bind_opts then
-        table.insert(mount, bind_opts)
-      end
-      return table.concat(mount, ",")
     end
-
-    local home_path
-    if data.remoteUser then
-      home_path = "/home/" .. data.remoteUser .. "/"
+    if data.workspaceFolder and data.workspaceMount then
+      -- if data.workspaceMount == nil or data.workspaceFolder == nil then
+      -- 	vim.notify("workspaceFolder and workspaceMount have to both be defined to be used!", vim.log.levels.WARN)
+      -- else
+      run_args = run_args or {}
+      table.insert(run_args, "--mount")
+      table.insert(run_args, mount_to_string(data.workspaceMount))
+      -- end
     else
-      home_path = "/root/"
-    end
-    if am.neovim_config and am.neovim_config.enabled then
+      run_args = run_args or {}
       table.insert(run_args, "--mount")
-      table.insert(run_args, build_mount("config", am.neovim_config.options, home_path .. ".config/nvim"))
+      table.insert(run_args, "source=" .. plugin_config.workspace_folder_provider() .. ",target=/workspace,type=bind")
     end
-    if am.neovim_data and am.neovim_data.enabled then
-      table.insert(run_args, "--mount")
-      table.insert(run_args, build_mount("data", am.neovim_data.options, home_path .. ".local/share/nvim"))
+    if data.mounts then
+      run_args = run_args or {}
+      for _, v in ipairs(data.mounts) do
+        table.insert(run_args, "--mount")
+        table.insert(run_args, mount_to_string(v))
+      end
     end
-    if am.neovim_state and am.neovim_state.enabled then
-      table.insert(run_args, "--mount")
-      table.insert(run_args, build_mount("state", am.neovim_state.options, home_path .. ".local/state/nvim"))
+    if plugin_config.always_mount then
+      run_args = run_args or {}
+      for _, v in ipairs(plugin_config.always_mount) do
+        table.insert(run_args, "--mount")
+        table.insert(run_args, mount_to_string(v))
+      end
     end
-  end
-  if data.runArgs then
-    run_args = run_args or {}
-    vim.list_extend(run_args, data.runArgs)
-  end
-  if data.appPort then
-    run_args = run_args or {}
-    if type(data.appPort) == "table" then
-      for _, v in ipairs(data.appPort) do
+    if plugin_config.attach_mounts then
+      run_args = run_args or {}
+      local am = plugin_config.attach_mounts
+
+      local function build_mount(stdpath_location, options, target)
+        local bind_opts = nil
+        if options and #options > 0 then
+          bind_opts = table.concat(options, ",")
+        end
+        local mount = {
+          "type=bind",
+          "source=" .. vim.fn.stdpath(stdpath_location),
+          "target=" .. target,
+        }
+        if bind_opts then
+          table.insert(mount, bind_opts)
+        end
+        return table.concat(mount, ",")
+      end
+
+      local home_path
+      if data.remoteUser then
+        home_path = "/home/" .. data.remoteUser .. "/"
+      else
+        home_path = "/root/"
+      end
+      if am.neovim_config and am.neovim_config.enabled then
+        table.insert(run_args, "--mount")
+        table.insert(run_args, build_mount("config", am.neovim_config.options, home_path .. ".config/nvim"))
+      end
+      if am.neovim_data and am.neovim_data.enabled then
+        table.insert(run_args, "--mount")
+        table.insert(run_args, build_mount("data", am.neovim_data.options, home_path .. ".local/share/nvim"))
+      end
+      if am.neovim_state and am.neovim_state.enabled then
+        table.insert(run_args, "--mount")
+        table.insert(run_args, build_mount("state", am.neovim_state.options, home_path .. ".local/state/nvim"))
+      end
+    end
+    if data.runArgs then
+      run_args = run_args or {}
+      vim.list_extend(run_args, data.runArgs)
+    end
+    if data.appPort then
+      run_args = run_args or {}
+      if type(data.appPort) == "table" then
+        for _, v in ipairs(data.appPort) do
+          table.insert(run_args, "--publish")
+          table.insert(run_args, v)
+        end
+      else
         table.insert(run_args, "--publish")
-        table.insert(run_args, v)
+        table.insert(run_args, data.appPort)
       end
-    else
-      table.insert(run_args, "--publish")
-      table.insert(run_args, data.appPort)
     end
+    if data.overrideCommand then
+      table.insert(run_args, "--entrypoint")
+      table.insert(run_args, "")
+    end
+    continuation(run_args)
   end
-  if data.overrideCommand then
-    table.insert(run_args, "--entrypoint")
-    table.insert(run_args, "")
+  if config_file.container_workspace_folder_needs_fill(data) then
+    if data.workspaceFolder or data.workspaceMount then
+      data = config_file.fill_container_workspace_folder(data, data.workspaceFolder)
+      fill_args_from_config_and_run()
+    else
+      container_utils.get_image_workspace(image, {
+        on_success = function(container_workspace_folder)
+          data = config_file.fill_container_workspace_folder(data, container_workspace_folder)
+          fill_args_from_config_and_run()
+        end,
+        on_fail = function()
+          vim.notify("Loading container workspace dir failed, continuing with default dir", vim.log.levels.WARN)
+          data = config_file.fill_container_workspace_folder(data, "/")
+          fill_args_from_config_and_run()
+        end,
+      })
+    end
+  else
+    fill_args_from_config_and_run()
   end
-  return run_args
 end
 
 local function generate_image_run_command(data)
@@ -430,16 +452,18 @@ function M.docker_image_run(callback)
       )
       return
     end
-    container_runtime.run(data.image, {
-      args = generate_run_command_args(data),
-      command = generate_image_run_command(data),
-      on_success = function(container_id)
-        on_success(data, container_id)
-      end,
-      on_fail = function()
-        vim.notify("Running image " .. data.image .. " failed!", vim.log.levels.ERROR)
-      end,
-    })
+    generate_run_command_args(data, data.image, function(run_command_args)
+      container_runtime.run(data.image, {
+        args = run_command_args,
+        command = generate_image_run_command(data),
+        on_success = function(container_id)
+          on_success(data, container_id)
+        end,
+        on_fail = function()
+          vim.notify("Running image " .. data.image .. " failed!", vim.log.levels.ERROR)
+        end,
+      })
+    end)
   end)
 end
 
@@ -582,37 +606,39 @@ end
 
 local function run_image_with_cache(data, image_id, attach, add_neovim, on_success)
   local function run_and_attach(image)
-    container_runtime.run(image, {
-      args = generate_run_command_args(data),
-      command = generate_image_run_command(data),
-      on_success = function(container_id)
-        -- Update image_id to original ID for later retrieval
-        local container = status.find_container({ image_id = image })
-        container.image_id = image_id
-        status.add_container(container)
-        run_docker_lifecycle_scripts(data, container_id)
-        local attach_and_notify = function()
-          run_lifecycle_host_command(data.postStartCommand)
-          if attach then
-            attach_to_container(data, container_id, "nvim", function()
+    generate_run_command_args(data, image, function(run_command_args)
+      container_runtime.run(image, {
+        args = run_command_args,
+        command = generate_image_run_command(data),
+        on_success = function(container_id)
+          -- Update image_id to original ID for later retrieval
+          local container = status.find_container({ image_id = image })
+          container.image_id = image_id
+          status.add_container(container)
+          run_docker_lifecycle_scripts(data, container_id)
+          local attach_and_notify = function()
+            run_lifecycle_host_command(data.postStartCommand)
+            if attach then
+              attach_to_container(data, container_id, "nvim", function()
+                on_success(data, image, container_id)
+              end)
+            else
               on_success(data, image, container_id)
-            end)
-          else
-            on_success(data, image, container_id)
+            end
           end
-        end
-        if add_neovim then
-          nvim.add_neovim(container_id, {
-            on_success = attach_and_notify,
-          })
-        else
-          attach_and_notify()
-        end
-      end,
-      on_fail = function()
-        vim.notify("Running built image (" .. image_id .. ") failed!", vim.log.levels.ERROR)
-      end,
-    })
+          if add_neovim then
+            nvim.add_neovim(container_id, {
+              on_success = attach_and_notify,
+            })
+          else
+            attach_and_notify()
+          end
+        end,
+        on_fail = function()
+          vim.notify("Running built image (" .. image_id .. ") failed!", vim.log.levels.ERROR)
+        end,
+      })
+    end)
   end
   local tag = u.get_image_cache_tag()
   container_runtime.image_contains(image_id, tag, {

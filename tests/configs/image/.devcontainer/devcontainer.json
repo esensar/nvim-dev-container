@@ -2,6 +2,10 @@
   "name": "Your Definition Name Here (Community)",
   // Update the 'image' property with your Docker image name.
   "image": "debian",
+  "containerEnv": {
+    "WORKSPACE_DIR": "${containerWorkspaceFolder}",
+    "PROMPT_COMMAND": "history -a"
+  },
   // Or define build if using Dockerfile.
   // "build": {
   //     "dockerfile": "Dockerfile",

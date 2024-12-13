@@ -212,7 +212,6 @@ local function sub_variables(config_string)
       return vim.env[part] or default
     end
   )
-  -- TODO: containerWorkspaceFolder support
   return config_string
 end
 
@@ -233,7 +232,7 @@ local function sub_container_env(config_string, env_map)
 end
 
 local function sub_variables_recursive(config_table)
-  if vim.tbl_islist(config_table) then
+  if vim.islist(config_table) then
     for i, v in ipairs(config_table) do
       if type(v) == "table" then
         config_table[i] = vim.tbl_deep_extend("force", config_table[i], sub_variables_recursive(v))
@@ -347,6 +346,57 @@ function M.fill_remote_env(remote_env, env_map)
     remote_env[k] = sub_container_env(v, env_map)
   end
   return remote_env
+end
+
+---Checks if configuration needs to have ${containerWorkspaceFolder}
+---and ${containerWorkspaceFolderBasename} values filled in
+---This can be used to prevent making needless calls to the container
+---@param  config_table table parsed config
+---@return boolean true if environment is required to fill out remoteEnv
+function M.container_workspace_folder_needs_fill(config_table)
+  vim.validate({
+    config_table = { config_table, "table" },
+  })
+
+  for k, v in pairs(config_table) do
+    if type(v) == "table" then
+      if M.container_workspace_folder_needs_fill(config_table[k]) then
+        return true
+      end
+    elseif type(v) == "string" then
+      if string.match(v, "${containerWorkspaceFolder}") or string.match(v, "${containerWorkspaceFolderBasename}") then
+        return true
+      end
+    end
+  end
+  return false
+end
+
+---Checks if configuration needs to have ${containerWorkspaceFolder}
+---and ${containerWorkspaceFolderBasename} values filled in
+---This can be used to prevent making needless calls to the container
+---@param  config_table table parsed config
+---@param  container_workspace_folder string workspace folder fetched from container
+---@return table new_config_table with filled in containerWorkspaceFolder
+function M.fill_container_workspace_folder(config_table, container_workspace_folder)
+  vim.validate({
+    config_table = { config_table, "table" },
+    container_workspace_folder = { container_workspace_folder, "string" },
+  })
+
+  for k, v in pairs(config_table) do
+    if type(v) == "table" then
+      config_table[k] =
+        vim.tbl_deep_extend("force", config_table[k], M.fill_container_workspace_folder(v, container_workspace_folder))
+    elseif type(v) == "string" then
+      local parts = vim.split(container_workspace_folder, u.path_sep)
+      local container_workspace_folder_basename = parts[#parts]
+      v = string.gsub(v, "${containerWorkspaceFolder}", container_workspace_folder)
+      v = string.gsub(v, "${containerWorkspaceFolderBasename}", container_workspace_folder_basename)
+      config_table[k] = v
+    end
+  end
+  return config_table
 end
 
 ---Return path of the nearest devcontainer.json file
