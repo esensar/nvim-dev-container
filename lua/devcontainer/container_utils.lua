@@ -43,4 +43,30 @@ function M.get_container_env(container_id, opts)
     on_fail = on_fail,
   })
 end
+
+---@class ContainerUtilsGetContainerWorkspaceFolderOpts
+---@field on_success function(string) success callback with container workspace folder
+---@field on_fail function() failure callback
+
+---Returns workspace folder of passed image in success callback
+---Retrieved using image inspect
+---@param image_id string
+---@param opts? ContainerUtilsGetContainerWorkspaceFolderOpts
+function M.get_image_workspace(image_id, opts)
+  vim.validate({
+    image_id = { image_id, "string" },
+  })
+  opts = opts or {}
+  v.validate_callbacks(opts)
+
+  local on_success = opts.on_success or function(_) end
+  local on_fail = opts.on_fail or function() end
+
+  container_runtime.image_inspect(image_id, {
+    format = "{{.Config.WorkingDir}}",
+    on_success = on_success,
+    on_fail = on_fail,
+  })
+end
+
 return M
