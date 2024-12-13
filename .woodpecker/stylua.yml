@@ -1,8 +1,0 @@
-steps:
-  stylua:
-    image: fnichol/stylua
-    commands:
-      - stylua --check .
-
-when:
-  branch: main

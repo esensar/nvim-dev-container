@@ -1,0 +1,35 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  docs-test:
+    container:
+      image: alpine
+    steps:
+      - run: apk add neovim
+      - run: nvim --headless --noplugin -V1 -es -c "helptags doc"
+
+  luacheck:
+    container:
+      image: pipelinecomponents/luacheck
+    steps:
+      - run: luacheck .
+
+  stylua:
+    container:
+      image: fnichol/stylua
+    steps:
+      - run: stylua --check .
+
+  test:
+    container:
+      image: archlinux
+    commands:
+      - run: pacman -Sy git neovim
+      - run: git clone --depth 1 https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
+      - run: git clone --depth 1 https://github.com/nvim-treesitter/nvim-treesitter ~/.local/share/nvim/site/pack/vendor/start/nvim-treesitter
+      - run: ln -s "$(pwd)" ~/.local/share/nvim/site/pack/vendor/start
+      - run: scripts/test

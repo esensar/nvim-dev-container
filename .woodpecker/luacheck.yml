@@ -1,8 +1,0 @@
-steps:
-  luacheck:
-    image: pipelinecomponents/luacheck
-    commands:
-      - luacheck .
-
-when:
-  branch: main
