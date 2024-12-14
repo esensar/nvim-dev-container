@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run stylua
-        uses: https://github.com/JohnnyMorganz/stylua-action@4.0.0
+        uses: https://github.com/JohnnyMorganz/stylua-action@4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --check .
