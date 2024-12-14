@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install luacheck
-        run: sudo apt-get update -y && sudo apt-get install -y lua-check
+        run: apt-get update -y && apt-get install -y lua-check
       - name: Run luacheck
         run: luacheck .
 
