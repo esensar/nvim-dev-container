@@ -19,7 +19,6 @@ jobs:
         run: nvim --headless --noplugin -V1 -es -c "helptags doc"
 
   stylua:
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Run stylua
@@ -29,11 +28,10 @@ jobs:
           args: --check .
 
   luacheck:
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install luacheck
-        run: sudo apt-get install -y lua-check
+        run: sudo apt-get update -y && sudo apt-get install -y lua-check
       - name: Run luacheck
         run: luacheck .
 
