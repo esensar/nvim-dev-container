@@ -6,33 +6,27 @@ on:
 
 jobs:
   docs-test:
-    container:
-      image: alpine
     steps:
+      - run: apt-get install neovim
       - uses: actions/checkout@v4
-      - run: apk add neovim
       - run: nvim --headless --noplugin -V1 -es -c "helptags doc"
 
   luacheck:
-    container:
-      image: pipelinecomponents/luacheck
     steps:
+      - run: apt-get install lua-check
       - uses: actions/checkout@v4
       - run: luacheck .
 
   stylua:
-    container:
-      image: fnichol/stylua
     steps:
+      - run: apt-get install stylua
       - uses: actions/checkout@v4
       - run: stylua --check .
 
   test:
-    container:
-      image: archlinux
     commands:
+      - run: apt-get install neovim
       - uses: actions/checkout@v4
-      - run: pacman -Sy git neovim
       - uses: actions/checkout@v4
         repository: https://github.com/nvim-lua/plenary.nvim
         path: ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
