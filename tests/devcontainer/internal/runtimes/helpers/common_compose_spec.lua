@@ -7,7 +7,6 @@ describe("devcontainer.internal.runtimes.helpers.common_compose:", function()
     describe("up", function()
       it("should add runtime parts before arguments", function()
         local executor_mock = mock(exe, true)
-        ---@diagnostic disable-next-line: unused-local
         executor_mock.run_command = function(command, opts, _onexit)
           assert.are.same("docker", command)
           assert.are.same({ "compose", "-f", "docker-compose.yml", "up", "-d" }, opts.args)

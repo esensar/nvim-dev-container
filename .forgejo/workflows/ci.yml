@@ -1,59 +1,70 @@
 name: CI
+
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
 
+env:
+  STYLUA_VERSION: "v0.20.0"
+  LUACHECK_VERSION: "v1.2.0"
 
 jobs:
   docs-test:
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout nvim-dev-container
+        uses: actions/checkout@v4
       - name: Setup neovim
         uses: https://github.com/rhysd/action-setup-vim@v1
         with:
           neovim: true
-          version: ${{ matrix.neovim-version }}
+          version: stable
       - name: Test neovim docs
         run: nvim --headless --noplugin -V1 -es -c "helptags doc"
 
   stylua:
     steps:
-      - uses: actions/checkout@v4
-      - name: Run stylua
-        uses: https://github.com/JohnnyMorganz/stylua-action@4
+      - name: Checkout nvim-dev-container
+        uses: actions/checkout@v4
+      - name: Cache stylua
+        id: cache-stylua
+        uses: actions/cache@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --check .
+          path: stylua
+          key: ${{ runner.os }}-stylua-${{ env.STYLUA_VERSION }}
+      - name: Download stylua
+        if: steps.cache-stylua.outputs.cache-hit != 'true'
+        run: |
+          wget "https://github.com/JohnnyMorganz/StyLua/releases/download/${{ env.STYLUA_VERSION }}/stylua-linux-x86_64.zip" -O stylua.zip
+          unzip stylua.zip
+      - name: Run stylua
+        run: ./stylua --check .
 
   luacheck:
+    container:
+      image: ghcr.io/lunarmodules/luacheck:${{ env.LUACHECK_VERSION }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Install luacheck
-        run: apt-get update -y && apt-get install -y lua-check
+      - name: Install git
+        run: apk add --no-cache git
+      - name: Checkout nvim-dev-container
+        run: git clone "${{ github.server_url }}/${{ github.repository }}" .
       - name: Run luacheck
         run: luacheck .
 
   test:
-    strategy:
-      matrix:
-        neovim-version: [ 'stable', 'nightly' ]
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout nvim-dev-container
+        uses: actions/checkout@v4
       - name: Setup neovim
         uses: https://github.com/rhysd/action-setup-vim@v1
         with:
           neovim: true
-          version: ${{ matrix.neovim-version }}
+          version: stable
       - name: Checkout plenary
-        uses: actions/checkout@v4
-        repository: https://github.com/nvim-lua/plenary.nvim
-        path: ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
+        run: git clone https://github.com/nvim-lua/plenary.nvim ~/.local/share/nvim/site/pack/vendor/start/plenary.nvim
       - name: Checkout treesitter
-        uses: actions/checkout@v4
-        repository: https://github.com/nvim-treesitter/nvim-treesitter
-        path: ~/.local/share/nvim/site/pack/vendor/start/nvim-treesitter
+        run: git clone https://github.com/nvim-treesitter/nvim-treesitter ~/.local/share/nvim/site/pack/vendor/start/nvim-treesitter
       - name: Link plenary and treesitter
         run: ln -s "$(pwd)" ~/.local/share/nvim/site/pack/vendor/start
       - name: Run tests
