@@ -20,6 +20,7 @@ local M = {}
 ---@field container_id string id of the container
 ---@field image_id string id of the used image
 ---@field autoremove boolean true if this container was started with autoremove flag
+---@field workspace_dir? string overriden workspace folder for this container
 
 ---@class DevcontainerContainerQuery
 ---@field container_id? string id of the container
@@ -148,6 +149,7 @@ function M.add_container(container_status)
   if existing then
     existing.autoremove = container_status.autoremove
     existing.image_id = container_status.image_id
+    existing.workspace_dir = container_status.workspace_dir
     M.move_container_to_running(container_status.container_id)
   else
     table.insert(current_status.running_containers, container_status)

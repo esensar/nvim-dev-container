@@ -239,7 +239,12 @@ local function generate_exec_command_args(container_id, data, continuation)
     -- else
     exec_args = exec_args or {}
     table.insert(exec_args, "--workdir")
-    table.insert(exec_args, data.workspaceFolder)
+    local container = status.find_container({ container_id = container_id })
+    if container and container.workspace_dir then
+      table.insert(exec_args, container.workspace_dir)
+    else
+      table.insert(exec_args, data.workspaceFolder)
+    end
     -- end
   end
 
@@ -549,7 +554,7 @@ local function run_docker_lifecycle_script(script, data, container_id)
       script,
     }
   end
-  if not vim.tbl_islist(script) and type(script) == "table" then
+  if not vim.islist(script) and type(script) == "table" then
     for _, v in ipairs(script) do
       run_docker_lifecycle_script(v, data, container_id)
     end
@@ -580,7 +585,7 @@ local function run_lifecycle_host_command(host_command)
   if host_command then
     local args = {}
     local command = host_command
-    if vim.tbl_islist(command) then
+    if vim.islist(command) then
       command = command[1]
       args = { unpack(host_command, 2) }
     elseif type(command) == "table" then
@@ -612,7 +617,7 @@ local function run_image_with_cache(data, image_id, attach, add_neovim, on_succe
         command = generate_image_run_command(data),
         on_success = function(container_id)
           -- Update image_id to original ID for later retrieval
-          local container = status.find_container({ image_id = image })
+          local container = status.find_container({ container_id = container_id })
           container.image_id = image_id
           status.add_container(container)
           run_docker_lifecycle_scripts(data, container_id)

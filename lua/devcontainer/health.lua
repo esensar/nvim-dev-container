@@ -8,50 +8,25 @@ local executor = require("devcontainer.internal.executor")
 
 return {
   check = function()
-    local start
-    if vim.fn.has("nvim-0.10") == 1 then
-      start = vim.health.start
+    vim.health.start("Neovim version")
+
+    if vim.fn.has("nvim-0.11") == 0 then
+      vim.health.warn("Latest Neovim version is recommended for full feature set!")
     else
-      start = vim.health.report_start
-    end
-    local warn
-    if vim.fn.has("nvim-0.10") == 1 then
-      warn = vim.health.warn
-    else
-      warn = vim.health.report_warn
-    end
-    local ok
-    if vim.fn.has("nvim-0.10") == 1 then
-      ok = vim.health.ok
-    else
-      ok = vim.health.report_ok
-    end
-    local error
-    if vim.fn.has("nvim-0.10") == 1 then
-      error = vim.health.error
-    else
-      error = vim.health.report_error
+      vim.health.ok("Neovim version tested and supported: " .. vim_version_string())
     end
 
-    start("Neovim version")
-
-    if vim.fn.has("nvim-0.10") == 0 then
-      warn("Latest Neovim version is recommended for full feature set!")
-    else
-      ok("Neovim version tested and supported: " .. vim_version_string())
-    end
-
-    start("Required plugins")
+    vim.health.start("Required plugins")
 
     local has_jsonc, jsonc_info = pcall(vim.treesitter.language.inspect, "jsonc")
 
     if not has_jsonc then
-      error("Jsonc treesitter parser missing! devcontainer.json files parsing will fail!")
+      vim.health.error("Jsonc treesitter parser missing! devcontainer.json files parsing will fail!")
     else
-      ok("Jsonc treesitter parser available. ABI version: " .. jsonc_info._abi_version)
+      vim.health.ok("Jsonc treesitter parser available. ABI version: " .. jsonc_info._abi_version)
     end
 
-    start("External dependencies")
+    vim.health.start("External dependencies")
 
     if config.container_runtime ~= nil then
       if executor.is_executable(config.container_runtime) then
@@ -59,10 +34,10 @@ return {
         if handle ~= nil then
           local version = handle:read("*a")
           handle:close()
-          ok(version)
+          vim.health.ok(version)
         end
       else
-        error(config.container_runtime .. " is not executable. Make sure it is installed!")
+        vim.health.error(config.container_runtime .. " is not executable. Make sure it is installed!")
       end
     else
       local runtimes = { "podman", "docker" }
@@ -74,12 +49,12 @@ return {
           if handle ~= nil then
             local version = handle:read("*a")
             handle:close()
-            ok("Found " .. executable .. ": " .. version)
+            vim.health.ok("Found " .. executable .. ": " .. version)
           end
         end
       end
       if not has_any then
-        error("No container runtime is available! Install either podman or docker!")
+        vim.health.error("No container runtime is available! Install either podman or docker!")
       end
     end
 
@@ -89,10 +64,12 @@ return {
         if handle ~= nil then
           local version = handle:read("*a")
           handle:close()
-          ok(version)
+          vim.health.ok(version)
         end
       else
-        error(config.compose_command .. " is not executable! It is required for full functionality of this plugin!")
+        vim.health.error(
+          config.compose_command .. " is not executable! It is required for full functionality of this plugin!"
+        )
       end
     else
       local compose_runtimes = { "podman-compose", "docker-compose", "docker compose" }
@@ -104,12 +81,12 @@ return {
           if handle ~= nil then
             local version = handle:read("*a")
             handle:close()
-            ok("Found " .. executable .. ": " .. version)
+            vim.health.ok("Found " .. executable .. ": " .. version)
           end
         end
       end
       if not has_any then
-        error("No compose tool is available! Install either podman-compose or docker-compose!")
+        vim.health.error("No compose tool is available! Install either podman-compose or docker-compose!")
       end
     end
   end,

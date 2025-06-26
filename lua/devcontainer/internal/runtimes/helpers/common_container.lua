@@ -69,6 +69,7 @@ function M:build(file, path, opts)
 
   vim.list_extend(command, opts.args or {})
 
+  local runtime = tostring(self.runtime) or config.container_runtime
   local build_status = {
     build_title = "Dockerfile: " .. file,
     progress = 0,
@@ -76,7 +77,7 @@ function M:build(file, path, opts)
     current_step = 0,
     image_id = nil,
     source_dockerfile = file,
-    build_command = table.concat(vim.list_extend({ config.container_runtime }, command), " "),
+    build_command = table.concat(vim.list_extend({ runtime }, command), " "),
     commands_run = {},
     running = true,
   }
@@ -182,8 +183,9 @@ function M:exec(container_id, opts)
     end
   end
 
+  local runtime = tostring(self.runtime) or config.container_runtime
   if opts.tty then
-    (opts.terminal_handler or config.terminal_handler)(vim.list_extend({ config.container_runtime }, command))
+    (opts.terminal_handler or config.terminal_handler)(vim.list_extend({ runtime }, command))
   else
     local run_opts = nil
     local captured = nil
@@ -422,7 +424,8 @@ function M:container_ls(opts)
       end
     end)
   else
-    table.insert(command, 1, config.container_runtime)
+    local runtime = tostring(self.runtime) or config.container_runtime
+    table.insert(command, 1, runtime)
     local code, result = exe.run_command_sync(command)
     if code == 0 then
       parse_and_store_containers(result)

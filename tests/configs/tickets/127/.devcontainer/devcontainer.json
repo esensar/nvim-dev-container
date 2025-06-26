@@ -1,0 +1,7 @@
+{
+	"name": "Python environment",
+	"image": "docker.io/debian:bookworm-slim",
+	"features": {
+		"ghcr.io/devcontainers/features/python:1": {}
+	}
+}

@@ -8,6 +8,7 @@
 local log = require("devcontainer.internal.log")
 local exe = require("devcontainer.internal.executor")
 local config = require("devcontainer.config")
+local status = require("devcontainer.status")
 
 local M = {}
 
@@ -29,6 +30,11 @@ local function run_with_current_runtime(args, opts, onexit)
         end
         if opts.stderr then
           opts.stderr(err, data)
+        end
+      end),
+      stdout = vim.schedule_wrap(function(err, data)
+        if opts.stdout then
+          opts.stdout(err, data)
         end
       end),
     }),
@@ -57,41 +63,26 @@ end
 ---@param opts ContainerRunOpts Additional options including callbacks
 function M:run(_, opts)
   local _ = self
+  local container_id = nil
+  local workspace_dir = nil
   local command = { "--workspace-folder", config.workspace_folder_provider(), "up" }
-  run_with_current_runtime(command, {}, function(code, _)
-    if code == 0 then
-      opts.on_success("")
-    else
-      opts.on_fail()
-    end
-  end)
-end
-
----Run command on a container using devcontainer cli
----@param _ string container to exec on - ignored - using workspace folder
----@param opts ContainerExecOpts Additional options including callbacks
-function M:exec(_, opts)
-  local _ = self
-  local command = { "--workspace-folder", config.workspace_folder_provider(), "exec" }
-  vim.list_extend(command, opts.args or {})
-  local run_opts = nil
-  local captured = nil
-  if opts.capture_output then
-    run_opts = {
-      stdout = function(_, data)
-        if data then
-          captured = data
-        end
-      end,
-    }
-  end
-  run_with_current_runtime(command, run_opts, function(code, _)
-    if code == 0 then
-      if opts.capture_output then
-        opts.on_success(captured)
-      else
-        opts.on_success(nil)
+  run_with_current_runtime(command, {
+    stdout = function(_, data)
+      if data then
+        local decoded = vim.json.decode(data)
+        container_id = decoded["containerId"]
+        workspace_dir = decoded["remoteWorkspaceFolder"]
       end
+    end,
+  }, function(code, _)
+    if code == 0 then
+      status.add_container({
+        image_id = "devcontainer-custom",
+        container_id = container_id,
+        workspace_dir = workspace_dir,
+        autoremove = opts.autoremove,
+      })
+      opts.on_success(container_id)
     else
       opts.on_fail()
     end

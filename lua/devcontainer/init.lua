@@ -67,7 +67,7 @@ function M.setup(opts)
     cache_images = "boolean",
     attach_mounts = "table",
     always_mount = function(t)
-      return t == nil or vim.tbl_islist(t)
+      return t == nil or vim.islist(t)
     end,
   })
   if opts.autocommands then
@@ -88,7 +88,7 @@ function M.setup(opts)
     local mount_opts_mapping = {
       enabled = "boolean",
       options = function(t)
-        return t == nil or vim.tbl_islist(t)
+        return t == nil or vim.islist(t)
       end,
     }
 

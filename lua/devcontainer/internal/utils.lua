@@ -8,7 +8,7 @@ function M.add_constructor(table)
   table.new = function(extras)
     local new_instance = {}
     setmetatable(new_instance, { __index = table })
-    if extras and type(extras) == "table" and not vim.tbl_islist(extras) then
+    if extras and type(extras) == "table" and not vim.islist(extras) then
       for k, v in pairs(extras) do
         new_instance[k] = v
       end

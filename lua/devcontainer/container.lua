@@ -75,7 +75,7 @@ function M.build(file, path, opts)
   v.validate_opts_with_callbacks(opts, {
     tag = "string",
     args = function(x)
-      return x == nil or vim.tbl_islist(x)
+      return x == nil or vim.islist(x)
     end,
   })
   opts.on_success = opts.on_success
@@ -134,7 +134,7 @@ function M.run(image, opts)
     command = { "string", "table" },
     autoremove = "boolean",
     args = function(x)
-      return vim.tbl_islist(x)
+      return vim.islist(x)
     end,
   })
   opts.on_success = opts.on_success or function(_)
@@ -188,7 +188,7 @@ function M.exec(container_id, opts)
     capture_output = "boolean",
     terminal_handler = "function",
     args = function(x)
-      return x == nil or vim.tbl_islist(x)
+      return x == nil or vim.islist(x)
     end,
   })
   opts.on_success = opts.on_success
