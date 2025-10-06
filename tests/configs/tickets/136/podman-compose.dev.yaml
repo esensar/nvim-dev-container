@@ -1,0 +1,23 @@
+services:
+  dev:
+    build:
+      context: .devcontainer/
+      dockerfile: Containerfile
+    container_name: dev
+    volumes:
+      - .:/workspace:cached
+    env_file: .dev.env
+    ports:
+      - "0.0.0.0:8000:8000"
+    command: sleep infinity
+  bev:
+    build:
+      context: .devcontainer/
+      dockerfile: Containerfile
+    container_name: bev
+    volumes:
+      - .:/workspace:cached
+    env_file: .dev.env
+    ports:
+      - "0.0.0.0:8001:8001"
+    command: sleep infinity

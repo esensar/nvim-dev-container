@@ -1,0 +1,7 @@
+{
+	"name": "Developer Container",
+	"dockerComposeFile": "../podman-compose.dev.yaml",
+	"service": "dev",
+	"shutdownAction": "stopCompose",
+	"workspaceFolder": "/workspace"
+}
