@@ -23,7 +23,7 @@ return {
     if not has_jsonc then
       vim.health.error("Jsonc treesitter parser missing! devcontainer.json files parsing will fail!")
     else
-      vim.health.ok("Jsonc treesitter parser available. ABI version: " .. jsonc_info._abi_version)
+      vim.health.ok("Jsonc treesitter parser available. ABI version: " .. jsonc_info.abi_version)
     end
 
     vim.health.start("External dependencies")
