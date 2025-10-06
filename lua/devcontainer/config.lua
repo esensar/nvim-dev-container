@@ -157,6 +157,12 @@ M.cache_images = true
 ---@type function
 M.nvim_installation_commands_provider = default_nvim_installation_commands_provider
 
+---Can be set to true to install neovim as root
+---This is usually not required,
+---but if default container user can't run commands defined in M.nvim_installation_commands_provider this is required
+---@type boolean
+M.nvim_install_as_root = false
+
 ---Provides template for creating new .devcontainer.json files
 ---This function should return a table listing lines of the file
 ---@type function

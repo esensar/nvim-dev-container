@@ -6,6 +6,7 @@ local compose_runtime = require("devcontainer.compose")
 local container_runtime = require("devcontainer.container")
 local nvim = require("devcontainer.internal.nvim")
 local container_utils = require("devcontainer.container_utils")
+local config = require("devcontainer.config")
 local config_file = require("devcontainer.config_file.parse")
 local log = require("devcontainer.internal.log")
 local status = require("devcontainer.status")
@@ -514,6 +515,7 @@ local function attach_to_container(data, container_id, command, on_success)
                   end
                 end)
               end,
+              install_as_root = config.nvim_install_as_root,
             })
           end
         end)
@@ -634,6 +636,7 @@ local function run_image_with_cache(data, image_id, attach, add_neovim, on_succe
           if add_neovim then
             nvim.add_neovim(container_id, {
               on_success = attach_and_notify,
+              install_as_root = config.nvim_install_as_root,
             })
           else
             attach_and_notify()

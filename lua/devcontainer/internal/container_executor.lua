@@ -13,6 +13,7 @@ local runtimes = require("devcontainer.internal.runtimes")
 ---@field on_success function() success callback
 ---@field on_step function(step) step success callback
 ---@field on_fail function() failure callback
+---@field exec_args? table list of additional arguments to exec command
 
 ---Run all passed commands sequentially on the container
 ---If any of them fail, on_fail callback will be called immediately
@@ -27,7 +28,12 @@ function M.run_all_seq(container_id, commands, opts)
   })
   opts = opts or {}
   v.validate_callbacks(opts)
-  v.validate_opts(opts, { on_step = "function" })
+  v.validate_opts(opts, {
+    on_step = "function",
+    args = function(x)
+      return x == nil or vim.islist(x)
+    end,
+  })
   opts.on_success = opts.on_success
     or function()
       vim.notify("Successfully ran commands (" .. vim.inspect(commands) .. ") on container (" .. container_id .. ")")
@@ -57,6 +63,7 @@ function M.run_all_seq(container_id, commands, opts)
       index = index + 1
       runtimes.container.exec(container_id, {
         command = commands[index],
+        args = opts.exec_args,
         on_success = on_success_step,
         on_fail = opts.on_fail,
       })

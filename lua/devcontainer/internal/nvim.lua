@@ -18,6 +18,7 @@ local container_runtime = require("devcontainer.container")
 ---@field on_step? function(step) step success callback
 ---@field on_fail? function() failure callback
 ---@field version? string version of neovim to use - current version by default
+---@field install_as_root? boolean can be set to true to run installation as root
 
 ---Adds neovim to passed container using exec
 ---@param container_id string id of container to add neovim to
@@ -29,6 +30,7 @@ function M.add_neovim(container_id, opts)
   })
   opts = opts or {}
   v.validate_callbacks(opts)
+  v.validate_opts(opts, { version = "string", install_as_root = "boolean" })
   opts.on_success = opts.on_success
     or function()
       vim.notify("Successfully added neovim to container (" .. container_id .. ")")
@@ -56,6 +58,10 @@ function M.add_neovim(container_id, opts)
     }
     local current_step = 0
     status.add_build(build_status)
+    local exec_args = nil
+    if opts.install_as_root then
+      exec_args = { "-u", "0" }
+    end
 
     container_executor.run_all_seq(container_id, commands, {
       on_success = function()
@@ -77,6 +83,7 @@ function M.add_neovim(container_id, opts)
         opts.on_step(step)
       end,
       on_fail = opts.on_fail,
+      exec_args = exec_args,
     })
   end
 
