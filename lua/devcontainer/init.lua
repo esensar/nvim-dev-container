@@ -59,6 +59,7 @@ function M.setup(opts)
     terminal_handler = "function",
     devcontainer_json_template = "function",
     nvim_installation_commands_provider = "function",
+    nvim_install_as_root = "boolean",
     generate_commands = "boolean",
     autocommands = "table",
     log_level = "string",
