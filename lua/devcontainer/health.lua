@@ -10,6 +10,9 @@ return {
   check = function()
     vim.health.start("Neovim version")
 
+    if vim.fn.has("nvim-0.12") == 0 then
+      vim.health.warn("Latest Neovim version (0.12+) is required for improved attach command!")
+    end
     if vim.fn.has("nvim-0.11") == 0 then
       vim.health.warn("Latest Neovim version is recommended for full feature set!")
     else

@@ -16,6 +16,9 @@ local executor = require("devcontainer.internal.executor")
 
 local M = {}
 
+local sockets_dir = vim.fn.tempname()
+vim.fn.mkdir(sockets_dir)
+
 local function get_nearest_devcontainer_config(callback)
   config_file.parse_nearest_devcontainer_config(vim.schedule_wrap(function(err, data)
     if err then
@@ -132,6 +135,11 @@ local function generate_run_command_args(data, image, continuation)
         table.insert(run_args, mount_to_string(v))
       end
     end
+
+    -- mount dir for neovim attaching
+    table.insert(run_args, "--mount")
+    table.insert(run_args, "source=" .. sockets_dir .. ",target=/tmp/nvim-dev-container,type=bind")
+
     if plugin_config.attach_mounts then
       run_args = run_args or {}
       local am = plugin_config.attach_mounts
@@ -476,15 +484,36 @@ end
 local function attach_to_container(data, container_id, command, on_success)
   local function attach()
     generate_exec_command_args(container_id, data, function(args)
-      container_runtime.exec(container_id, {
-        tty = true,
-        command = command,
-        args = args,
-        on_success = on_success,
-        on_fail = function()
-          vim.notify("Attaching to container (" .. container_id .. ") failed!", vim.log.levels.ERROR)
-        end,
-      })
+      if command == "nvim" and vim.fn.has("nvim-0.12") then
+        container_runtime.exec(container_id, {
+          tty = false,
+          command = {
+            "nvim",
+            "--headless",
+            "--listen",
+            "/tmp/nvim-dev-container/" .. u.get_image_cache_tag() .. ".sock",
+          },
+          args = args,
+          on_success = function() end,
+          on_fail = function()
+            vim.notify("Attaching to container (" .. container_id .. ") failed!", vim.log.levels.ERROR)
+          end,
+        })
+        vim.cmd("sleep 1")
+        vim.cmd("connect " .. sockets_dir .. "/" .. u.get_image_cache_tag() .. ".sock")
+        vim.notify("Connected to Neovim in container! Use :detach to disconnect and go back to host neovim!")
+        on_success()
+      else
+        container_runtime.exec(container_id, {
+          tty = true,
+          command = command,
+          args = args,
+          on_success = on_success,
+          on_fail = function()
+            vim.notify("Attaching to container (" .. container_id .. ") failed!", vim.log.levels.ERROR)
+          end,
+        })
+      end
     end)
   end
   if command == "nvim" then
