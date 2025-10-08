@@ -312,7 +312,7 @@ function M:image_contains(parent_image, child_image, opts)
 
   local function parse_layers(data)
     if data then
-      local cleaned = string.gsub(data, "[%[%]]", "")
+      local cleaned = string.gsub(data, "[%[%]%\n]", "")
       return vim.split(cleaned, " ")
     else
       return {}

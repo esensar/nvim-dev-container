@@ -649,7 +649,7 @@ local function run_image_with_cache(data, image_id, attach, add_neovim, on_succe
     end)
   end
   local tag = u.get_image_cache_tag()
-  container_runtime.image_contains(image_id, tag, {
+  container_runtime.image_contains(tag, image_id, {
     on_success = function(contains)
       if contains then
         run_and_attach(tag)
