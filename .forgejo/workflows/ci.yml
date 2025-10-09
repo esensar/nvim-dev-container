@@ -12,6 +12,7 @@ env:
 
 jobs:
   docs-test:
+    runs-on: codeberg-tiny
     steps:
       - name: Checkout nvim-dev-container
         uses: actions/checkout@v4
@@ -24,6 +25,7 @@ jobs:
         run: nvim --headless --noplugin -V1 -es -c "helptags doc"
 
   stylua:
+    runs-on: codeberg-tiny
     steps:
       - name: Checkout nvim-dev-container
         uses: actions/checkout@v4
@@ -42,6 +44,7 @@ jobs:
         run: ./stylua --check .
 
   luacheck:
+    runs-on: codeberg-tiny
     container:
       image: ghcr.io/lunarmodules/luacheck:${{ env.LUACHECK_VERSION }}
     steps:
@@ -53,6 +56,7 @@ jobs:
         run: luacheck .
 
   test:
+    runs-on: codeberg-tiny
     steps:
       - name: Checkout nvim-dev-container
         uses: actions/checkout@v4
