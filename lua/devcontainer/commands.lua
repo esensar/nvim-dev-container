@@ -163,6 +163,8 @@ local function generate_run_command_args(data, image, continuation)
       local home_path
       if data.remoteUser then
         home_path = "/home/" .. data.remoteUser .. "/"
+      elseif data.containerUser then
+        home_path = "/home/" .. data.containerUser .. "/"
       else
         home_path = "/root/"
       end
@@ -241,6 +243,10 @@ local function generate_exec_command_args(container_id, data, continuation)
     exec_args = exec_args or {}
     table.insert(exec_args, "--user")
     table.insert(exec_args, data.remoteUser)
+  elseif data.containerUser then
+    exec_args = exec_args or {}
+    table.insert(exec_args, "--user")
+    table.insert(exec_args, data.containerUser)
   end
   if data.workspaceFolder or data.workspaceMount then
     -- if data.workspaceMount == nil or data.workspaceFolder == nil then
