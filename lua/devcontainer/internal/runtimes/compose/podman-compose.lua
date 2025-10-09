@@ -55,6 +55,7 @@ end
 ---@param service string service name
 ---@param opts ComposeGetContainerIdOpts Additional options including callbacks
 function M:get_container_id(compose_file, service, opts)
+  local _ = self
   local command = get_compose_files_command(compose_file)
   vim.list_extend(command, { "ps", "--format", '{{ if eq .Names "' .. service .. '" }}{{.ID}}{{ else }}{{ end }}' })
   local container_id = nil
