@@ -549,6 +549,33 @@ M.fill_remote_env({remote_env}, {env_map})
         (table)  with replaced containerEnv values
 
 
+          *devcontainer.config_file.parse.container_workspace_folder_needs_fill*
+M.container_workspace_folder_needs_fill({config_table})
+    Checks if configuration needs to have ${containerWorkspaceFolder}
+    and ${containerWorkspaceFolderBasename} values filled in
+    This can be used to prevent making needless calls to the container
+
+    Parameters: ~
+        {config_table}  (table)  parsed config
+
+    Returns: ~
+        (boolean)  if environment is required to fill out remoteEnv
+
+
+                *devcontainer.config_file.parse.fill_container_workspace_folder*
+M.fill_container_workspace_folder({config_table}, {container_workspace_folder})
+    Checks if configuration needs to have ${containerWorkspaceFolder}
+    and ${containerWorkspaceFolderBasename} values filled in
+    This can be used to prevent making needless calls to the container
+
+    Parameters: ~
+        {config_table}                (table)   parsed config
+        {container_workspace_folder}  (string)  workspace folder fetched from container
+
+    Returns: ~
+        (table)  with filled in containerWorkspaceFolder
+
+
                *devcontainer.config_file.parse.find_nearest_devcontainer_config*
 M.find_nearest_devcontainer_config({callback?})
     Return path of the nearest devcontainer.json file
@@ -626,6 +653,15 @@ M.nvim_installation_commands_provider
 
     Type: ~
         (function)
+
+
+M.nvim_install_as_root                *devcontainer.config.nvim_install_as_root*
+    Can be set to true to install neovim as root
+    This is usually not required,
+    but if default container user can't run commands defined in M.nvim_installation_commands_provider this is required
+
+    Type: ~
+        (boolean)
 
 
                                 *devcontainer.config.devcontainer_json_template*
@@ -827,6 +863,29 @@ M.container_commit({container}, {opts})*devcontainer.container.container_commit*
 <
 
 
+ImageInspectOpts                       *devcontainer.container.ImageInspectOpts*
+
+    Fields: ~
+        {format?}      (string)    format passed to image inspect command
+        {on_success?}  (function)
+
+
+M.image_inspect({image}, {opts})          *devcontainer.container.image_inspect*
+    Inspect image status
+
+    Parameters: ~
+        {image}  (string)            id of image
+        {opts}   (ImageInspectOpts)  Additional options including callbacks
+
+    Usage: ~
+>lua
+        require("devcontainer.container").image_inspect(
+          "some_id",
+          { on_success = function(response) end, on_fail = function() end }
+        )
+<
+
+
 ImageContainsOpts                     *devcontainer.container.ImageContainsOpts*
 
     Fields: ~
@@ -933,6 +992,23 @@ M.get_container_env({container_id}, {opts?})
         {opts?}         (ContainerUtilsGetContainerEnvOpts)
 
 
+    *devcontainer.container-utils.ContainerUtilsGetContainerWorkspaceFolderOpts*
+ContainerUtilsGetContainerWorkspaceFolderOpts
+
+    Fields: ~
+        {on_success}  (function)
+
+
+                              *devcontainer.container-utils.get_image_workspace*
+M.get_image_workspace({image_id}, {opts?})
+    Returns workspace folder of passed image in success callback
+    Retrieved using image inspect
+
+    Parameters: ~
+        {image_id}  (string)
+        {opts?}     (ContainerUtilsGetContainerWorkspaceFolderOpts)
+
+
 ==============================================================================
 Main devcontainer module - used to setup the plugin               *devcontainer*
 
@@ -954,6 +1030,7 @@ DevcontainerSetupOpts                       *devcontainer.DevcontainerSetupOpts*
         {terminal_handler?}                     (function)                     handles terminal command requests, useful for floating terminals and similar
         {devcontainer_json_template?}           (function)                     provides template for new .devcontainer.json files - returns table
         {nvim_installation_commands_provider?}  (function)                     provides table of commands for installing neovim in container
+        {nvim_install_as_root?}                 (boolean)                      can be set to true to install neovim as root in container - usually not required
         {generate_commands?}                    (boolean)                      can be set to false to prevent plugin from creating commands (true by default)
         {autocommands?}                         (DevcontainerAutocommandOpts)  can be set to enable autocommands, disabled by default
         {log_level?}                            (LogLevel)                     can be used to override library logging level
@@ -1000,9 +1077,10 @@ DevcontainerImageQuery
 DevcontainerContainerStatus
 
     Fields: ~
-        {container_id}  (string)   id of the container
-        {image_id}      (string)   id of the used image
-        {autoremove}    (boolean)  true if this container was started with autoremove flag
+        {container_id}    (string)   id of the container
+        {image_id}        (string)   id of the used image
+        {autoremove}      (boolean)  true if this container was started with autoremove flag
+        {workspace_dir?}  (string)   overriden workspace folder for this container
 
 
                                 *devcontainer.status.DevcontainerContainerQuery*
