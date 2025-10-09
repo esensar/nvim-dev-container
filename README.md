@@ -16,7 +16,7 @@ Goal of this plugin is to provide functionality similar to VSCode's [remote cont
 
 ## Requirements
 
-- [NeoVim](https://neovim.io) version 0.10.0+ (previous versions may be supported, but are not tested - commands and autocommands will definitely fail)
+- [NeoVim](https://neovim.io) version 0.12.0+ (previous versions may be supported, but are not tested - commands and autocommands will definitely fail and attaching will resort to terminal buffer instead of Neovim client/server mode)
 - [nvim-treesitter](https://github.com/nvim-treesitter/nvim-treesitter) with included `jsonc` parser (or manually installed jsonc parser)
 
 ## Installation
