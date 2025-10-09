@@ -8,7 +8,6 @@ on:
 
 env:
   STYLUA_VERSION: "v0.20.0"
-  LUACHECK_VERSION: "v1.2.0"
 
 jobs:
   docs-test:
@@ -46,7 +45,7 @@ jobs:
   luacheck:
     runs-on: codeberg-tiny
     container:
-      image: ghcr.io/lunarmodules/luacheck:${{ env.LUACHECK_VERSION }}
+      image: ghcr.io/lunarmodules/luacheck:v1.2.0
     steps:
       - name: Install git
         run: apk add --no-cache git
