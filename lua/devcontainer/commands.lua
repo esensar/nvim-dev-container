@@ -489,7 +489,7 @@ end
 local function attach_to_container(data, container_id, command, on_success)
   local function attach()
     generate_exec_command_args(container_id, data, function(args)
-      if command == "nvim" and vim.fn.has("nvim-0.12") then
+      if command == "nvim" and vim.fn.has("nvim-0.12") == 1 then
         container_runtime.exec(container_id, {
           tty = false,
           command = {
