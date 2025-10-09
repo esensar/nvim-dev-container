@@ -71,6 +71,9 @@ require("devcontainer").setup {
     -- Each command can either be a string or a table (list of command parts)
     -- Takes binaries available in path on current container and version_string passed to the command or current version of neovim
   end,
+  -- Can be set to true to install neovim as root in container
+  -- Usually not required, but could help if permission errors occur during install
+  nvim_install_as_root = false,
   devcontainer_json_template = function()
     -- Returns table - list of lines to set when creating new devcontainer.json files
     -- As a template
