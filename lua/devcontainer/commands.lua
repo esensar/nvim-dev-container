@@ -658,7 +658,10 @@ local function run_image_with_cache(data, image_id, attach, add_neovim, on_succe
           status.add_container(container)
           run_docker_lifecycle_scripts(data, container_id)
           local attach_and_notify = function()
-            run_lifecycle_host_command(data.postStartCommand)
+            -- Run postStartCommand in container, not on host
+            if data.postStartCommand then
+              run_docker_lifecycle_script(data.postStartCommand, data, container_id)
+            end
             if attach then
               attach_to_container(data, container_id, "nvim", function()
                 on_success(data, image, container_id)
@@ -780,11 +783,32 @@ function M.start_auto(callback, attach)
       compose_runtime.up(data.dockerComposeFile, {
         args = generate_compose_up_command_args(data),
         on_success = function()
-          run_lifecycle_host_command(data.postStartCommand)
-          if attach then
-            attach_to_compose_service(data, on_success)
+          -- Run postStartCommand in container for compose setup
+          if data.postStartCommand then
+            get_compose_service_container_id(data, function(container_id)
+              -- Need to fill container workspace folder variable before running command
+              if config_file.container_workspace_folder_needs_fill(data) then
+                if data.workspaceFolder then
+                  data = config_file.fill_container_workspace_folder(data, data.workspaceFolder)
+                  run_docker_lifecycle_script(data.postStartCommand, data, container_id)
+                else
+                  run_docker_lifecycle_script(data.postStartCommand, data, container_id)
+                end
+              else
+                run_docker_lifecycle_script(data.postStartCommand, data, container_id)
+              end
+              if attach then
+                attach_to_compose_service(data, on_success)
+              else
+                on_success(data)
+              end
+            end)
           else
-            on_success(data)
+            if attach then
+              attach_to_compose_service(data, on_success)
+            else
+              on_success(data)
+            end
           end
         end,
         on_fail = function()
