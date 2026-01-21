@@ -8,10 +8,10 @@ local log = require("devcontainer.internal.log")
 local M = {}
 
 local function clean_jsonc(jsonc_content)
-  local parser = vim.treesitter.get_string_parser(jsonc_content, "jsonc")
+  local parser = vim.treesitter.get_string_parser(jsonc_content, "json")
   local tree = parser:parse()
   local root = tree[1]:root()
-  local query = vim.treesitter.query.parse("jsonc", "((comment)+ @c)")
+  local query = vim.treesitter.query.parse("json", "((comment)+ @c)")
   local lines = vim.split(jsonc_content, "\n")
 
   ---@diagnostic disable-next-line: missing-parameter

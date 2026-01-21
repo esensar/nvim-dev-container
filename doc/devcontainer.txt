@@ -454,7 +454,7 @@ Jsonc parsing module                            *devcontainer.config_file.jsonc*
 
 Vim supports Json parsing by default, but devcontainer config files are Jsonc.
 This module supports Jsonc parsing by removing comments and then parsing as Json.
-Treesitter is used for this and jsonc parser needs to be installed.
+Treesitter is used for this and json parser needs to be installed.
 
                                     *devcontainer.config_file.jsonc.parse_jsonc*
 M.parse_jsonc({jsonc_content})
