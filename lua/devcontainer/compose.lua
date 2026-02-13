@@ -18,9 +18,7 @@ local M = {}
 ---@param opts ComposeUpOpts Additional options including callbacks
 ---@usage `require("devcontainer.compose").up("docker-compose.yml")`
 function M.up(compose_file, opts)
-  vim.validate({
-    compose_file = { compose_file, { "string", "table" } },
-  })
+  vim.validate("compose_file", compose_file, { "string", "table" })
   opts = opts or {}
   v.validate_callbacks(opts)
   opts.on_success = opts.on_success
@@ -44,9 +42,7 @@ end
 ---@param opts ComposeDownOpts Additional options including callbacks
 ---@usage `require("devcontainer.compose").down("docker-compose.yml")`
 function M.down(compose_file, opts)
-  vim.validate({
-    compose_file = { compose_file, { "string", "table" } },
-  })
+  vim.validate("compose_file", compose_file, { "string", "table" })
   opts = opts or {}
   v.validate_callbacks(opts)
   opts.on_success = opts.on_success
@@ -76,10 +72,8 @@ end
 ---)
 ---@usage ]]
 function M.get_container_id(compose_file, service, opts)
-  vim.validate({
-    compose_file = { compose_file, { "string", "table" } },
-    service = { service, "string" },
-  })
+  vim.validate("compose_file", compose_file, { "string", "table" })
+  vim.validate("service", service, "string")
   opts = opts or {}
   v.validate_callbacks(opts)
   opts.on_success = opts.on_success

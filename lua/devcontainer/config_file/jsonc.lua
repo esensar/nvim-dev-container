@@ -38,9 +38,7 @@ end
 ---@return table?
 ---@usage `require("devcontainer.config_file.jsonc").parse_jsonc([[{ "test": "value" }]])`
 function M.parse_jsonc(jsonc_content)
-  vim.validate({
-    jsonc_content = { jsonc_content, "string" },
-  })
+  vim.validate("jsonc_content", jsonc_content, "string")
   local clean_content = clean_jsonc(jsonc_content)
   return vim.json.decode(clean_content)
 end

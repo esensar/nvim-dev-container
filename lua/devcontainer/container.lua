@@ -30,10 +30,8 @@ end
 ---@param opts ContainerPullOpts Additional options including callbacks
 ---@usage `require("devcontainer.container").pull("alpine", { on_success = function() end, on_fail = function() end})`
 function M.pull(image, opts)
-  vim.validate({
-    image = { image, "string" },
-    opts = { opts, { "table", "nil" } },
-  })
+  vim.validate("image", image, "string")
+  vim.validate("opts", opts, { "table", "nil" })
   opts = opts or {}
   v.validate_callbacks(opts)
   opts.on_success = opts.on_success or function()
@@ -65,11 +63,9 @@ end
 ---)
 ---@usage ]]
 function M.build(file, path, opts)
-  vim.validate({
-    file = { file, "string" },
-    path = { path, { "string", "nil" } },
-    opts = { opts, { "table", "nil" } },
-  })
+  vim.validate("file", file, "string")
+  vim.validate("path", path, { "string", "nil" })
+  vim.validate("opts", opts, { "table", "nil" })
   path = path or vim.lsp.buf.list_workspace_folders()[1]
   opts = opts or {}
   v.validate_opts_with_callbacks(opts, {
@@ -125,10 +121,8 @@ end
 ---@param opts ContainerRunOpts Additional options including callbacks
 ---@usage `require("devcontainer.container").run("alpine", { on_success = function(id) end, on_fail = function() end })`
 function M.run(image, opts)
-  vim.validate({
-    image = { image, "string" },
-    opts = { opts, { "table", "nil" } },
-  })
+  vim.validate("image", image, "string")
+  vim.validate("opts", opts, { "table", "nil" })
   opts = opts or {}
   v.validate_opts_with_callbacks(opts, {
     command = { "string", "table" },
@@ -177,10 +171,8 @@ end
 ---)
 ---@usage]]
 function M.exec(container_id, opts)
-  vim.validate({
-    container_id = { container_id, "string" },
-    opts = { opts, { "table", "nil" } },
-  })
+  vim.validate("container_id", container_id, "string")
+  vim.validate("opts", opts, { "table", "nil" })
   opts = opts or {}
   v.validate_opts_with_callbacks(opts, {
     command = { "string", "table" },
@@ -220,9 +212,7 @@ end
 ---)
 ---@usage ]]
 function M.container_stop(containers, opts)
-  vim.validate({
-    containers = { containers, "table" },
-  })
+  vim.validate("containers", containers, "table")
   opts = opts or {}
   v.validate_callbacks(opts)
   local user_on_success = opts.on_success or function()
@@ -259,9 +249,7 @@ end
 ---)
 ---@usage ]]
 function M.container_commit(container, opts)
-  vim.validate({
-    container = { container, "string" },
-  })
+  vim.validate("container", container, "string")
   opts = opts or {}
   v.validate_callbacks(opts)
   v.validate_opts(opts, { tag = { "string", "nil" } })
@@ -300,9 +288,7 @@ end
 ---)
 ---@usage ]]
 function M.image_inspect(image, opts)
-  vim.validate({
-    image = { image, "string" },
-  })
+  vim.validate("image", image, "string")
   opts = opts or {}
   v.validate_opts_with_callbacks(opts, {
     format = "string",
@@ -335,10 +321,8 @@ end
 ---)
 ---@usage ]]
 function M.image_contains(parent_image, child_image, opts)
-  vim.validate({
-    parent_image = { parent_image, "string" },
-    child_image = { child_image, "string" },
-  })
+  vim.validate("parent_image", parent_image, "string")
+  vim.validate("child_image", child_image, "string")
   opts = opts or {}
   v.validate_callbacks(opts)
   opts.on_success = opts.on_success
@@ -371,9 +355,7 @@ end
 ---)
 ---@usage]]
 function M.image_rm(images, opts)
-  vim.validate({
-    images = { images, "table" },
-  })
+  vim.validate("images", images, "table")
   opts = opts or {}
   v.validate_callbacks(opts)
   opts.on_success = opts.on_success or function()
@@ -411,9 +393,7 @@ end
 ---)
 ---@usage]]
 function M.container_rm(containers, opts)
-  vim.validate({
-    containers = { containers, "table" },
-  })
+  vim.validate("containers", containers, "table")
   opts = opts or {}
   v.validate_callbacks(opts)
   opts.on_success = opts.on_success or function()

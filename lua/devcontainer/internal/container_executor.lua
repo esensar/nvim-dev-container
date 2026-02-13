@@ -21,11 +21,9 @@ local runtimes = require("devcontainer.internal.runtimes")
 ---@param commands table[string] commands to run on the container
 ---@param opts? RunAllOpts Additional options including callbacks
 function M.run_all_seq(container_id, commands, opts)
-  vim.validate({
-    container_id = { container_id, "string" },
-    commands = { commands, "table" },
-    opts = { opts, { "table", "nil" } },
-  })
+  vim.validate("container_id", container_id, "string")
+  vim.validate("commands", commands, "table")
+  vim.validate("opts", opts, { "table", "nil" })
   opts = opts or {}
   v.validate_callbacks(opts)
   v.validate_opts(opts, {

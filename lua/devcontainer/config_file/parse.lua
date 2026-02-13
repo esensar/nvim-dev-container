@@ -72,10 +72,8 @@ end
 ---@return table? result or nil if running async
 ---@usage `require("devcontainer.config_file.parse").parse_devcontainer_config([[{ "image": "test" }]])`
 function M.parse_devcontainer_config(config_file_path, callback)
-  vim.validate({
-    config_file_path = { config_file_path, "string" },
-    callback = { callback, { "function", "nil" } },
-  })
+  vim.validate("config_file_path", config_file_path, "string")
+  vim.validate("callback", callback, { "function", "nil" })
   if callback then
     readFileAsync(
       config_file_path,
@@ -178,9 +176,7 @@ end
 ---@return table? result or nil if running async
 ---@usage `require("devcontainer.config_file.parse").parse_nearest_devcontainer_config()`
 function M.parse_nearest_devcontainer_config(callback)
-  vim.validate({
-    callback = { callback, { "function", "nil" } },
-  })
+  vim.validate("callback", callback, { "function", "nil" })
   if callback then
     return find_nearest_devcontainer_file_async(function(err, data)
       if err then
@@ -258,9 +254,7 @@ end
 ---@param config_file table parsed config
 ---@return table config with filled defaults and absolute paths
 function M.fill_defaults(config_file)
-  vim.validate({
-    config_file = { config_file, "table" },
-  })
+  vim.validate("config_file", config_file, "table")
 
   local file_path = config_file.metadata.file_path
   local components = vim.split(file_path, u.path_sep)
@@ -318,9 +312,7 @@ end
 ---@param remote_env table remoteEnv property of parsed config
 ---@return boolean true if environment is required to fill out remoteEnv
 function M.remote_env_needs_fill(remote_env)
-  vim.validate({
-    remote_env = { remote_env, "table" },
-  })
+  vim.validate("remote_env", remote_env, "table")
 
   for _, v in pairs(remote_env) do
     if string.match(v, "${containerEnv:[a-zA-Z_]+[a-zA-Z0-9_]*:?[a-zA-Z_]*[a-zA-Z0-9_]*}") then
@@ -337,10 +329,8 @@ end
 ---@param env_map table map of container environment
 ---@return table remoteEnv with replaced containerEnv values
 function M.fill_remote_env(remote_env, env_map)
-  vim.validate({
-    remote_env = { remote_env, "table" },
-    env_map = { env_map, "table" },
-  })
+  vim.validate("remote_env", remote_env, "table")
+  vim.validate("env_map", env_map, "table")
 
   for k, v in pairs(remote_env) do
     remote_env[k] = sub_container_env(v, env_map)
@@ -354,9 +344,7 @@ end
 ---@param  config_table table parsed config
 ---@return boolean true if environment is required to fill out remoteEnv
 function M.container_workspace_folder_needs_fill(config_table)
-  vim.validate({
-    config_table = { config_table, "table" },
-  })
+  vim.validate("config_table", config_table, "table")
 
   for k, v in pairs(config_table) do
     if type(v) == "table" then
@@ -379,10 +367,8 @@ end
 ---@param  container_workspace_folder string workspace folder fetched from container
 ---@return table new_config_table with filled in containerWorkspaceFolder
 function M.fill_container_workspace_folder(config_table, container_workspace_folder)
-  vim.validate({
-    config_table = { config_table, "table" },
-    container_workspace_folder = { container_workspace_folder, "string" },
-  })
+  vim.validate("config_table", config_table, "table")
+  vim.validate("container_workspace_folder", container_workspace_folder, "string")
 
   for k, v in pairs(config_table) do
     if type(v) == "table" then
@@ -407,9 +393,7 @@ end
 ---@return string? result or nil if running async
 ---@usage `require("devcontainer.config_file.parse").find_nearest_devcontainer_config()`
 function M.find_nearest_devcontainer_config(callback)
-  vim.validate({
-    callback = { callback, { "function", "nil" } },
-  })
+  vim.validate("callback", callback, { "function", "nil" })
   if callback then
     find_nearest_devcontainer_file_async(callback)
     return nil

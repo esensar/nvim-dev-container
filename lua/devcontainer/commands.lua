@@ -314,9 +314,7 @@ end
 ---@param callback? function called on success - parsed devcontainer config is passed to the callback
 ---@usage `require("devcontainer.commands").compose_up()`
 function M.compose_up(callback)
-  vim.validate({
-    callback = { callback, { "function", "nil" } },
-  })
+  vim.validate("callback", callback, { "function", "nil" })
 
   local on_success = callback
     or function(config)
@@ -348,9 +346,7 @@ end
 ---@param callback? function called on success - parsed devcontainer config is passed to the callback
 ---@usage `require("devcontainer.commands").compose_down()`
 function M.compose_down(callback)
-  vim.validate({
-    callback = { callback, { "function", "nil" } },
-  })
+  vim.validate("callback", callback, { "function", "nil" })
 
   local on_success = callback
     or function(config)
@@ -381,9 +377,7 @@ end
 ---@param callback? function called on success - parsed devcontainer config is passed to the callback
 ---@usage `require("devcontainer.commands").compose_rm()`
 function M.compose_rm(callback)
-  vim.validate({
-    callback = { callback, { "function", "nil" } },
-  })
+  vim.validate("callback", callback, { "function", "nil" })
 
   local on_success = callback
     or function(config)
@@ -414,9 +408,7 @@ end
 ---@param callback? function called on success - parsed devcontainer config and image id are passed to the callback
 ---@usage `require("devcontainer.commands").docker_build()`
 function M.docker_build(callback)
-  vim.validate({
-    callback = { callback, { "function", "nil" } },
-  })
+  vim.validate("callback", callback, { "function", "nil" })
 
   local on_success = callback
     or function(config, image_id)
@@ -447,9 +439,7 @@ end
 ---@param callback? function called on success - devcontainer config and container id are passed to the callback
 ---@usage `require("devcontainer.commands").docker_image_run()`
 function M.docker_image_run(callback)
-  vim.validate({
-    callback = { callback, { "function", "nil" } },
-  })
+  vim.validate("callback", callback, { "function", "nil" })
 
   local on_success = callback
     or function(config, container_id)
@@ -741,9 +731,7 @@ end
 ---@param callback? function called on success - devcontainer config and container id are passed to the callback
 ---@usage `require("devcontainer.commands").docker_build_and_run()`
 function M.docker_build_and_run(callback)
-  vim.validate({
-    callback = { callback, { "function", "nil" } },
-  })
+  vim.validate("callback", callback, { "function", "nil" })
 
   execute_docker_build_and_run(callback, false)
 end
@@ -753,9 +741,7 @@ end
 ---@param callback? function called on success - devcontainer config and container id are passed to the callback
 ---@usage `require("devcontainer.commands").docker_build_run_and_attach()`
 function M.docker_build_run_and_attach(callback)
-  vim.validate({
-    callback = { callback, { "function", "nil" } },
-  })
+  vim.validate("callback", callback, { "function", "nil" })
 
   execute_docker_build_and_run(callback, true)
 end
@@ -768,9 +754,7 @@ end
 ---@param attach? boolean if true, automatically attach after starting
 ---@usage `require("devcontainer.commands").start_auto()`
 function M.start_auto(callback, attach)
-  vim.validate({
-    callback = { callback, { "function", "nil" } },
-  })
+  vim.validate("callback", callback, { "function", "nil" })
 
   local on_success = callback
     or function(config)
@@ -841,11 +825,9 @@ end
 ---@param callback? function called on success - devcontainer config is passed to the callback
 ---@usage `require("devcontainer.commands").attach_auto()`
 function M.attach_auto(target, command, callback)
-  vim.validate({
-    target = { target, "string" },
-    command = { command, { "string", "table" } },
-    callback = { callback, { "function", "nil" } },
-  })
+  vim.validate("target", target, "string")
+  vim.validate("command", command, { "string", "table" })
+  vim.validate("callback", callback, { "function", "nil" })
 
   local on_success = callback
     or function(config)
@@ -904,11 +886,9 @@ end
 ---@param callback? function called on success - devcontainer config is passed to the callback
 ---@usage `require("devcontainer.commands").exec("devcontainer", "ls", { on_success = function(result) end })`
 function M.exec(target, command, callback)
-  vim.validate({
-    target = { target, "string" },
-    command = { command, { "string", "table" } },
-    callback = { callback, { "function", "nil" } },
-  })
+  vim.validate("target", target, "string")
+  vim.validate("command", command, { "string", "table" })
+  vim.validate("callback", callback, { "function", "nil" })
 
   local on_success = callback
     or function(result)
@@ -987,9 +967,7 @@ end
 ---@param callback? function called on success - devcontainer config is passed to the callback
 ---@usage `require("devcontainer.commands").stop_auto()`
 function M.stop_auto(callback)
-  vim.validate({
-    callback = { callback, { "function", "nil" } },
-  })
+  vim.validate("callback", callback, { "function", "nil" })
 
   local on_success = callback
     or function(config)
@@ -1050,9 +1028,7 @@ end
 ---@param callback? function called on success
 ---@usage `require("devcontainer.commands").stop_all()`
 function M.stop_all(callback)
-  vim.validate({
-    callback = { callback, { "function", "nil" } },
-  })
+  vim.validate("callback", callback, { "function", "nil" })
 
   local on_success = callback or function()
     vim.notify("Successfully stopped all services!")
@@ -1098,9 +1074,7 @@ end
 ---@param callback? function called on success
 ---@usage `require("devcontainer.commands").remove_all()`
 function M.remove_all(callback)
-  vim.validate({
-    callback = { callback, { "function", "nil" } },
-  })
+  vim.validate("callback", callback, { "function", "nil" })
 
   local on_success = callback or function()
     vim.notify("Successfully removed all containers and images!")

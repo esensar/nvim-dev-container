@@ -17,9 +17,7 @@ local M = {}
 ---@param container_id string
 ---@param opts? ContainerUtilsGetContainerEnvOpts
 function M.get_container_env(container_id, opts)
-  vim.validate({
-    container_id = { container_id, "string" },
-  })
+  vim.validate("container_id", container_id, { "string" })
   opts = opts or {}
   v.validate_callbacks(opts)
 
@@ -53,9 +51,7 @@ end
 ---@param image_id string
 ---@param opts? ContainerUtilsGetContainerWorkspaceFolderOpts
 function M.get_image_workspace(image_id, opts)
-  vim.validate({
-    image_id = { image_id, "string" },
-  })
+  vim.validate("image_id", image_id, { "string" })
   opts = opts or {}
   v.validate_callbacks(opts)
 

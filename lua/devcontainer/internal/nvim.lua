@@ -24,10 +24,8 @@ local container_runtime = require("devcontainer.container")
 ---@param container_id string id of container to add neovim to
 ---@param opts? AddNeovimOpts Additional options including callbacks
 function M.add_neovim(container_id, opts)
-  vim.validate({
-    container_id = { container_id, "string" },
-    opts = { opts, { "table", "nil" } },
-  })
+  vim.validate("container_id", container_id, "string")
+  vim.validate("opts", opts, { "table", "nil" })
   opts = opts or {}
   v.validate_callbacks(opts)
   v.validate_opts(opts, { version = "string", install_as_root = "boolean" })

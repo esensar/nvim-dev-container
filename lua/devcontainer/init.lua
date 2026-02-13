@@ -49,9 +49,7 @@ function M.setup(opts)
     return
   end
 
-  vim.validate({
-    opts = { opts, "table" },
-  })
+  vim.validate("opts", opts, "table")
   opts = opts or {}
   v.validate_opts(opts, {
     config_search_start = "function",
