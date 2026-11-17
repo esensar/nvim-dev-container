@@ -1,5 +1,10 @@
 # devcontainer
 
+> [!CAUTION]
+> This plugin is no longer maintained.  
+> I no longer use NeoVim and I therefore have even less motivation to work on this. Since the project didn't really have other contributors, I didn't have anybody else to leave as a maintainer.  
+> Anyone is free to fork it and maintain it.
+
 [![Dotfyle](https://dotfyle.com/plugins/esensar/nvim-dev-container/shield)](https://dotfyle.com/plugins/esensar/nvim-dev-container)
 [![License](https://img.shields.io/badge/license-MIT-brightgreen)](/LICENSE)
 [![status-badge](https://ci.codeberg.org/api/badges/8585/status.svg)](https://ci.codeberg.org/repos/8585)
